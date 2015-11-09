@@ -31,6 +31,12 @@ public class CTransPayload extends CPayload
         // Message
         public CMesDetails mes=null;
         
+        // OTP old pass
+        public String otp_old_pass="";
+        
+        // OTP new hash
+        public String otp_new_hash="";
+        
         
 	public CTransPayload(String src, 
                              String dest, 
@@ -38,7 +44,7 @@ public class CTransPayload extends CPayload
                              String cur, 
                              String escrower, 
                              String otp_old_pass, 
-                             String otp_new_pass)
+                             String otp_new_hash)
         {
            // Constructo
            super(src);
@@ -58,12 +64,20 @@ public class CTransPayload extends CPayload
            // Escrower
            this.escrower=escrower;
            
+           // OTP old password
+           this.otp_old_pass=otp_old_pass;
+           
+           // OTP new hash
+           this.otp_new_hash=otp_new_hash;
+           
 	   hash=UTILS.BASIC.hash(this.getHash()+
-				    this.src+
-                                    this.dest+
-                                    UTILS.FORMAT.format(this.amount)+
-                                    this.cur+
-                                    this.escrower);
+				 this.src+
+                                 this.dest+
+                                 UTILS.FORMAT.format(this.amount)+
+                                 this.cur+
+                                 this.escrower+
+                                 this.otp_old_pass+
+                                 this.otp_new_hash);
             
 	    // Sign
 	    this.sign();
@@ -80,6 +94,8 @@ public class CTransPayload extends CPayload
                                  UTILS.FORMAT.format(this.amount)+
                                  this.cur+
                                  this.escrower+
+                                 this.otp_old_pass+
+                                 this.otp_new_hash+
                                  this.mes.hash);
 		   
 	    // Sign
@@ -124,21 +140,25 @@ public class CTransPayload extends CPayload
             if (this.mes!=null)
             {
                 h=UTILS.BASIC.hash(this.getHash()+
-				 this.src+
-                                 this.dest+
-                                 UTILS.FORMAT.format(this.amount)+
-                                 this.cur+
-                                 this.escrower+
-                                 this.mes.hash);
+				   this.src+
+                                   this.dest+
+                                   UTILS.FORMAT.format(this.amount)+
+                                   this.cur+
+                                   this.escrower+
+                                   this.otp_old_pass+
+                                   this.otp_new_hash+
+                                   this.mes.hash);
             }
             else
             {
                h=UTILS.BASIC.hash(this.getHash()+
-				 this.src+
-                                 this.dest+
-                                 UTILS.FORMAT.format(this.amount)+
-                                 this.cur+
-                                 this.escrower);
+				  this.src+
+                                  this.dest+
+                                  UTILS.FORMAT.format(this.amount)+
+                                  this.cur+
+                                  this.escrower+
+                                  this.otp_old_pass+
+                                  this.otp_new_hash);
             }
             
             // Check hash
@@ -162,7 +182,37 @@ public class CTransPayload extends CPayload
 	        if (!UTILS.BASIC.adressValid(this.escrower))
 	        	return new CResult(false, "Invalid escrower.", "CTransPayload", 77);
 	    }
-	    	
+	    
+            // OTP ?
+            if (UTILS.BASIC.hasAttr(this.src, "ID_OTP"))
+            {
+                // Load data
+                ResultSet rs=s.executeQuery("SELECT * "
+                                            + "FROM adr_options "
+                                           + "WHERE adr='"+this.src+"' "
+                                             + "AND op_type='ID_OTP'");
+                
+                // Next
+                rs.next();
+                
+                // Old hash
+                String old_hash=rs.getString("par_1");
+                
+                // Emergency address
+                String em_adr=rs.getString("par_2");
+                
+                // Destination not emergency address ?
+                if (!this.dest.equals(em_adr))
+                {
+                    // Password hash
+                    String pass_hash=UTILS.BASIC.hash(this.otp_old_pass);
+                    
+                    // Match ?
+                    if (!pass_hash.equals(old_hash))
+                        return new CResult(false, "Invalid OTP pass", "CTransPayload", 77);
+                }   
+            }
+            
 	    // Check source balance
             double balance=UTILS.NETWORK.TRANS_POOL.getBalance(this.src, this.cur);
 	    if (balance<this.amount)
@@ -391,6 +441,13 @@ public class CTransPayload extends CPayload
                       UTILS.DB.executeUpdate("UPDATE web_users "
                                               + "SET unread_trans=unread_trans+1 "
                                             + "WHERE ID='"+UTILS.BASIC.getAdrUserID(this.dest)+"' ");
+                      
+                      // OTP
+                      if (!this.otp_new_hash.equals(""))
+                          UTILS.DB.executeUpdate("UPDATE adr_options "
+                                                  + "SET par_1='"+this.otp_new_hash+"' "
+                                                + "WHERE adr='"+this.src+"' "
+                                                  + "AND op_type='ID_OTP'");
                    }
                    else
                    {

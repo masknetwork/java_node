@@ -22,7 +22,7 @@ public class COTPPayload extends CPayload
 	public long days;
 	
    public COTPPayload(String target_adr, 
-		      String next_pass,
+		      String next_hash,
 		      String def_address,
 		      long days)
    {
@@ -39,7 +39,7 @@ public class COTPPayload extends CPayload
 	   this.target_adr=target_adr;
 	   
 	   // Next hash
-	   this.next_hash=next_pass;
+	   this.next_hash=next_hash;
 	   
 	   // Days
 	   this.days=days;
@@ -94,8 +94,8 @@ public class COTPPayload extends CPayload
 	  	   	             "ID_OTP", 
 	  	   	             this.days*1440+this.block, 
 	  	   		     UTILS.BASIC.block(), 
-	  	   	             "", 
-	  	   		     "", 
+	  	   	             this.next_hash, 
+	  	   		     this.def_address, 
 	  	   	             "",
 	  	   		     "",
                                      "",
