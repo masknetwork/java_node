@@ -81,6 +81,7 @@ public class CClosePosPayload extends CPayload
           
           // Debit market address
           UTILS.BASIC.newTrans(mkt_adr, 
+                               order_adr,
                                -pay,
                                true,
                                mkt_cur, 
@@ -91,6 +92,7 @@ public class CClosePosPayload extends CPayload
          
           // Credit owner address
           UTILS.BASIC.newTrans(order_adr, 
+                               mkt_adr,
                                pay,
                                true,
                                mkt_cur, 

@@ -12,9 +12,16 @@ public class CFeePayload extends CTransPayload
 		"default", 
 		0.0001, 
                 "MSK",
+                "",
 		"", 
                 "", 
-                ""); 
+                "", 
+                "",
+                "", 
+                "", 
+                "", 
+                "", 
+                0); 
         }
 	  
     public  CFeePayload(String src, double amount)
@@ -23,9 +30,16 @@ public class CFeePayload extends CTransPayload
     	       "default", 
     	       amount,
                "MSK",
+               "",
     	       "", 
                "", 
-               ""); 
+               "",
+               "",
+               "", 
+               "", 
+               "", 
+               "", 
+               0); 
     }
     
     public CResult check(CBlockPayload block)

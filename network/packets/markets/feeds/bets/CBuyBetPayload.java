@@ -46,7 +46,12 @@ public class CBuyBetPayload extends CPayload
                                       rs.getString("adr"), 
                                       this.amount, 
                                       rs.getString("cur"), 
-                                      "", "", "");
+                                      "","", "", "", "",
+                "", 
+                "", 
+                "", 
+                "", 
+                0);
          
          // Hash
          hash=UTILS.BASIC.hash(this.hashCode()+

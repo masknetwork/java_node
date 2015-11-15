@@ -1,6 +1,7 @@
 package wallet.network.packets.trans.details;
 
 import wallet.kernel.*;
+import wallet.network.CResult;
 
 
 public class CMesDetails extends CPayDetails 
@@ -36,9 +37,14 @@ public class CMesDetails extends CPayDetails
        this.mes=UTILS.AES.decrypt(mes, k);
        
        // Insert trans details
-       UTILS.DB.executeUpdate("UPDATE trans_data "
+       UTILS.DB.executeUpdate("UPDATE my_trans "
                                + "SET mes='"+UTILS.BASIC.base64_encode(this.mes)+"' "
-                             + "WHERE trans_hash='"+trans_hash+"'");
+                             + "WHERE hash='"+trans_hash+"'");
        
+   }
+   
+   public CResult check()
+   {
+       return new CResult(true, "Ok", "CTransPayload", 164);
    }
 }

@@ -89,6 +89,7 @@ public class CCloseRegMarketPosPayload  extends CPayload
            {
               // Insert coins
               UTILS.BASIC.newTrans(this.target_adr, 
+                                   "none",
                                    pos_qty, 
                                    false,
                                    asset_symbol, 
@@ -101,6 +102,7 @@ public class CCloseRegMarketPosPayload  extends CPayload
           {
               // Insert assets
               UTILS.BASIC.newTrans(this.target_adr, 
+                                   "none",
                                    pos_qty*pos_price, 
                                    false,
                                    cur_symbol, 

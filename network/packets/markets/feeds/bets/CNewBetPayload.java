@@ -172,7 +172,8 @@ public class CNewBetPayload extends CPayload
        
        // Put hold on coins
        UTILS.BASIC.newTrans(this.target_adr, 
-                            this.budget, 
+                            "none",
+                            -this.budget, 
                             true,
                             this.cur, 
                             "Budget for bet "+this.UID, 

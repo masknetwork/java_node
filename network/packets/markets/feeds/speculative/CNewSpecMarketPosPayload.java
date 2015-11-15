@@ -112,7 +112,12 @@ public class CNewSpecMarketPosPayload extends CPayload
                                        rs.getString("adr"), 
                                        margin, 
                                        rs.getString("cur"), 
-                                       "", "", "");
+                                       "", "", "", "", "",
+                "", 
+                "", 
+                "", 
+                "", 
+                0);
           
           // UID
           this.uid=UTILS.BASIC.randString(10);

@@ -93,9 +93,16 @@ public class CNewAutoMarketTradePayload extends CPayload
                                            rs_mkt.getString("mkt_adr"), 
                                            to_pay, 
                                            rs_mkt.getString("cur_symbol"), 
+                                           "",
                                            "", 
                                            "", 
-                                           "");
+                                           "",
+                                           "",
+                                           "", 
+                                           "", 
+                                           "", 
+                                           "", 
+                                           0);
               
               // Transaction hash
               trans_hash=this.trans.hash;
@@ -116,7 +123,16 @@ public class CNewAutoMarketTradePayload extends CPayload
                                            rs_mkt.getString("mkt_adr"), 
                                            qty, 
                                            rs_mkt.getString("asset_symbol"), 
-                                           "", "", "");
+                                           "",
+                                           "",
+                                           "", 
+                                           "",
+                                           "",
+                                           "", 
+                                           "", 
+                                           "", 
+                                           "", 
+                                           0);
               
               // Transaction hash
               trans_hash=this.trans.hash;
@@ -231,6 +247,7 @@ public class CNewAutoMarketTradePayload extends CPayload
               
               // Send assets
               UTILS.BASIC.newTrans(rs_mkt.getString("mkt_adr"), 
+                                   this.target_adr,
                                    -this.qty, 
                                    true,
                                    rs_mkt.getString("asset_symbol"), 
@@ -241,6 +258,7 @@ public class CNewAutoMarketTradePayload extends CPayload
               
               // Receive assets
               UTILS.BASIC.newTrans(this.target_adr, 
+                                   rs_mkt.getString("mkt_adr"), 
                                    this.qty, 
                                    true,
                                    rs_mkt.getString("asset_symbol"), 
@@ -294,6 +312,7 @@ public class CNewAutoMarketTradePayload extends CPayload
               
               // Send coins
               UTILS.BASIC.newTrans(rs_mkt.getString("mkt_adr"), 
+                                   this.target_adr,
                                    -to_pay, 
                                    true,
                                    rs_mkt.getString("cur_symbol"), 
@@ -304,6 +323,7 @@ public class CNewAutoMarketTradePayload extends CPayload
               
               // Receive acoins
               UTILS.BASIC.newTrans(this.target_adr, 
+                                   rs_mkt.getString("mkt_adr"), 
                                    to_pay, 
                                    true,
                                    rs_mkt.getString("cur_symbol"), 

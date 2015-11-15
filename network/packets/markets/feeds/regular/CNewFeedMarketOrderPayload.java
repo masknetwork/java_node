@@ -71,9 +71,21 @@ public class CNewFeedMarketOrderPayload extends CPayload
             
             // Transaction
             if (tip.equals("ID_BUY"))
-                this.trans=new CTransPayload(adr, mkt_adr, qty*ask, mkt_cur, "", "", "");
+                this.trans=new CTransPayload(adr, mkt_adr, qty*ask, mkt_cur, "", "", "", "",
+                "", 
+                "", 
+                "", 
+                "",
+                "", 
+                0);
             else
-                this.trans=new CTransPayload(adr, mkt_adr, qty*bid, mkt_asset, "", "", "");
+                this.trans=new CTransPayload(adr, mkt_adr, qty*bid, mkt_asset, "", "", "", "",
+                "", 
+                "", 
+                "", 
+                "", 
+                "",
+                0);
             
             // Close
             s.close();
@@ -167,6 +179,7 @@ public class CNewFeedMarketOrderPayload extends CPayload
                 
                 // Credit assets
                 UTILS.BASIC.newTrans(this.target_adr, 
+                                     mkt_adr,
                                      this.qty, 
                                      false,
                                      mkt_asset, 
@@ -177,6 +190,7 @@ public class CNewFeedMarketOrderPayload extends CPayload
                 
                 // Debit assets
                 UTILS.BASIC.newTrans(mkt_adr, 
+                                     this.target_adr,
                                      -this.qty, 
                                      false,
                                      mkt_asset, 
@@ -201,6 +215,7 @@ public class CNewFeedMarketOrderPayload extends CPayload
                 
                  // Credit currency
                  UTILS.BASIC.newTrans(this.target_adr, 
+                                      mkt_adr,
                                       bid*qty, 
                                       false,
                                       mkt_cur, 
@@ -211,6 +226,7 @@ public class CNewFeedMarketOrderPayload extends CPayload
                  
                  // Debit currency
                  UTILS.BASIC.newTrans(mkt_adr, 
+                                      this.target_adr,
                                       -bid*qty, 
                                       false,
                                       mkt_cur, 

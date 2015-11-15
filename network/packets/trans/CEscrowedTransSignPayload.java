@@ -104,6 +104,7 @@ public class CEscrowedTransSignPayload extends CPayload
                  // Release ?
                  if (this.type.equals("ID_RELEASE"))
                      UTILS.BASIC.newTrans(receiver, 
+                                          sender,
                                           amount,
                                           true,
                                           cur, 
@@ -115,6 +116,7 @@ public class CEscrowedTransSignPayload extends CPayload
                  // Return ?
                  if (this.type.equals("ID_RETURN"))
                      UTILS.BASIC.newTrans(sender, 
+                                          receiver,
                                           amount,
                                           true,
                                           cur, 

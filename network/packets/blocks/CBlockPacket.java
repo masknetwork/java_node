@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.sql.SQLException;
 
 import wallet.network.*;
 import wallet.network.packets.*;
@@ -13,42 +14,37 @@ import wallet.kernel.*;
 
 public class CBlockPacket extends CPacket 
 {
-	// Prev block hash
-	String prev_block;
-        
-        // Block
-        long block;
-        
-        // Address
-        String signer;
+	// Signer
+        public String signer;
         
         // Sign
-        String sign;
+        public String sign;
         
-	public CBlockPacket(String adr)
+        // Timestamp
+        public long tstamp;
+        
+	public CBlockPacket(String signer)
         {
 	   // Constructor
 	   super("ID_BLOCK");
-           
-           // Block
-	   this.block=UTILS.BASIC.block(); 
             
-           // Address
-           this.signer=adr;
+           // Signer
+           this.signer=signer;
         }
 	
         // Sign
 	public void sign()
         { 
             // Packet hash
-            this.hash=UTILS.BASIC.hash(String.valueOf(this.tstamp)+
-                                       String.valueOf(this.block)+
-				       new String(UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload))));
+            this.hash=UTILS.BASIC.hash(this.signer+
+                                       this.sign+
+                   		       new String(UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload))));
 		   
             // Signature address
             CAddress adr=UTILS.WALLET.getAddress(this.signer);
 	    this.sign=adr.sign(this.hash);
         }
+        
         
 	// Check 
 	public CResult check()
@@ -56,11 +52,7 @@ public class CBlockPacket extends CPacket
              // Check type
 	     if (!this.tip.equals("ID_BLOCK")) 
 	   	return new CResult(false, "Invalid packet type", "CBlockPacket", 39);
-             
-             // Check hash
-             
-             // Check signature
-             
+           
 	     // Deserialize transaction data
 	     CBlockPayload block_payload=(CBlockPayload) UTILS.SERIAL.deserialize(payload);
 	   	  
@@ -80,7 +72,7 @@ public class CBlockPacket extends CPacket
 	      return new CResult(true, "Ok", "CBlockPacket", 42);
 	}
 	   
-	public CResult commit()
+	public CResult commit() throws SQLException
 	{
 		// Deserialize transaction data
 	   	CBlockPayload block_payload=(CBlockPayload) UTILS.SERIAL.deserialize(payload);
@@ -96,7 +88,7 @@ public class CBlockPacket extends CPacket
                 // Record block ?
                 try
                 { 
-                   FileOutputStream fout = new FileOutputStream(new File(UTILS.WRITEDIR+"blocks/block_"+this.block+".block"));
+                   FileOutputStream fout = new FileOutputStream(new File(UTILS.WRITEDIR+"blocks/block_"+block_payload.block+".block"));
                    ObjectOutputStream oos = new ObjectOutputStream(fout);
                    oos.writeObject(this);
                 }

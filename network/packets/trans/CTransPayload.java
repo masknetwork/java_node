@@ -31,20 +31,30 @@ public class CTransPayload extends CPayload
         // Message
         public CMesDetails mes=null;
         
+        // Additional data
+        public CMiscDetails data=null;
+        
         // OTP old pass
         public String otp_old_pass="";
         
         // OTP new hash
         public String otp_new_hash="";
-        
+       
         
 	public CTransPayload(String src, 
                              String dest, 
                              double amount, 
                              String cur, 
+                             String mes,
                              String escrower, 
                              String otp_old_pass, 
-                             String otp_new_hash)
+                             String otp_new_hash,
+                             String req_field_1,
+                             String req_field_2,
+                             String req_field_3,
+                             String req_field_4,
+                             String req_field_5,
+                             long cartID)
         {
            // Constructo
            super(src);
@@ -70,38 +80,42 @@ public class CTransPayload extends CPayload
            // OTP new hash
            this.otp_new_hash=otp_new_hash;
            
-	   hash=UTILS.BASIC.hash(this.getHash()+
-				 this.src+
-                                 this.dest+
-                                 UTILS.FORMAT.format(this.amount)+
-                                 this.cur+
-                                 this.escrower+
-                                 this.otp_old_pass+
-                                 this.otp_new_hash);
+           // Digest
+           String d=this.getHash()+
+		    this.src+
+                    this.dest+
+                    UTILS.FORMAT.format(this.amount)+
+                    this.cur+
+                    this.escrower+
+                    this.otp_old_pass+
+                    this.otp_new_hash;
+           
+           // Message 
+           if (!mes.equals("")) 
+           {
+                this.mes=new CMesDetails(mes, this.dest);
+                d=d+this.mes.hash;
+           }
+           
+           // Data
+           if (!req_field_1.equals("")) 
+           {
+               this.data=new CMiscDetails(req_field_1, 
+                                          req_field_2, 
+                                          req_field_3, 
+                                          req_field_4, 
+                                          req_field_5, 
+                                          this.dest);
+               d=d+this.data.hash;
+           }
+           
+	   hash=UTILS.BASIC.hash(d);
             
 	    // Sign
 	    this.sign();
        }
         
-        public void addMes(String mes)
-        {
-            this.mes=new CMesDetails(mes, this.dest);
-            
-            // Hash
-	   hash=UTILS.BASIC.hash(this.getHash()+
-				 this.src+
-                                 this.dest+
-                                 UTILS.FORMAT.format(this.amount)+
-                                 this.cur+
-                                 this.escrower+
-                                 this.otp_old_pass+
-                                 this.otp_new_hash+
-                                 this.mes.hash);
-		   
-	    // Sign
-	    this.sign();
-        }
-	
+       
 	 public CResult check(CBlockPayload block)
 	 {
               try
@@ -135,34 +149,41 @@ public class CTransPayload extends CPayload
 	      	  return new CResult(false, "Invalid amount.", "CTransPayload", 77);
             }
             
-            // Hash
-            String h;
+            // Message included ?
             if (this.mes!=null)
             {
-                h=UTILS.BASIC.hash(this.getHash()+
-				   this.src+
-                                   this.dest+
-                                   UTILS.FORMAT.format(this.amount)+
-                                   this.cur+
-                                   this.escrower+
-                                   this.otp_old_pass+
-                                   this.otp_new_hash+
-                                   this.mes.hash);
-            }
-            else
-            {
-               h=UTILS.BASIC.hash(this.getHash()+
-				  this.src+
-                                  this.dest+
-                                  UTILS.FORMAT.format(this.amount)+
-                                  this.cur+
-                                  this.escrower+
-                                  this.otp_old_pass+
-                                  this.otp_new_hash);
+                res=this.mes.check();
+                if (!res.passed) return new CResult(false, "Invalid message.", "CTransPayload", 77);
             }
             
-            // Check hash
-            if (!this.hash.equals(h))
+            // Data included ?
+            if (this.data!=null)
+            {
+                res=this.data.check(this.dest);
+                if (!res.passed) return new CResult(false, "Invalid data.", "CTransPayload", 77);
+            }
+            
+           // Digest
+           String d=this.getHash()+
+		    this.src+
+                    this.dest+
+                    UTILS.FORMAT.format(this.amount)+
+                    this.cur+
+                    this.escrower+
+                    this.otp_old_pass+
+                    this.otp_new_hash;
+           
+           // Message 
+           if (this.mes!=null) d=d+this.mes.hash;
+           
+           // Data
+           if (this.data!=null) d=d+this.data.hash;
+           
+           // Hash
+           String h=UTILS.BASIC.hash(d);
+            
+           // Check hash
+           if (!this.hash.equals(h))
                return new CResult(false, "Invalid hash", "CTransPayload", 77);
             
             // Statement
@@ -220,6 +241,7 @@ public class CTransPayload extends CPayload
 	    
             // Insert pending transaction
 	    UTILS.BASIC.newTrans(this.src, 
+                                 this.dest,
                                  -this.amount,
                                  true,
                                  this.cur, 
@@ -231,6 +253,7 @@ public class CTransPayload extends CPayload
             // To destination
             if (this.escrower.equals("") && !UTILS.BASIC.hasAttr(this.src, "ID_MULTISIG"))
             UTILS.BASIC.newTrans(this.dest, 
+                                 this.src,
                                  this.amount,
                                  true,
                                  this.cur, 
@@ -242,7 +265,10 @@ public class CTransPayload extends CPayload
             if (UTILS.WALLET.isMine(this.dest))
             {
                // Message
-               if (this.mes!=null) this.mes.getMessage(this.dest, hash);
+               if (this.mes!=null && block==null) this.mes.getMessage(this.dest, hash);
+               
+               // Data
+               if (this.data!=null && block==null) this.data.getData(this.dest, hash);
                
                // IPN
               this.checkIPN("unconfirmed");
@@ -452,19 +478,21 @@ public class CTransPayload extends CPayload
                    else
                    {
                       UTILS.DB.executeUpdate("INSERT INTO escrowed(trans_hash, "
-                                                              + "sender_adr, "
-                                                              + "rec_adr, "
-                                                              + "escrower, "
-                                                              + "amount, "
-                                                              + "cur, "
-                                                              + "block) VALUES ('"
-                                                              +this.hash+"', '"
-                                                              +this.src+"', '"
-                                                              +this.dest+"', '"
-                                                              +this.escrower+"', '"
-                                                              +this.amount+"', '"
-                                                              +this.cur+"', '"
-                                                              +this.block+"')");
+                                                                + "sender_adr, "
+                                                                + "rec_adr, "
+                                                                + "escrower, "
+                                                                + "amount, "
+                                                                + "cur, "
+                                                                + "block, "
+                                                                + "rowhash) VALUES ('"
+                                                                +this.hash+"', '"
+                                                                +this.src+"', '"
+                                                                +this.dest+"', '"
+                                                                +this.escrower+"', '"
+                                                                +this.amount+"', '"
+                                                                +this.cur+"', '"
+                                                                +this.cur+"', '"
+                                                                +this.block+"')");
                    
                       // Source my address ?
                       if (UTILS.WALLET.isMine(this.src))

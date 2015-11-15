@@ -77,13 +77,31 @@ public class CNewRegMarketOrderPayload extends CPayload
                                            order_adr, 
                                            qty, 
                                            asset_symbol, 
-                                           "", "", "");
+                                           "",
+                                           "", 
+                                           "", 
+                                           "",
+                                           "",
+                                           "", 
+                                           "", 
+                                           "", 
+                                           "", 
+                                           0);
           else
               this.trans=new CTransPayload(this.target_adr, 
                                            order_adr, 
                                            price*qty, 
                                            cur_symbol, 
-                                           "", "", "");
+                                           "",
+                                           "", 
+                                           "", 
+                                           "",
+                                           "",
+                                           "", 
+                                           "", 
+                                           "", 
+                                           "", 
+                                           0);
           
           // Transaction hash
           trans_hash=this.trans.hash;
@@ -191,6 +209,7 @@ public class CNewRegMarketOrderPayload extends CPayload
               
               // Insert coins
               UTILS.BASIC.newTrans(this.target_adr, 
+                                   "none",
                                    this.qty, 
                                    false,
                                    asset_symbol, 
@@ -223,6 +242,7 @@ public class CNewRegMarketOrderPayload extends CPayload
               
               // Insert assets
               UTILS.BASIC.newTrans(this.target_adr, 
+                                   "none",
                                    this.qty*pos_price, 
                                    false,
                                    cur_symbol, 

@@ -134,6 +134,7 @@ public class CNewRegMarketPosPayload extends CPayload
                 
                 // Insert transaction
                 UTILS.BASIC.newTrans(this.target_adr, 
+                                     "none",
                                      -this.qty,
                                      true,
                                      rs.getString("asset_symbol"), 
@@ -149,6 +150,7 @@ public class CNewRegMarketPosPayload extends CPayload
                 
                 // Insert transaction
                 UTILS.BASIC.newTrans(this.target_adr, 
+                                     "none",
                                      -(this.qty*this.price),
                                      true,
                                      rs.getString("cur_symbol"), 

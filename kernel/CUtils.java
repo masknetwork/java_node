@@ -685,6 +685,7 @@ public class CUtils
         }
         
         public void newTrans(String adr, 
+                             String adr_assoc, 
                              double amount, 
                              boolean send_trans,
                              String cur, 
@@ -765,6 +766,7 @@ public class CUtils
                     if (!transExist("my_trans", hash, cur, amount))
 	    	    UTILS.DB.executeUpdate("INSERT INTO my_trans(userID, " +
                                                                 "adr, " +
+                                                                "adr_assoc, " +
             		                                        "amount, " +
    		                                                "cur, " +
                                                                 "expl, " +
@@ -772,10 +774,18 @@ public class CUtils
                                                                 "hash, " +
    		                                                "block, " +
    		                                                "tstamp, "+
-   		                                                "status) "
+   		                                                "status, "
+                                                                + "mes, "
+                                                                + "field_1, "
+                                                                + "field_2, "
+                                                                + "field_3, "
+                                                                + "field_4, "
+                                                                + "field_5, "
+                                                                + "cartID) "
    		                                      + "VALUES('"+
                                                                  this.getAdrUserID(adr)+"', '"+
    		                                                 adr+"', '"+
+                                                                 adr_assoc+"', '"+
    		                                                 UTILS.FORMAT.format(amount)+"', '" +
    		                                                 cur+"', '"+
                                                                  expl+"', '"+
@@ -783,7 +793,7 @@ public class CUtils
    		                                                 hash+"', '"+
    		                                                 block+"', '" +
    		                                                 UTILS.BASIC.tstamp()+"', '" +
-   		                                                 "ID_UNCONFIRMED')");
+   		                                                 "ID_UNCONFIRMED', '', '', '', '', '', '', '0')");
                     
                     // Debit asset fee
                     if (!transExist("my_trans", hash, cur, -asset_fee) && 
@@ -1863,5 +1873,8 @@ public class CUtils
              return 0;
          }
          
-         
+         public String formatDif(String dif)
+         {
+             return (dif.substring(0, 3)+"-"+String.valueOf(dif.length()));
+         }
 }

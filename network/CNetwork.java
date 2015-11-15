@@ -155,8 +155,10 @@ public class CNetwork extends Thread
                                 if (res.passed) 
                                 {
                                     res=block.commit();
+                                    
                                     if (peers.peers.size()>0) 
                                         this.broadcast(packet);
+                                  
                                 }
                                 else res.report();
                             }

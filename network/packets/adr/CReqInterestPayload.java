@@ -84,6 +84,7 @@ public class CReqInterestPayload extends CPayload
            
            // Takes money from default address
            UTILS.BASIC.newTrans("default", 
+                                this.adr,
                                 -amount, 
                                 false,
                                 "MSK", 
@@ -94,6 +95,7 @@ public class CReqInterestPayload extends CPayload
            
            // Sends money from target address
            UTILS.BASIC.newTrans(this.adr, 
+                                "default",
                                 amount, 
                                 false,
                                 "MSK", 

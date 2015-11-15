@@ -44,9 +44,6 @@ public class UTILS
     // Status
     public static CStatus STATUS;
     
-    // Blocks
-    public static CBlocks BLOCKS;
-    
     // Current block
     public static CCurBlock CBLOCK;
     
@@ -59,4 +56,5 @@ public class UTILS
     
     // Root
     public static ThreadGroup ROOT;
+ 
 }

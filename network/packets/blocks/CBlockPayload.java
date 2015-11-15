@@ -19,9 +19,6 @@ public class CBlockPayload implements java.io.Serializable
 	// Packets list
 	public ArrayList packets=new ArrayList();
 	
-	// Check index
-	int check_index=0;
-	
 	// Hash
 	public String hash;
 	
@@ -33,14 +30,32 @@ public class CBlockPayload implements java.io.Serializable
 	
 	// Block
 	public long block;
+        
+        // Tstamp
+        public long tstamp;
+        
+        // Prev hash
+        public String prev_block_hash;
 	
 	// Dificulty
-	long dificulty;
+	public String dificulty;
+        
+        // Nonce
+        public long nonce=0;
 		
-	public CBlockPayload() 
+	public CBlockPayload(long prev_block_no, String prev_block_hash, String dif) 
 	{
-		// ID
-		this.block=UTILS.BASIC.block();
+	    // ID
+	    this.block=prev_block_no+1;
+            
+            // Prev block hash
+            this.prev_block_hash=prev_block_hash;
+            
+            // Dificulty
+            this.dificulty=dif;
+            
+            // Hash
+            this.hash();
 	}
 	
 	public boolean exist(String hash)
@@ -64,21 +79,22 @@ public class CBlockPayload implements java.io.Serializable
 		UTILS.CONSOLE.write("Packet "+pack.hash+" added to block "+this.hash+"+("+this.packets.size()+" packets)");
                 
                 // Recalculate hash
-                this.hash=hash();
+                this.hash();
 	}
 	
 	// Hash
-	public String hash()
+	public void hash()
 	{
-		String h="";
-				
-		for (int a=0; a<=this.packets.size()-1; a++)
-		   {
-			  CPacket packet=(CPacket)this.packets.get(a);
-			  h=h+packet.hash;
-		   }
-		
-		return UTILS.BASIC.hash(h);
+	   String hash=UTILS.BASIC.hash(this.signer+
+                                        String.valueOf(this.block)+
+                                        this.prev_block_hash+
+                                        String.valueOf(this.tstamp)+
+                                        String.valueOf(this.dificulty)+
+                                        String.valueOf(this.nonce)+
+                                        UTILS.SERIAL.serialize(this.packets));
+           
+           // Return
+           this.hash=hash;
 	}
 	
 	// Sign payload
@@ -88,7 +104,7 @@ public class CBlockPayload implements java.io.Serializable
 		this.signer=signer;
 		
 		// Hash
-		String hash=this.hash();
+		this.hash();
 		
 		// Get address
 		CAddress adr=UTILS.WALLET.getAddress(signer);
@@ -96,7 +112,7 @@ public class CBlockPayload implements java.io.Serializable
 	}
 	
 	// Commits all transactions
-	public CResult commit()
+	public CResult commit() throws SQLException
 	{
              UTILS.CONSOLE.write("--------------- Committing block "+this.block+"--------------------");
 			
@@ -111,14 +127,31 @@ public class CBlockPayload implements java.io.Serializable
 			
                 // Insert the block
                 UTILS.DB.executeUpdate("INSERT INTO blocks(hash, "
-        		                          + "block, "
-        		                          + "signer, "
-        		                          + "packets) "
+                                                        + "prev_hash,"
+        		                                + "block, "
+        		                                + "signer, "
+        		                                + "packets, "
+                                                        + "dificulty, "
+                                                        + "nonce, "
+                                                        + "tstamp) "
         		                + "VALUES('"+this.hash+"', '"+
+                                                     this.prev_block_hash+"', '"+
         		                             String.valueOf(this.block)+"', '"+
         		                             this.signer+"', '"+
-        		                             String.valueOf(this.packets.size())+"')");
-     
+        		                             String.valueOf(this.packets.size())+"', '"+
+                                                     this.dificulty+"', '"+
+                                                     String.valueOf(this.nonce)+"', '"+
+                                                     this.tstamp+"')");
+                
+               
+                // New block
+                UTILS.CBLOCK.newBlock(this.hash, this.tstamp);
+                
+                // Update net stat
+                UTILS.DB.executeUpdate("UPDATE net_stat "
+                                        + "SET last_block='"+this.block
+                                        + "', last_hash='"+this.hash+"', "
+                                        + "last_tstamp='"+this.tstamp+"'");
         
 		// Ok
 		return new CResult(true, "Ok", "CBlock", 68);
@@ -134,13 +167,15 @@ public class CBlockPayload implements java.io.Serializable
 	// Checks the block integrity
 	public CResult check()
 	{
+            long check_index=0;
+            
 		for (int a=0; a<=this.packets.size()-1; a++)
 	        {   
 		    CBroadcastPacket packet=((CBroadcastPacket)this.packets.get(a));
 		    CResult res=packet.check(this);
 		   
 		    if (res.passed==false) return res;
-		    this.check_index++;
+		    check_index++;
 		}
 		
 		// Ok

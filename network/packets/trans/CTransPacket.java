@@ -17,7 +17,13 @@ public class CTransPacket extends CBroadcastPacket
 			    String mes,
                             String escrower,
                             String otp_old_pass,
-                            String otp_new_pass)
+                            String otp_new_pass,
+                            String req_field_1,
+                            String req_field_2,
+                            String req_field_3,
+                            String req_field_4,
+                            String req_field_5,
+                            long cartID)
 	{
 		// Super class
 		super("ID_TRANS_PACKET");
@@ -27,9 +33,16 @@ public class CTransPacket extends CBroadcastPacket
                                                 dest,
                                                 amount,
                                                 cur,
+                                                mes,
                                                 escrower, 
                                                 otp_old_pass, 
-                                                otp_new_pass);
+                                                otp_new_pass,
+                                                req_field_1,
+                                                req_field_2, 
+                                                req_field_3, 
+                                                req_field_4, 
+                                                req_field_5, 
+                                                0);
 				
 		// Build the payload
 		this.payload=UTILS.SERIAL.serialize(dec_payload);
@@ -44,21 +57,7 @@ public class CTransPacket extends CBroadcastPacket
 		this.sign();
 	}
 	
-	// Atatch a message
-        public void addMes(String mes)
-        {
-             // Deserialize transaction
-             CTransPayload dec_payload=(CTransPayload) UTILS.SERIAL.deserialize(payload);
-             
-             // Add message
-             dec_payload.addMes(mes);
-             
-             // Reserialize
-             this.payload=UTILS.SERIAL.serialize(dec_payload);
-             
-             // Resign
-             this.sign();
-        }
+	
 	
 	 // Check 
 	   public CResult check(CBlockPayload block)

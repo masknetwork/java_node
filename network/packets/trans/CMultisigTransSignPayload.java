@@ -159,6 +159,9 @@ public class CMultisigTransSignPayload extends CPayload
                 
             // Receiver
             String receiver=rs.getString("rec_adr");
+            
+            // Sender
+            String sender_adr=rs.getString("sender_adr");
                    
             // Currency
             float amount=rs.getFloat("amount");
@@ -236,13 +239,14 @@ public class CMultisigTransSignPayload extends CPayload
             {
                 // Executes 
                 UTILS.BASIC.newTrans(receiver, 
-                                    amount,
-                                    true,
-                                    cur, 
-                                    "Transaction has been fully signed", 
-                                    "", 
-                                    this.hash, 
-                                    this.block);
+                                     sender_adr,
+                                     amount,
+                                     true,
+                                     cur, 
+                                     "Transaction has been fully signed", 
+                                     "", 
+                                     this.hash, 
+                                     this.block);
             
                  // Clear transactions
                  UTILS.BASIC.clearTrans(this.hash, "ID_ALL");

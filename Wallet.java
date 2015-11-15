@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.security.Security;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.Random;
 import wallet.kernel.*;
 import wallet.network.*;
 import wallet.network.packets.adr.CReqInterestPacket;
@@ -74,13 +75,15 @@ public class Wallet
         // Current block
         CCurBlock block=new CCurBlock();
         UTILS.CBLOCK=block;
+        UTILS.CBLOCK.miner.start();
         
         // Web operations
         CWebOps ops=new CWebOps();
+        
       }
       catch (Exception e) 
       { 
-         UTILS.LOG.log("Exception", e.getMessage(), "CWallet.java", 85);
+         UTILS.LOG.log("Exception", e.getMessage(), "Wallet.java", 85);
       }
     }
     
