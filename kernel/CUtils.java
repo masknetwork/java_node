@@ -197,15 +197,15 @@ public class CUtils
 	
 	// Apply address options
 	public void applyAdrAttr(String adr, 
-			                 String atr, 
-			                 long blocks, 
-			                 long tstamp, 
-			                 String par_1, 
-			                 String par_2, 
-			                 String par_3,
-			                 String par_4,
-                                         String par_5,
-                                         String par_6)
+			         String atr, 
+			         String par_1, 
+			         String par_2, 
+			         String par_3,
+			         String par_4,
+                                 String par_5,
+                                 String par_6,
+                                 long expire, 
+                                 long block)
 	{
 		try
 		{
@@ -241,29 +241,26 @@ public class CUtils
 			  long expires=rs.getLong("expires");
 			
 			  // New expiration
-			  expires=expires+blocks;
+			  expires=expires+expire;
 			  
 			  // Update
 			  UTILS.DB.executeUpdate("UPDATE adr_options "
-			  		                  + "SET expires='"+expires+"',"
-			  		                  		+ "par_1='"+par_1+"',"
-			  		                  		+ "par_2='"+par_2+"',"
-			  		                  		+ "par_3='"+par_3+"',"
-			  		                  		+ "par_4='"+par_4+"',"
-                                                                        + "par_5='"+par_5+"',"
-                                                                        + "par_6='"+par_6+"'"
-			  		                + "WHERE adr='"+adr+"' "
-			  		                  + "AND op_type='"+atr+"'");
+			  		          + "SET expires='"+expires+"',"
+			  		              + "par_1='"+par_1+"',"
+			  		              + "par_2='"+par_2+"',"
+			  		              + "par_3='"+par_3+"',"
+			  		              + "par_4='"+par_4+"',"
+                                                      + "par_5='"+par_5+"',"
+                                                      + "par_6='"+par_6+"'"
+                                                      + "block='"+block+"'"
+			  		        + "WHERE adr='"+adr+"' "
+			  		          + "AND op_type='"+atr+"'");
                           
                           // Close
                           if (s!=null) s.close();
 		   }
 		   else
 		   {
-			  // New expiration
-			  long expires=UTILS.BASIC.block()+blocks;
-			  
-			  
 			  // Insert option
 			  UTILS.DB.executeUpdate("INSERT INTO adr_options(adr, "
 			  		                                       + "op_type, "
@@ -283,8 +280,8 @@ public class CUtils
 			  		                                        par_4+"', '"+
                                                                                 par_5+"', '"+
                                                                                 par_6+"', '"+
-			  		                                        expires+"', '"+
-			  		                                        UTILS.BASIC.block()+"')");
+			  		                                        expire+"', '"+
+			  		                                        block+"')");
 		   }
 		   
 		   
@@ -1030,12 +1027,6 @@ public class CUtils
                         UTILS.DB.executeUpdate("INSERT INTO adr (adr, "
                                                               + "balance, "
                                                               + "block, "
-                                                              + "stars_1, "
-                                                              + "stars_2, "
-                                                              + "stars_3, "
-                                                              + "stars_4, "
-                                                              + "stars_5, "
-                                                              + "rating, "
                                                               + "total_received, "
                                                               + "total_spent, "
                                                               + "trans_no, "
@@ -1044,12 +1035,6 @@ public class CUtils
                                                      + "VALUES('"+adr+"', "+
                                                                   "'0', '"+
                                                                   UTILS.BASIC.block()+"', "
-                                                                  + "'0', "
-                                                                  + "'0', "
-                                                                  + "'0', "
-                                                                  + "'0', "
-                                                                  + "'0', "
-                                                                  + "'0', "
                                                                   + "'0', "
                                                                   + "'0', "
                                                                   + "'0', "
@@ -1142,7 +1127,10 @@ public class CUtils
 	
 	public long block()
 	{
-		return (long)Math.floor(this.tstamp()/60);
+	    if (UTILS.CBLOCK!=null) 
+                return UTILS.CBLOCK.prev_block_no+1;
+            else
+                return 0;
 	}
 	
 	public long daysFromBlock(long block)
@@ -1876,5 +1864,28 @@ public class CUtils
          public String formatDif(String dif)
          {
              return (dif.substring(0, 3)+"-"+String.valueOf(dif.length()));
+         }
+         
+         public long getUserID(String user) throws SQLException
+         {
+             // Statement
+             Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                
+              // Load feed data
+              ResultSet rs=s.executeQuery("SELECT * "
+                                            + "FROM web_users "
+                                           + "WHERE user='"+user+"'");
+                
+                // Next 
+                rs.next();
+                
+                // User
+                long userID=rs.getLong("ID");
+                
+                // Close
+                s.close();
+                
+                // Return
+                return userID;
          }
 }

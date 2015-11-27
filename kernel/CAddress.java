@@ -110,7 +110,10 @@ public class CAddress
 		this.domain=UTILS.BASIC.domainFromAdr(this.getPublic());
 	}
 	
-	public boolean importAddress(String web_user, String public_key, String private_key, String tag) 
+	public boolean importAddress(String user, 
+                                     String public_key, 
+                                     String private_key, 
+                                     String tag) throws SQLException
 	{
 		try
 		{
@@ -149,8 +152,12 @@ public class CAddress
 		
 		
 		// Insert address
-				 UTILS.DB.executeUpdate("INSERT INTO my_adr(user, adr) "
-				 		             + "VALUES('"+web_user+"', '"+public_key+"')");
+	        UTILS.DB.executeUpdate("INSERT INTO my_adr(userID, "
+                                                        + "adr, "
+                                                        + "description) "
+				          + "VALUES('"+UTILS.BASIC.getUserID(user)
+                                                        +"', '"+public_key
+                                                        +"', '"+UTILS.BASIC.base64_encode(tag)+"')");
 		
 		this.domain=UTILS.BASIC.domainFromAdr(this.getPublic());
 		

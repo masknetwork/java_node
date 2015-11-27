@@ -15,7 +15,7 @@ public class CShareAdrPayload extends CPayload
 	// Encrypted public key
 	String pub_key;
 	
-	// Encrypted target address
+	// Target address
 	String share_adr;
 	
    public CShareAdrPayload(String pub_key, String priv_key, String share_adr)
@@ -93,6 +93,14 @@ public class CShareAdrPayload extends CPayload
        		                     this.share_adr+"', '"+
        		                     this.pub_key+"', '"+
        		                     this.priv_key+"')");
+          
+          // User ID
+          long userID=UTILS.BASIC.getAdrUserID(this.share_adr);
+          
+          // Update
+          UTILS.DB.executeUpdate("UPDATE web_users "
+                                  + "SET pending_adr=pending_adr+1 "
+                                + "WHERE ID='"+userID+"'");
        }
        
        // Return 

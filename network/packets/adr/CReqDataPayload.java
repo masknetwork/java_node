@@ -308,14 +308,14 @@ public class CReqDataPayload extends CPayload
             // Commit
     	    UTILS.BASIC.applyAdrAttr(this.target_adr, 
     			             "ID_REQ_DATA", 
-	                             this.days*1440+this.block, 
-	                             0, 
 	                             "", 
 	                             "", 
 	                             "",
 	                             "",
                                      "",
-                                     "");
+                                     "",
+                                     block.tstamp+(this.days*86400), 
+                                     block.block);
     	
         }
     	catch (SQLException ex)

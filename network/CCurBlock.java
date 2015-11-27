@@ -30,7 +30,7 @@ public class CCurBlock
    // Last block number
    public long prev_block_no;
    
-    // Prev hash
+   // Prev hash
    public String prev_hash;
    
    // Prev tstamp
@@ -49,7 +49,7 @@ public class CCurBlock
    public long balance=1;
    
    // Signer
-   public String signer="ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAESw6vT5Oz43xw/6Wa7tt0RrUQ9Bj4c7Qhr/gj5XZmMLp1ALqUG46+VOiLLII7ua5mzfuylwHaoLU=";
+   public String signer="";
    
    // Nonce
    public long nonce=0;
@@ -65,6 +65,9 @@ public class CCurBlock
    
    // Retarget difficulty step
    public long retarget_step=1;
+   
+   // Peers number
+   public long peers=0;
    
    public CCurBlock() throws SQLException
    {
@@ -102,6 +105,9 @@ public class CCurBlock
        payload=new CBlockPayload(prev_block_no, 
                                  prev_hash, 
                                  this.net_dif.toString());
+       
+       // Set signer
+       this.setSigner();
    }
  
    
@@ -121,11 +127,28 @@ public class CCurBlock
    {
       this.payload.nonce=nonce;
       this.payload.hash();
+      this.nonce=nonce;
    }
    
-   public void setSigner()
+   public void setSigner() throws SQLException
    {
+       // Difficulty
+       Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
        
+       // Load
+       ResultSet rs=s.executeQuery("SELECT * "
+                                   + "FROM my_adr "
+                                  + "WHERE mine>0");
+       
+       // Next
+       if (UTILS.DB.hasData(rs)) 
+       {
+           // Next
+           rs.next();
+           
+           // Set miner
+           this.signer=rs.getString("adr");
+       }
    }
    
    public void broadcast()
@@ -149,16 +172,22 @@ public class CCurBlock
       
    }
    
-   public void newBlock(String prev_hash, long prev_tstamp) throws SQLException
+   public void newBlock(long block, 
+                        String prev_hash, 
+                        long prev_tstamp, 
+                        String dif) throws SQLException
    {
        // New block
        this.prev_hash=prev_hash;
                 
        // New block number
-       this.prev_block_no++;
+       this.prev_block_no=block;
                 
        // Last timestamp
        this.prev_tstamp=prev_tstamp;
+       
+       // Difficulty
+       this.net_dif=new BigInteger(dif);
        
        // Difficulty
        Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -176,17 +205,10 @@ public class CCurBlock
        
        // Change dificulty ?
        if (blocks>(this.retarget+1))
-       {
-          this.net_dif=this.net_dif.subtract(this.net_dif.divide(BigInteger.valueOf(100)));
-          System.out.println("dificulty increased to "+UTILS.BASIC.formatDif(this.net_dif.toString())+" ("+blocks+")");
-       }
+           this.net_dif=this.net_dif.subtract(this.net_dif.divide(BigInteger.valueOf(100)));
        else if (blocks<this.retarget)
-       {
          this.net_dif=this.net_dif.add(this.net_dif.divide(BigInteger.valueOf(100)));
-         System.out.println("dificulty decreased to "+UTILS.BASIC.formatDif(this.net_dif.toString())+" ("+blocks+")");
-       }
-       else System.out.println("dificulty stays the same to "+UTILS.BASIC.formatDif(this.net_dif.toString())+" ("+blocks+")");
-      
+       
        // Update net stat
        UTILS.DB.executeUpdate("UPDATE net_stat "
                                         + "SET last_block='"+this.prev_block_no + "', "
@@ -195,7 +217,7 @@ public class CCurBlock
                                             + "net_dif='"+this.net_dif+"'");
        
        // New block
-       this.payload=new CBlockPayload(this.prev_block_no, 
+       this.payload=new CBlockPayload(this.prev_block_no++, 
                                       this.prev_hash, 
                                       this.net_dif.toString());
        

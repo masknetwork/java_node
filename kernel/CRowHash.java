@@ -112,15 +112,9 @@ public class CRowHash
 		       hash=UTILS.BASIC.hash(rs.getString("adr")+
 				                       String.valueOf(rs.getDouble("balance"))+
 				                       String.valueOf(rs.getLong("block"))+
-				                       String.valueOf(rs.getLong("stars_1"))+
-				                       String.valueOf(rs.getLong("stars_2"))+
-				                       String.valueOf(rs.getLong("stars_3"))+
-				                       String.valueOf(rs.getLong("stars_4"))+
-				                       String.valueOf(rs.getLong("stars_5"))+
-                                                       String.valueOf(rs.getLong("total_received"))+
+				                       String.valueOf(rs.getLong("total_received"))+
                                                        String.valueOf(rs.getLong("total_spent"))+
                                                        String.valueOf(rs.getLong("trans_no"))+
-				                       String.valueOf(rs.getDouble("rating"))+
 				                       String.valueOf(rs.getLong("last_interest")));
 		    
 		    // ----------------------------------- ADR OPTIONS----------------------------

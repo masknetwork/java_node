@@ -67,14 +67,14 @@ public class CSealAdrPayload extends CPayload
 	 	    // Commit
 	 	   	UTILS.BASIC.applyAdrAttr(this.target_adr, 
 	 	   			                 "ID_SEALED", 
-	 	   			                 this.days, 
-	 	   			                 tstamp, 
 	 	   			                 "", 
 	 	   			                 "", 
 	 	   			                 "",
 	 	   			                 "",
                                                          "",
-                                                         "");
+                                                         "",
+                                                         block.tstamp+(this.days*86400), 
+                                                         block.block);
 	 	       
 	 	   	// Return 
 	 	   	return new CResult(true, "Ok", "CSealAdrPayload.java", 149);

@@ -76,7 +76,7 @@ public class CBlockPayload implements java.io.Serializable
 		this.packets.add(pack);
 		
                 // Console
-		UTILS.CONSOLE.write("Packet "+pack.hash+" added to block "+this.hash+"+("+this.packets.size()+" packets)");
+		//UTILS.CONSOLE.write("Packet "+pack.hash+" added to block "+this.hash+"+("+this.packets.size()+" packets)");
                 
                 // Recalculate hash
                 this.hash();
@@ -114,7 +114,7 @@ public class CBlockPayload implements java.io.Serializable
 	// Commits all transactions
 	public CResult commit() throws SQLException
 	{
-             UTILS.CONSOLE.write("--------------- Committing block "+this.block+"--------------------");
+             //UTILS.CONSOLE.write("--------------- Committing block "+this.block+"--------------------");
 			
 		for (int a=0; a<=this.packets.size()-1; a++)
 	        {
@@ -145,14 +145,8 @@ public class CBlockPayload implements java.io.Serializable
                 
                
                 // New block
-                UTILS.CBLOCK.newBlock(this.hash, this.tstamp);
-                
-                // Update net stat
-                UTILS.DB.executeUpdate("UPDATE net_stat "
-                                        + "SET last_block='"+this.block
-                                        + "', last_hash='"+this.hash+"', "
-                                        + "last_tstamp='"+this.tstamp+"'");
-        
+                UTILS.CBLOCK.newBlock(this.block, this.hash, this.tstamp, this.dificulty);
+              
 		// Ok
 		return new CResult(true, "Ok", "CBlock", 68);
 

@@ -49,6 +49,7 @@ public class CSettings
         
         // Wallet pass
         public String pass;
+       
 	
   public CSettings()
   {
@@ -109,6 +110,7 @@ public class CSettings
 		  // Minimum peers
 		  settings.setProperty("min_peers", "3");
 		  this.min_peers=3;
+               
 		    
                     // Write settings
 		    settings.store(f_out, "VWallet Properties");
@@ -188,6 +190,7 @@ public class CSettings
 	      // DB pass
 	      if (this.settings.containsKey("db_pass"))
 	         this.db_pass=(this.settings.getProperty("db_pass"));
+              
 	  }
 	  catch (IOException e) 
           { 

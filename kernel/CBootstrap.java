@@ -424,8 +424,7 @@ public class CBootstrap
 	 					       + "priv_key  VARCHAR(250) DEFAULT '', "
                                                        + "parsed BIGINT DEFAULT 0)");
 	    
-            UTILS.DB.executeUpdate("CREATE INDEX packets_hash ON packets(hash)");
-            UTILS.DB.executeUpdate("CREATE INDEX packets_tip ON packets(tip)");
+            UTILS.DB.executeUpdate("CREATE INDEX pending_hash ON pending_adr(share_adr)");
 	}
          
          // ---------------------------------- Peers ---------------------------------------
@@ -615,6 +614,26 @@ public class CBootstrap
              UTILS.DB.executeUpdate("CREATE TABLE web_sys_data(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
                                                              +"status VARCHAR(50) DEFAULT '', "
                                                              +"msk_price FLOAT(9,4) DEFAULT 0)");
+             
+             UTILS.DB.executeUpdate("INSERT INTO web_sys_data(status, msk_price) VALUES('ID_OFFLINE', '1')");
+         }
+         
+         // ------------------------------------- Profiles ------------------------------------------------
+         if (tab.equals("profiles"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE profiles(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                         +"adr VARCHAR(250) DEFAULT '', "
+                                                         +"name VARCHAR(50) DEFAULT '', "
+                                                         +"avatar VARCHAR(250) DEFAULT '', "
+                                                         +"description VARCHAR(500) DEFAULT '', "
+                                                         +"website VARCHAR(250) DEFAULT '', "
+                                                         +"facebook VARCHAR(250) DEFAULT '', "
+                                                         +"email VARCHAR(200) DEFAULT '', "
+                                                         +"tel VARCHAR(50) DEFAULT '', "
+                                                         +"expire BIGINT DEFAULT '0', "
+                                                         +"block BIGINT DEFAULT '0')");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX prof_adr ON profiles(adr)");
          }
          
           // ------------------------------------- Web Users ------------------------------------------------
@@ -628,6 +647,7 @@ public class CBootstrap
                                                              +"tstamp BIGINT DEFAULT 0, "
                                                              + "pending_adr BIGINT DEFAULT 0, "
                                                              + "unread_esc BIGINT DEFAULT 0, "
+                                                             + "unread_mes BIGINT DEFAULT 0, "
                                                              + "unread_multisig BIGINT DEFAULT 0, "
                                                              + "unread_trans BIGINT DEFAULT 0)");
              
@@ -664,7 +684,7 @@ public class CBootstrap
 	   if (UTILS.SETTINGS.db.equals("hsql"))
 	       rs=s.executeQuery("SELECT * "
 	   		              + "FROM INFORMATION_SCHEMA.TABLES "
-	   		             + "WHERE TABLE_NAME='"+tab+"'"
+	   		             + "w TABLE_NAME='"+tab+"'"
 	   		               + "AND TABLE_SCHEMA='PUBLIC'");	
 	   else
 	       rs=s.executeQuery("SELECT * "
@@ -702,18 +722,6 @@ public class CBootstrap
         
         if (this.tableExist("ads")==false)
             this.createTable("ads");
-        
-        if (this.tableExist("assets")==false)
-            this.createTable("assets");
-        
-        if (this.tableExist("assets_markets")==false)
-            this.createTable("assets_markets");
-        
-        if (this.tableExist("assets_markets_pos")==false)
-            this.createTable("assets_markets_pos");
-        
-        if (this.tableExist("assets_owners")==false)
-            this.createTable("assets_owners");
         
         if (this.tableExist("blocks")==false)
             this.createTable("blocks");
@@ -801,32 +809,23 @@ public class CBootstrap
         
         if (this.tableExist("web_users")==false)
             this.createTable("web_users");
+        
+        if (this.tableExist("profiles")==false)
+            this.createTable("profiles");
     }
    
     public void insertAdr(String adr, double balance)
     {
 		UTILS.DB.executeUpdate("INSERT INTO adr(adr, "
                                                       + "balance, "
-                                                      + "rating, "
-                                                      + "stars_1, "
-                                                      + "stars_2, "
-                                                      + "stars_3, "
-                                                      + "stars_4, "
-                                                      + "stars_5, "
                                                       + "rowhash, "
                                                       + "block, "
                                                       + "last_interest) "
                                           + "VALUES('"+adr+"', "
                                                  + "'"+balance+"', "
-                                                   + "'0', "
- 	    + "'0', "
- 	    + "'0', "
- 	    + "'0', "
- 	    + "'0', "
- 	    + "'0', "
- 	    + "'4EEACEDOgAEAZKrIWRrp7blp6pPgkmMpaFeBNwpNV9dd', "
-         + "'14073262', "
-         + "'0')");
+                                                   + "'4EEACEDOgAEAZKrIWRrp7blp6pPgkmMpaFeBNwpNV9dd', "
+                                                   + "'14073262', "
+                                                   + "'0')");
     }
      
     public void fillTest()

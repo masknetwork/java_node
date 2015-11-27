@@ -46,10 +46,10 @@ public class CPeers
 	   this.network=station;
            
            // Timer
-              timer = new Timer();
+             timer = new Timer();
               task=new RemindTask();
               task.parent=this;
-              timer.schedule(task, 0, 1000); 
+             timer.schedule(task, 0, 1000); 
    }
    
    public void lastSeen(String peer)
@@ -144,7 +144,7 @@ public class CPeers
    
    public void removePeer(String peer)
    {
-       // Remove from peers list
+       //Remove from peers list
        for (int a=0; a<=this.peers.size()-1; a++)
        {
            CPeer p=(CPeer) this.peers.get(a);   
@@ -152,25 +152,31 @@ public class CPeers
        } 
        
        // Delete from db
-       UTILS.DB.executeUpdate("DELETE FROM peers WHERE peer='"+peer+"'");
+       UTILS.DB.executeUpdate("DELETE FROM peers WHERE peer='"+peer+"'"); 
+       
+       // Peer removed
+       UTILS.CONSOLE.write("Peer removed "+peer+" !!!");
    }
    
    public CPeer conect(String adr, int port)
    {
        try
        {
-      CPeer peer=new CPeer(this, adr, port);
-      
-      // Start peer
-      peer.start(); 
-      Thread.sleep(1000);
+          CPeer peer=new CPeer(this, adr, port);
+          
+          if (peer.client!=null)
+          {
+             // Start peer
+             peer.start(); 
+             Thread.sleep(1000);
 		   
-      // Initiate connection
-      CReqConnectionPacket packet=new CReqConnectionPacket();
-      peer.writePacket(packet);
+             // Initiate connection
+             CReqConnectionPacket packet=new CReqConnectionPacket();
+             peer.writePacket(packet);
       
-       // Return
-      return peer;
+             // Return
+             return peer;
+          }
        }
        catch (InterruptedException ex)
        {
@@ -189,8 +195,8 @@ public class CPeers
 	   {
 		  CPeer p=(CPeer) this.peers.get(a);   
 		  System.out.println("Connected to "+p.adr+" ("+p.last_seen+")");
-		  if (p.last_seen<(UTILS.BASIC.tstamp()-100))
-			    this.removePeer(p);
+		//  if (p.last_seen<(UTILS.BASIC.tstamp()-100))
+		//	    this.removePeer(p);
 	   }
       
      	 if (peers.size()<UTILS.SETTINGS.min_peers)
@@ -308,16 +314,17 @@ public class CPeers
        @Override
        public void run() 
        {  
+             
          // Tick
-          tick++;
+         // tick++;
         
           // Finds new peers
-          if (tick % 3600==0)  
-                parent.getNewPeers();
+          //if (tick % 3600==0)  
+          //      parent.getNewPeers();
            
            // Try to connect to pending peers
-           if (tick % 1800==0) 
-                 parent.checkPendingPeers();
+           //if (tick % 1800==0) 
+           //      parent.checkPendingPeers();
        }
    }
  

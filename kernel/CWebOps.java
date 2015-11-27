@@ -10,6 +10,7 @@ import wallet.network.CResult;
 import wallet.network.packets.adr.CAddSignPacket;
 import wallet.network.packets.adr.CFrozeAdrPacket;
 import wallet.network.packets.adr.COTPPacket;
+import wallet.network.packets.adr.CProfilePacket;
 import wallet.network.packets.adr.CReqDataPacket;
 import wallet.network.packets.adr.CRestrictRecipientsPacket;
 import wallet.network.packets.adr.CSealAdrPacket;
@@ -38,6 +39,7 @@ import wallet.network.packets.markets.feeds.CNewFeedMarketPayload;
 import wallet.network.packets.mes.CMesPacket;
 import wallet.network.packets.misc.CIncreaseMktBidPacket;
 import wallet.network.packets.misc.CRemoveItemPacket;
+import wallet.network.packets.trans.CEscrowedTransSignPacket;
 import wallet.network.packets.trans.CMultisigTransSignPacket;
 import wallet.network.packets.trans.CTransPacket;
 
@@ -126,6 +128,21 @@ public class CWebOps
                         UTILS.NETWORK.broadcast(packet);
                    }
                    
+                   if (op.equals("ID_UPDATE_PROFILE"))
+                   {
+                       CProfilePacket packet=new CProfilePacket(rs.getString("fee_adr"),
+                                                                rs.getString("target_adr"),
+		                                                UTILS.BASIC.base64_decode(rs.getString("par_1")), 
+		                                                UTILS.BASIC.base64_decode(rs.getString("par_2")),
+                                                                UTILS.BASIC.base64_decode(rs.getString("par_3")), 
+                                                                UTILS.BASIC.base64_decode(rs.getString("par_4")),
+                                                                UTILS.BASIC.base64_decode(rs.getString("par_5")), 
+                                                                UTILS.BASIC.base64_decode(rs.getString("par_6")), 
+                                                                UTILS.BASIC.base64_decode(rs.getString("par_7")), 
+		                                                rs.getLong("days"));
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
                    if (op.equals("ID_REQ_DATA")) 
                    {
                         CReqDataPacket packet=new CReqDataPacket(rs.getString("fee_adr"),
@@ -204,6 +221,17 @@ public class CWebOps
                                               + "WHERE ID='"+ID+"'");
                     }
                     
+                    // Escrowed sign
+                    if (op.equals("ID_ESCROWED_SIGN"))
+                    {
+                        CEscrowedTransSignPacket packet=new CEscrowedTransSignPacket(rs.getString("fee_adr"),
+                                                                                     rs.getString("par_1"),
+                                                                                      rs.getString("par_2"),
+                                                                                      rs.getString("par_3"));
+                        
+                        UTILS.NETWORK.broadcast(packet);
+                    }
+                    
                     if (op.equals("ID_RESTRICT"))
                     {
                        CRestrictRecipientsPacket packet=new CRestrictRecipientsPacket(rs.getString("fee_adr"), 
@@ -251,7 +279,7 @@ public class CWebOps
                        adr.importAddress(rs.getString("user"), 
                                          rs.getString("par_1"),
                                          rs.getString("par_2"),
-                                         UTILS.BASIC.base64_decode(rs.getString("par_3")));
+                                         rs.getString("par_3"));
                    }
                    
                    if (op.equals("ID_SHUTDOWN"))

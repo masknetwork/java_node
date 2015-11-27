@@ -2,6 +2,7 @@ package wallet.network.packets.trans;
 
 import java.sql.ResultSet;
 import java.sql.Statement;
+import wallet.kernel.CFootprint;
 import wallet.kernel.UTILS;
 import wallet.network.CResult;
 import wallet.network.packets.CBroadcastPacket;
@@ -11,8 +12,8 @@ import wallet.network.packets.mes.CMesPayload;
 public class CEscrowedTransSignPacket  extends CBroadcastPacket 
 {
     public CEscrowedTransSignPacket(String fee_adr,
-                                    String signer, 
                                     String trans_hash, 
+                                    String signer, 
                                     String type)
     {
 	  super("ID_ESCROWED_TRANS_SIGN");
@@ -42,9 +43,23 @@ public class CEscrowedTransSignPacket  extends CBroadcastPacket
          return new CResult(false, "Invalid packet type", "CMesPacketPacket", 39);
   	  
      // Check
-     CEscrowedTransSignPacket pay=(CEscrowedTransSignPacket) UTILS.SERIAL.deserialize(payload);
-     res=pay.check(block);
+     CEscrowedTransSignPayload dec_payload=(CEscrowedTransSignPayload) UTILS.SERIAL.deserialize(payload);
+     res=dec_payload.check(block);
      if (!res.passed) return res;
+     
+     // Footprint
+     CFootprint foot=new CFootprint("ID_ESCROWED_TRANS_SIGN", 
+                                    this.hash, 
+                                    dec_payload.hash, 
+                                    this.fee.src, 
+                                    this.fee.amount, 
+                                    this.fee.hash,
+                                    this.block);
+                  
+     foot.add("Transaction hash", dec_payload.trans_hash);
+     foot.add("Signer", dec_payload.target_adr);
+     foot.add("type", dec_payload.type);
+     foot.write();
   	
      // Return 
      return new CResult(true, "Ok", "CMesPacketPacket", 45);
@@ -57,7 +72,7 @@ public class CEscrowedTransSignPacket  extends CBroadcastPacket
      if (res.passed==false) return res;
   	  
      // Deserialize transaction data
-     CEscrowedTransSignPacket dec_payload=(CEscrowedTransSignPacket) UTILS.SERIAL.deserialize(payload);
+     CEscrowedTransSignPayload dec_payload=(CEscrowedTransSignPayload) UTILS.SERIAL.deserialize(payload);
 
      // Commit payload
      res=dec_payload.commit(block);

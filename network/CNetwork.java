@@ -94,6 +94,10 @@ public class CNetwork extends Thread
 	      UTILS.DB.executeUpdate("UPDATE peers "
                                       + "SET last_seen='"+UTILS.BASIC.tstamp()+"' "
                                     + "WHERE peer='"+adr+"'");
+              
+              System.out.println("UPDATE peers "
+                                      + "SET last_seen='"+UTILS.BASIC.tstamp()+"' "
+                                    + "WHERE peer='"+adr+"'");
           }
           
 	  public void processRequest(CPacket packet, CPeer sender)
@@ -104,7 +108,7 @@ public class CNetwork extends Thread
                   if (sender!=null) seen(sender.adr);
 		  
                    // Console
-		  UTILS.CONSOLE.write("Received packet........... : "+packet.tip+" ("+packet.hash+")");
+		  //UTILS.CONSOLE.write("Received packet........... : "+packet.tip+" ("+packet.hash+")");
                   
 		  // Already processed
 		  if (this.packetExist(packet, sender)) return;
@@ -172,7 +176,7 @@ public class CNetwork extends Thread
 	  
 	  public void broadcast(CPacket packet)
 	  {
-              UTILS.CONSOLE.write("Broadcasting packet ("+packet.tip+")...");
+              //UTILS.CONSOLE.write("Broadcasting packet ("+packet.tip+")...");
                
               if (peers.peers.size()==0)
               {

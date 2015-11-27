@@ -63,14 +63,14 @@ public class CFrozeAdrPayload extends CPayload
 	  	    // Commit
 	  	   	UTILS.BASIC.applyAdrAttr(this.target_adr, 
 	  	   			         "ID_FROZEN", 
-	  	   			         this.days*1440+this.block, 
-	  	   			         UTILS.BASIC.block(), 
 	  	   			         "", 
 	  	   			         "", 
 	  	   			         "",
 	  	   			         "",
                                                  "",
-                                                 "");
+                                                 "",
+                                                 block.tstamp+(this.days*86400), 
+                                                 block.block);
 	  	       
 	  	   	// Return 
 	  	   	return new CResult(true, "Ok", "CBlockAdrPayload.java", 149);

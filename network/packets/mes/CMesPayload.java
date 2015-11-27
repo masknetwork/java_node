@@ -41,25 +41,14 @@ public class CMesPayload extends CPayload
 		 this.mes=mes;
 		 
 		 // Generates a key
-		 SecureRandom random = new SecureRandom();
-		 byte key[] = new byte[20];
-		 random.nextBytes(key);
-		 this.key=new String(key);
-		 
-		 // Message
-		 try
-		 {
-		    this.subj=UTILS.AES.encrypt(subj, this.key);
-		    this.mes=UTILS.AES.encrypt(mes, this.key);
+		 String k=UTILS.BASIC.randString(25);
+                 
+		 this.subj=UTILS.AES.encrypt(subj, k);
+		 this.mes=UTILS.AES.encrypt(mes, k);
 		    
-		    // Encrypt key
-		    CECC ecc=new CECC(receiver_adr);
-	            this.key=ecc.encrypt(this.key);
-		 }
-		 catch (Exception ex) 
-		 {
-			UTILS.LOG.log("Exception", ex.getMessage(), "CMesPayload.java", 47); 
-		 }
+		 // Encrypt key
+		 CECC ecc=new CECC(receiver_adr);
+	         this.key=ecc.encrypt(k);
 		 
 		 // Hash
 		 hash=UTILS.BASIC.hash(this.getHash()+
@@ -70,6 +59,7 @@ public class CMesPayload extends CPayload
 		 
 		 // Sign
 		 this.sign();
+         
 	}
 	
 	public CResult check(CBlockPayload block)
@@ -116,14 +106,16 @@ public class CMesPayload extends CPayload
     	   		                                   + "subject, "
     	   		                                   + "mes, "
     	   		                                   + "status, "
-    	   		                                   + "tstamp)"
+    	   		                                   + "tstamp, "
+                                                           + "tgt)"
     	   		                                   + "VALUES ('"+
     	   		                                   this.target_adr+"', '"+
     	   		                                   this.receiver_adr+"', '"+
     	   		                                   UTILS.BASIC.base64_encode(dec_subject)+"', '"+
     	   		                                   UTILS.BASIC.base64_encode(dec_mes)+"', '"+
                                                            "0', '"+
-    	   		                                   String.valueOf(UTILS.BASIC.tstamp())+"')");
+    	   		                                   String.valueOf(UTILS.BASIC.tstamp())+"', "
+                                                           + "'0')");
     	      
                  // Statement
                  Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);

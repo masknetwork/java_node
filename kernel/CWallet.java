@@ -122,7 +122,7 @@ public class CWallet
 		  }
      }
    
-   public void checkForNewAdr()
+   public void checkForNewAdr() throws SQLException
    {
 	   // Check for new adddresses
 	   for (int a=1; a<=100; a++)

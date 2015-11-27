@@ -23,7 +23,7 @@ public class CBroadcastPacket extends CPacket
 	    super(tip);
 		
 	    // Block
-	    this.block=UTILS.BASIC.block();
+	    this.block=UTILS.CBLOCK.prev_block_no+1;
 	}
 	
 	public CResult check(CBlockPayload block)

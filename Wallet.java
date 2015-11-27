@@ -80,6 +80,8 @@ public class Wallet
         // Web operations
         CWebOps ops=new CWebOps();
         
+        //CWebImageLoader load=new CWebImageLoader("http://lifestuffs.com/wp-content/uploads/2015/09/ee24f9eb01b49207326d8eda93f49956.jpg");
+        //load.start();
       }
       catch (Exception e) 
       { 

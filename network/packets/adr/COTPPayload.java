@@ -92,14 +92,14 @@ public class COTPPayload extends CPayload
 	    if (UTILS.STATUS.last_tables_block<this.block)
 	    UTILS.BASIC.applyAdrAttr(this.target_adr, 
 	  	   	             "ID_OTP", 
-	  	   	             this.days*1440+this.block, 
-	  	   		     UTILS.BASIC.block(), 
 	  	   	             this.next_hash, 
 	  	   		     this.def_address, 
 	  	   	             "",
 	  	   		     "",
                                      "",
-                                     "");
+                                     "",
+                                     block.tstamp+(this.days*86400), 
+                                     block.block);
 	   
             // Return 
 	    return new CResult(true, "Ok", "COTPPayload.java", 149);

@@ -36,7 +36,7 @@ public class CProfilePayload extends CPayload
    String tel;
    
    // Days
-   int days;
+   long days;
    
    public CProfilePayload(String target_adr, 
                           String name, 
@@ -46,7 +46,7 @@ public class CProfilePayload extends CPayload
                           String website, 
                           String facebook, 
                           String avatar, 
-		          int days)
+		          long days)
    {
 	   // Superclass
 	   super(target_adr);
@@ -79,8 +79,7 @@ public class CProfilePayload extends CPayload
 	   this.days=days;
 	   
 	   // Hash
- 	   hash=UTILS.BASIC.hash(this.hash+
- 			         target_adr+
+ 	   hash=UTILS.BASIC.hash(this.getHash()+
  			         name+
  			         avatar+
  			         description+
@@ -88,8 +87,10 @@ public class CProfilePayload extends CPayload
  			         facebook+
  			         email+
  			         tel+
- 			         String.valueOf(days)+
- 			         String.valueOf(tstamp));
+ 			         String.valueOf(days));
+           
+           // Sign
+           this.sign();
    }
    
    public CResult check(CBlockPayload block)
@@ -103,7 +104,8 @@ public class CProfilePayload extends CPayload
    		return new CResult(false, "Invalid target address", "CProfilePayload", 48);
    	
           // Name
-          if (this.name.length()>50)
+          if (!this.name.equals(""))
+            if (this.name.length()>50)
               return new CResult(false, "Invalid name length", "CProfilePayload", 48);
           
           // Description
@@ -115,35 +117,48 @@ public class CProfilePayload extends CPayload
               return new CResult(false, "Invalid email", "CProfilePayload", 48);
           
           // Tel
+          if (!this.tel.equals(""))
+             if (this.tel.length()<5 || this.tel.length()>25)    
+                return new CResult(false, "Invalid telephone", "CProfilePayload", 48);
+          
           // Website
+          if (!this.website.equals(""))
+             if (!UTILS.BASIC.isLink(this.website))
+               return new CResult(false, "Invalid website", "CProfilePayload", 48);
+          
           // Facebook
+          if (!this.website.equals(""))
+             if (!UTILS.BASIC.isLink(this.website))
+               return new CResult(false, "Invalid website", "CProfilePayload", 48);
+          
           // Avatar
+          if (!this.avatar.equals(""))
+             if (!UTILS.BASIC.isLink(this.avatar) || this.avatar.indexOf(".jpg")==-1)
+               return new CResult(false, "Invalid avatar", "CProfilePayload", 48);
    	 
 	   // Check days
  	   if (days<10 || days>36500) 
  		 return new CResult(false, "Invalid period", "CAddEscrowPayload", 64);
    	   
  	    // Check hash
- 	    String h=UTILS.BASIC.hash(this.hash+
-                                      target_adr+
-                                      name+
-                                      avatar+
-                                      description+
-                                      website+
-                                      facebook+
-                                      email+
-                                      tel+
-                                      String.valueOf(days)+
-                                      String.valueOf(tstamp));
+ 	    String h=UTILS.BASIC.hash(this.getHash()+
+ 			              name+
+ 			              avatar+
+ 			              description+
+ 			              website+
+ 			              facebook+
+ 			              email+
+ 			              tel+
+ 			              String.valueOf(days));
  	    
-            if (this.hash!=h) 
+            if (!this.hash.equals(h)) 
                  return new CResult(false, "Invalid hash", "CPostCommentPayload", 101);
  		  
  	   // Return
  	   return new CResult(true, "Ok", "CAddEscrowPayload", 67);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) 
    {
        CResult res=this.check(block);
        if (res.passed==false) return res;
@@ -155,10 +170,13 @@ public class CProfilePayload extends CPayload
        // Commit
        try
        {
-               Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-   	      ResultSet rs=s.executeQuery("SELECT * "
-   	   		                         + "FROM profiles "
-   	   		                        + "WHERE adr='"+this.target_adr+"'");
+              // Statement
+              Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+   	      
+              // Result Set
+              ResultSet rs=s.executeQuery("SELECT * "
+   	   		                  + "FROM profiles "
+   	   		                 + "WHERE adr='"+this.target_adr+"'");
    	      if (UTILS.DB.hasData(rs)==true)
    	      {
    		    rs.next();
@@ -167,17 +185,17 @@ public class CProfilePayload extends CPayload
    		    long expire=rs.getLong("expire");
    		    
    		    // New expiration block
-   		    expire=expire+(this.days*288);
+   		    expire=block.tstamp+(this.days*86400);
    		    
    		    // Update
    		    UTILS.DB.executeUpdate("UPDATE profiles "
-   		    		            + "SET name='"+this.name+"', "
-   		    		            + "avatar='"+this.avatar+"', "
-   		    		            + "description='"+this.description+"', "
-   		    		            + "website='"+this.website+"', "
-   		    		            + "facebook='"+this.facebook+"', "
-   		    		            + "email='"+this.email+"', "
-   		    		            + "tel='"+this.tel+"',"
+   		    		            + "SET name='"+UTILS.BASIC.base64_encode(this.name)+"', "
+   		    		            + "avatar='"+UTILS.BASIC.base64_encode(this.avatar)+"', "
+   		    		            + "description='"+UTILS.BASIC.base64_encode(this.description)+"', "
+   		    		            + "website='"+UTILS.BASIC.base64_encode(this.website)+"', "
+   		    		            + "facebook='"+UTILS.BASIC.base64_encode(this.facebook)+"', "
+   		    		            + "email='"+UTILS.BASIC.base64_encode(this.email)+"', "
+   		    		            + "tel='"+UTILS.BASIC.base64_encode(this.tel)+"',"
    		    		            + "block='"+this.block+"',"
    		    		            + "expire='"+String.valueOf(expire)+"' "
    		    		   + "WHERE adr='"+this.target_adr+"'");
@@ -185,7 +203,7 @@ public class CProfilePayload extends CPayload
    	      else
    	      {
    	    	  // Expires
-   	    	  long expire=this.block+(days*288);
+   	    	  long expire=block.tstamp+(days*86400);
    	    	
    	    	  UTILS.DB.executeUpdate("INSERT INTO profiles(adr, "
    	    	  		                      + "name, "
@@ -193,23 +211,24 @@ public class CProfilePayload extends CPayload
    	    	  		                      + "description, "
    	    	  		                      + "website, "
    	    	  		                      + "facebook, "
-   	    	  		                      + "twitter, "
-   	    	  		                      + "ebay, "
    	    	  		                      + "email, "
    	    	  		                      + "tel, "
-   	    	  		                      + "country, "
    	    	  		                      + "block, "
    	    	  		                      + "expire) "
    	    	  		          + "VALUES('"+this.target_adr+"', '"+
-   	    	  		                       this.name+"', '"+
-   	    	  		                       this.avatar+"', '"+
-   	    	  		                       this.description+"', '"+
-   	    	  		                       this.website+"', '"+
-   	    	  		                       this.facebook+"', '"+
-   	    	  		                       this.email+"', '"+
-   	    	  		                       this.tel+"', '"+
+   	    	  		                       UTILS.BASIC.base64_encode(this.name)+"', '"+
+   	    	  		                       UTILS.BASIC.base64_encode(this.avatar)+"', '"+
+   	    	  		                       UTILS.BASIC.base64_encode(this.description)+"', '"+
+   	    	  		                       UTILS.BASIC.base64_encode(this.website)+"', '"+
+   	    	  		                       UTILS.BASIC.base64_encode(this.facebook)+"', '"+
+   	    	  		                       UTILS.BASIC.base64_encode(this.email)+"', '"+
+   	    	  		                       UTILS.BASIC.base64_encode(this.tel)+"', '"+
    	    	  		                       this.block+"', '"+
    	    	  		                       String.valueOf(expire)+"')");
+                  
+                  // Image
+                  if (!this.avatar.equals(""))
+                      UTILS.DB.executeUpdate("INSERT INTO imgs_stack(url) VALUES('"+this.avatar+"')");
    	      }
        }
        catch (SQLException ex) { UTILS.LOG.log("SQLException", ex.getMessage(), "CProfilePayload.java", 249);}

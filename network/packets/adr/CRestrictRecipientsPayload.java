@@ -139,14 +139,14 @@ public class CRestrictRecipientsPayload extends CPayload
 	    // Commit
 	   	UTILS.BASIC.applyAdrAttr(this.target_adr, 
 	   			                 "ID_RESTRICT_REC", 
-	   			                 this.days, 
-	   			                 tstamp, 
 	   			                 this.adr_1, 
 	   			                 this.adr_2, 
 	   			                 this.adr_3,
 	   			                 this.adr_4,
                                                  this.adr_5,
-                                                 "");
+                                                 "",
+                                                 block.tstamp+(this.days*86400), 
+                                                 block.block);
 	       
 	   	// Return 
 	   	return new CResult(true, "Ok", "CRestrictRecipientsPayload.java", 149);

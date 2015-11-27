@@ -483,14 +483,12 @@ public class CTransPayload extends CPayload
                                                                 + "escrower, "
                                                                 + "amount, "
                                                                 + "cur, "
-                                                                + "block, "
-                                                                + "rowhash) VALUES ('"
+                                                                + "block) VALUES ('"
                                                                 +this.hash+"', '"
                                                                 +this.src+"', '"
                                                                 +this.dest+"', '"
                                                                 +this.escrower+"', '"
                                                                 +this.amount+"', '"
-                                                                +this.cur+"', '"
                                                                 +this.cur+"', '"
                                                                 +this.block+"')");
                    

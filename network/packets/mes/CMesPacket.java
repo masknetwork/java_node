@@ -45,9 +45,22 @@ public class CMesPacket extends CBroadcastPacket
   		return new CResult(false, "Invalid packet type", "CMesPacketPacket", 39);
   	  
   	   // Check
-  	  CMesPayload pay=(CMesPayload) UTILS.SERIAL.deserialize(payload);
-      res=pay.check(block);
-      if (!res.passed) return res;
+  	  CMesPayload dec_payload=(CMesPayload) UTILS.SERIAL.deserialize(payload);
+          res=dec_payload.check(block);
+          if (!res.passed) return res;
+          
+          // Footprint
+          CFootprint foot=new CFootprint("ID_SEND_MES", 
+                                         this.hash, 
+                                         dec_payload.hash, 
+                                         this.fee.src, 
+                                         this.fee.amount, 
+                                         this.fee.hash,
+                                         this.block);
+                  
+          foot.add("Source", dec_payload.target_adr);
+          foot.add("Destination", dec_payload.receiver_adr);
+          foot.write();
   	
   	  // Return 
   	  return new CResult(true, "Ok", "CMesPacketPacket", 45);

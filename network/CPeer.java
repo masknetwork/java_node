@@ -15,7 +15,7 @@ import org.apache.commons.io.output.CountingOutputStream;
 public class CPeer extends Thread 
 {
 	// Client
-	private Socket client;
+	public Socket client;
 	
 	// Input stream
 	private ObjectInputStream in;
@@ -90,8 +90,7 @@ public class CPeer extends Thread
 	   catch (IOException ex) 
 	   { 
 	       UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 67); 
-               this.couldNotConnect();
-	   }
+           }
 	}
 	
    CPeer(CPeers peers, Socket client) throws SocketException
@@ -179,14 +178,14 @@ public class CPeer extends Thread
            
          
      	  // If peer is active but no connection has been established in 2 sec 
-           if (UTILS.NETWORK.peers.conectedTo(parent.adr)==false || parent.schedule_delete==true)
+          /* if (UTILS.NETWORK.peers.conectedTo(parent.adr)==false || parent.schedule_delete==true)
            {
                if (UTILS.BASIC.tstamp()-parent.created>2)
                {
-                   UTILS.CONSOLE.write("Removed for inactivity "+parent.adr);
-                   parent.close();
+                   //UTILS.CONSOLE.write("Removed for inactivity "+parent.adr);
+                   //parent.close();
                }
-           }
+           }*/
        }
    }
    
@@ -234,14 +233,17 @@ public class CPeer extends Thread
 	   catch (IOException ex) 
 	   { 
 		   UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 93);
+                   this.peers.removePeer(this); 
 	   }
 	   catch (ClassNotFoundException ex) 
 	   { 
 		   UTILS.LOG.log("ClassNotFoundException", ex.getMessage(), "CPeer.java", 93);
+                   this.peers.removePeer(this); 
 	   }
 	   catch (Exception ex) 
 	   { 
 		   UTILS.LOG.log("Exception", ex.getMessage(), "CPeer.java", 93);
+                   this.peers.removePeer(this); 
 	   }
    }
    
@@ -251,12 +253,13 @@ public class CPeer extends Thread
 	   {
 		   out.writeObject(packet);
                    out.flush();
-                   UTILS.CONSOLE.write(" Written "+packet.tip+" to "+this.adr);
+                   //UTILS.CONSOLE.write(" Written "+packet.tip+" to "+this.adr);
                    packet=null;
 	   }
 	   catch (IOException e) 
 	   { 
 		   UTILS.LOG.log("IOException", e.getMessage(), "CPeer.java", 252); 
+                   this.peers.removePeer(this); 
 	   }
    }
 }

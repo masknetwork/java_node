@@ -153,14 +153,14 @@ public class CAddSignPayload extends CPayload
         // Commit
     	UTILS.BASIC.applyAdrAttr(this.target_adr, 
 			         "ID_MULTISIG", 
-			         this.days*1440+this.block, 
-                                 UTILS.BASIC.block(),
 			         this.signer_1, 
 			         this.signer_2, 
 			         this.signer_3,
 			         this.signer_4,
                                  this.signer_5,
-                                 String.valueOf(this.min));
+                                 String.valueOf(this.min),
+                                 block.tstamp+(this.days*86400), 
+                                 block.block);
     	
     	// Return
   	    return new CResult(true, "Ok", "CAddSignPayload", 77);

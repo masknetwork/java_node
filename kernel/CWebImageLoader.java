@@ -4,7 +4,12 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.SocketAddress;
 import java.net.URL;
+import java.net.URLConnection;
 
 import javax.imageio.ImageIO;
 
@@ -17,6 +22,9 @@ public class CWebImageLoader extends Thread
 	
 	// Image
 	public BufferedImage img=null;
+        
+        // Use proxy
+        boolean use_proxy=false;
     
 	public CWebImageLoader(String url) 
 	{
@@ -33,14 +41,31 @@ public class CWebImageLoader extends Thread
 		// URL
 		URL url = new URL(this.url);
 		
+                // Proxy
+                SocketAddress address = new InetSocketAddress(this.url, 80);
+                Proxy proxy = new Proxy(Proxy.Type.HTTP, address);
+                
                 // Length
                 long len=url.openConnection().getContentLength();
                 
-                if (len<1000000)
+                // Try proxy
+                if (len<0) 
+                {
+                    len=url.openConnection(proxy).getContentLength();
+                    this.use_proxy=true;
+                }
+                
+                if (len<1000000 && len>1000)
                 {
           	   // Read Image
-		   img = ImageIO.read(url);
-		   
+                    if (this.use_proxy)
+                    {
+                      URLConnection con = url.openConnection(proxy);
+                      InputStream inStream = con.getInputStream();
+		      img = ImageIO.read(inStream);
+                    }
+                    else img = ImageIO.read(url);
+                    
                    // Hash
                    String hash=UTILS.BASIC.hash(this.url).substring(0, 10);
                    
@@ -64,14 +89,17 @@ public class CWebImageLoader extends Thread
 	    catch (IOException e) 
 	    { 
 		UTILS.LOG.log("IOException", e.getMessage(), "CWebImageLoader.java", 66); 
+                UTILS.DB.executeUpdate("DELETE FROM imgs_stack WHERE url='"+this.url+"'");
 	    }
 	    catch (InterruptedException ex) 
 	    { 
 		UTILS.LOG.log("InterruptedException", ex.getMessage(), "CWebImageLoader.java", 57); 
+                UTILS.DB.executeUpdate("DELETE FROM imgs_stack WHERE url='"+this.url+"'");
 	    }
 	    catch (Exception e) 
 	    { 
-			UTILS.LOG.log("Exception", e.getMessage(), "CWebImageLoader.java", 67); 
+	       UTILS.LOG.log("Exception", e.getMessage(), "CWebImageLoader.java", 67); 
+               UTILS.DB.executeUpdate("DELETE FROM imgs_stack WHERE url='"+this.url+"'");
 	    }
 		   
 	}

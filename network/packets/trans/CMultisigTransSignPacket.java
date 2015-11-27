@@ -1,5 +1,6 @@
 package wallet.network.packets.trans;
 
+import wallet.kernel.CFootprint;
 import wallet.kernel.UTILS;
 import wallet.network.CResult;
 import wallet.network.packets.CBroadcastPacket;
@@ -39,9 +40,22 @@ public class CMultisigTransSignPacket extends CBroadcastPacket
          return new CResult(false, "Invalid packet type", "CMesPacketPacket", 39);
   	  
      // Check
-     CMultisigTransSignPayload pay=(CMultisigTransSignPayload) UTILS.SERIAL.deserialize(payload);
-     res=pay.check(block);
+     CMultisigTransSignPayload dec_payload=(CMultisigTransSignPayload) UTILS.SERIAL.deserialize(payload);
+     res=dec_payload.check(block);
      if (!res.passed) return res;
+     
+     // Footprint
+     CFootprint foot=new CFootprint("ID_MULTISIG_TRANS_SIGN_PACKET", 
+                                    this.hash, 
+                                    dec_payload.hash, 
+                                    this.fee.src, 
+                                    this.fee.amount, 
+                                    this.fee.hash,
+                                    this.block);
+                  
+     foot.add("Transaction hash", dec_payload.trans_hash);
+     foot.add("Signer", dec_payload.target_adr);
+     foot.write();
   	
      // Return 
      return new CResult(true, "Ok", "CMesPacketPacket", 45);

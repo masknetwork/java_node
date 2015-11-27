@@ -86,6 +86,8 @@ public class CErrorLog
 	  
 	  public void log(String type, String mes, String file, int line)
 	  {
+              if (mes==null) mes="No Message";
+              
 	      Calendar cal = Calendar.getInstance();
 	      cal.getTime();
 	      SimpleDateFormat sdf = new SimpleDateFormat("MMM,DD,yyyy HH:mm:ss");
