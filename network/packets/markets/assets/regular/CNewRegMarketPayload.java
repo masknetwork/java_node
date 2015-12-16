@@ -231,7 +231,7 @@ public class CNewRegMarketPayload extends CPayload
                                                          "'0', "+
                                                          "'0', '"+
                                                         UTILS.FORMAT.format(this.bid)+"', '"+
-                                                        (this.block+this.days*864)+"', '"+
+                                                        (this.block+this.days*1440)+"', '"+
                                                         this.block+"')");
         
         // Rowhash

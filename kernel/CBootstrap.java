@@ -13,7 +13,7 @@ public class CBootstrap
         
         // Delete packets
          UTILS.DB.executeUpdate("DELETE FROM packets "
-                             + "WHERE tstamp<"+(UTILS.BASIC.tstamp()-86400));
+                                    + "WHERE tstamp<"+(UTILS.BASIC.tstamp()-144000));
         
         // Delete active peers
         UTILS.DB.executeUpdate("DELETE FROM peers");
@@ -240,7 +240,7 @@ public class CBootstrap
 	    UTILS.DB.executeUpdate("CREATE TABLE imgs_stack(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
 				    		         + "url VARCHAR(1000))");
 				    
-	    UTILS.DB.executeUpdate("CREATE INDEX imgs_stack_url ON imgs_stack(url)");
+	   
          }
          
          // ---------------------------------- Interest --------------------------------------
@@ -613,6 +613,12 @@ public class CBootstrap
          {
              UTILS.DB.executeUpdate("CREATE TABLE web_sys_data(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
                                                              +"status VARCHAR(50) DEFAULT '', "
+                                                             +"last_ping BIGINT DEFAULT '0', "
+                                                             +"free_memory BIGINT DEFAULT '0', "
+                                                             +"total_memory BIGINT DEFAULT '0', "
+                                                             +"max_memory BIGINT DEFAULT '0', "
+                                                             +"procs BIGINT DEFAULT '0', "
+                                                             +"threads_no BIGINT DEFAULT '0', "
                                                              +"msk_price FLOAT(9,4) DEFAULT 0)");
              
              UTILS.DB.executeUpdate("INSERT INTO web_sys_data(status, msk_price) VALUES('ID_OFFLINE', '1')");
@@ -679,7 +685,7 @@ public class CBootstrap
 		
         try
         {
-           Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+           Statement s=UTILS.DB.getStatement();
            
 	   if (UTILS.SETTINGS.db.equals("hsql"))
 	       rs=s.executeQuery("SELECT * "
@@ -830,106 +836,8 @@ public class CBootstrap
      
     public void fillTest()
     {
-        this.insertAdr("default", 1000000);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEzCZiNDie9xEdt1ejKgFezoPHzQEWjUG+uUCKaTsQ1FsZ/JSV0VYHxPR+vnIwTZTLXtPuD15xcBY=", 1403);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEGKpJYlIqMbObwBhsMujBr9cNzj/3c8vXxKWZadaQ+La6eEEjm98F/IbnNvH7HiroJeSi8CBB+Q8=", 9791);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE9kdxPKBXgQarZ4l9JLUC2ib4Bnq5J2Xot7YBINOhl4FEVqPMX/wtXWSWLqvdm54MbxSOnJuGzaA=", 6866);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEEyH7gcl1bsNdKUptBm8AqFE9M+NX64/05f5haKWVNGO1ll0f4peUHD3DuTNVIbPQO46BcMh5gV8=", 1065);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE1saQACy36ePJZUlaiZzI0LZDkbDbAM9rHz7ewz4dqxw4ELK9/EX/XgX+4AwENLbe6Z2/5LEtHZU=", 9380);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE4nt8iCKAeHK04Dj33tf9FU6uoRFSQFx3Wwk0j8zc6Vnj2ZUyyMlTNzG+rN8w8rgrJqn9ZDcwhYA=", 3226);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEPIBzceHM/V5TTh/GdpO0z5To8yLD5QkwFeFs3yyWGg7oPAe93DyAavEWj41bfrFMUuOA2UCBc5Y=", 5269);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE6RKfG95NBrVDh1z3RugbjNjr1OynWfSdgzKS2DwvMRak9NFzwoNcDDTuzb/avSaXbntSaFLnYZ8=", 8228);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE4y9067Tm257mCXqZedk866kzd+BZq9gspOMYPuVY7Pwum1VivTO5W+k5O+VWVYJq0VcvpCd/6pY=", 1003);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEMn/3Pg+D4ZUowC4YchL4HsYALs95ay/4D31SVv7F884zqtDZeCXIFpqcTgyKTySGx5uH/ruhIOs=", 6756);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmzMuWmpif2JdeB1/UA7XQumglLj3o4/qF/CisxzJyXf7JoXXmGvBDJFbCSr8Si09zKtkfoA7jyU=", 1696);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEiBFsj/wAAe4DEC7G+llRrZyYUjHgibpZ194X3mWrPnOvuBbj7N8sGAi9Gfn9zM34bbrSEqhUocY=", 8760);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEcA5WMYD2IdOOG8rQo9fdm0tG/HUutaJYG5Ynk8acn5jV4PoNv47rY1+y04aQey7JrkGxRrrtlt8=", 4314);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEWyLBlyZy6RW3LluwEvotMFjpHbz+fs/6dxZrm0d7eUtTxqAooQHBA+2wIKc2NN6buwB913+D1YM=", 3519);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEVPjqkVieKVzBlnbPDqMxTsjtL6Kl0jN9kw37CyJQ/JDPTLledemeRU6JLeJGmYS7oizXSZr6lVg=", 1137);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE0bNRS3kjh3JdhmbVvIpo4dyE5xV5wPLyrjcZxFlp+NakSM9NaoxNPhP8hBAExyvj8Hc01ZLSBCY=", 5823);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEtmhUY494QDXHn6nwPjHkSIoBhis3Ah78Z7hbL8ORNhGGVeaQqIutaEskx7f505sx0iz02LEW2Ik=", 5934);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEOLzk1rVuUNrTfDq9B8tanNG15cIMPgZYOWjJbuToTV+UFpA6rg9tCap3Z+EnPwAaFAhvNFwqD6g=", 9007);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEzQddAA1A1YQuyHYZw4aISO16shmIgP79RnxGelI8Jy3JpkHiFtclCeLNMhEEauP3PEFpqV8TgQ4=", 8612);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEi26kafXPuXkdGqBpIdgTHGFMjdQvi7beQpV96jBomXbOn0TkzE3uf/woHnYL4B5scW39VnI80pc=", 4919);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEDbzLqoRsNNTJJlaw8Mb5GZfmKPHz3A5zmIXjRhOuGbFqcfGKekMkVkMyMNNbvxs4cWP32v4JMio=", 3242);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEElmPquXZNkOVNLbGQeM7nKtqmIKNJ3To5ThG1b+FNUoTpIefYUu/a3s2QSTnVSKV4XB+FQP4tSs=", 4158);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE736kepOG5NWZ4A2GD/suhTHygNSpAXBwgq+fg0tpFbafHkdEU+Tj+MrWOr/EX+77Kgf5nL1In/E=", 7735);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE0eHqSgeobFGkeK/J6vzPA6cfuk2FJGmbJl8v53LjH+X8eDcOPWSpjydN9zIao8gwsg6tJIjXUYk=", 80);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEzWDdBUdDiJdkkAkx9WsM+7WZdarsFyDJqqkiqH4sD4ceJ97RO9WKWpIFfKUfOLpHx40Txb9OK4Q=", 5849);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEcedZ7Te+3aN081Ml+CKXW1BM1DVYcsadRt+YTsCrbUQQ+wzhF7OgAO0uw286o1RzXbwOICf+2Xk=", 9448);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE1y+tj/26Tc+7j94gquG9NmVtLqSiakvWSP60RFFivWmfJZ0PJ1YSDqBghYmkkcvYPaoKD0jzevE=", 13);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEYgCFHpiCwQMnTMBZWMFkMFRvLVZgFQUvWqlFHO1wBQVjIokq8rfH6OGXbO4+mbOjK1p//+oco20=", 4828);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEOQHsApXDETIcsx9ucbJtbkatQLhiodbB/jrBniriuYK4da3h2yLEOHTkH13zeUUbtHKRAbPa2dY=", 3361);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEwQ2AzJcAsKEWgQJCgmJXuSbKWJJyForsrZjFK8MUr4yUHIpMwD4pgtDc+w7aGUzFKiKW8kF7ocI=", 4813);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEvA5ZQobWynRCWVONCkG/dIQWJyQHMtWTKawFmfCtl97tge/LQ5+x5+ZDjHY5a9gEUgWPUmhEHbA=", 1040);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEbTRhGxq3b3QNWReV6vtnyHWOw1L7sPBFYEfmq+1DwZkEz1A2NAn9QEgEBxyWIHUMd6hHiJMlH4Q=", 5968);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEGuKF6Pv3QMVAHwLh0PVWdZdZGWvAKtokmFxM7MEdeTicGAfRFj/j6YoQkt9B+4+ee7BZsJGKH/o=", 3140);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE06hUEn+/YvAen6NE3p3+AQm5H/q+jXJUrNCP2VJaWtGKO4J+ABYHfqcGR1gPVlnHfZ8Qd1JRWwQ=", 4733);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE+VxWaN62BEPaZslUvM/0dsFxBUxXOM8R0kzarFALtn/x+ojnHdvCDVqhEaO3D/JcDQuj/swULsc=", 377);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEqJU6Hc8uzaiL2fNbCKlIjA+n4x7Aml4L8vtMNueu9MQZ/mQ+wYfj+gwM/218WxL3kBhQBhdH8fU=", 5171);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAErmwoCg0382iso00Hq3S/c1PeZItojNZCMxWr8ftRNuZqi+DuLey2KsXNJbe1QZAGvZDU4Cx++qM=", 9048);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEp7JKrtmk1agBH8Ls3mrL2a7DbgoNkh8agMKzU4TDSTzMV6ujJ7sgytyTpOK7nBP+1moEnstNp/c=", 473);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEQG6w5cbGCnthrTD3bbSDX4+yT/uAx/Km0D1iRcOQ1qI+TbSUm7LB5TQENZlf99DDlQ3HmJ40E8Y=", 7657);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE9KfSBh2zueQ3yJlFhS/ndDXVhIagk3vw8OE3ZQWq+yN61Kgt3AQzq4ACKqI3XSObNVU77YFWKPc=", 1950);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE33GUk0VMtkOufgZ9nYvS+jsekb1DFWaYVFZDOqcTjKkToJhc+8KLVDL2o2SdZwce0lU/j4Uk784=", 4225);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEkprW16/C+WtSF9xqm6+gpWa9WYoWLgn0NK/EzSOM9OK/X75uaT7Ug1KQ+COJxIU4CIHdH7C/TpI=", 3330);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEwOIvH0Vp5Ch54Pckrc9oR3IysRkEgQxI8KJxPrFzsUf4+DC1paLHcnY9tHFGblsqiKMnCsClAng=", 792);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEhAxssBnju8p3ajoHyvgd6tHrf1xioyK2dlsBrPXq4mjRjytONjd0+I9ZPr4NNnI/Atlql00yyvM=", 8149);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEaRc2bZLglfJeuHWskUBbBuJ3OGrzYslqLHzYKynppzR5H+ScKyj4MI6AsMv5iaaQkE9wearAjU8=", 5466);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEhCfSxwG2uNs4QTyjrkTEVzxmQf1XqPkHEGDtY+bHyqo63G2Y5C0KRSFykzN9C059TCdCvTf8gS8=", 7309);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE4t0PtTgiuqUVoHMbGB3wDmiE0laeSZJQVT99adYMCZ4aL86IP99qycL/oUkTEFpewtsiZlRXEMo=", 7213);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEJ2VfzMVNw/Br4CgY/hYfpW6T7e8TbxH/7qbMvIdKtZoTgO0OD+cRyj0VXgbenaOSWPAuIX9fOvo=", 1236);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE3lUhjzs7A++AHti5Kh+3bzMdh+ao3ONnDxadLCf3GGyRHlc/u9ylsT+eRs2QkC3G9jSaVJeZ27k=", 7845);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEf5eiWDBvclp9fewsZH8QRYmbfV5Fs7byg4UkHl8bVVK5AZ6VOuk20xiLG8dAOyix7f/novqEaTk=", 477);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEgb/5vm2rtBhMH2gKAKmbsZwslUHG9mLoSpIKG1o5yfwLrGeImOzNnUqpih/MlBMJ2GCUiBHVmHw=", 9430);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEKIi7uRhJFXqos5YOiPTR43ViioFj3/4LOx4zs7MLxLz/0TZowcLQjFmWOOfsS9jdt0V+7v6wvSY=", 3641);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEAjS2j4PzfaUdbckkM2w6CSgZO0m/H2XDwfvueU7QkMv0NqHCigTTGgudP3w1W1IVcauP8NU1Gzc=", 8356);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEDEY7wb+sNcTFGBHaAD7KRROU1tymQWEH57dafv/j9HoccMjePjenkJZzwqMfsJ88+0Y2nZurvRw=", 777);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE2X4AZvzp2Oi/dW+/tPWOxuM7zcCd879Gyec2gcBWysVMKIeCI12bXNTRmuUuOQ/6WBO4rkoiVIo=", 3284);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAETDRycMDAMl46gIFHykW7bcmbu9pQ4xc5fcKwBWC534tCTxtcB+Iv12nf4sKlIQHiwKZ3GVMPk5w=", 170);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEtY6ykWtjGXU9Hre2kH8l7lZT8bvqix562V7zuSZ4fTuvtfAqK75JVvaJlWZDsFHgLJI1+W6s7j4=", 5368);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEPJNPmlKMH0cA6TVt3JcUqQW/YVvkZwvQHukGmr9ZKfYER/U+5A3yz2QxxQnxwe4u2ZlvJsFiHAQ=", 7202);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAECFM25s+Dq+AZJkmK7wiEI04NglAO674gKgc5rtLS6vr1PzMu/1Ig5EJFBF1lQufZV+2nzbCUsTo=", 2131);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEXqL10glD+rtJPL5wXgM0S4x84vuruV8O6bH4Jt2MJgoo1K48jx1QmCObJVvq0vnbj3NS8l9PECQ=", 9433);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE1U/uvAuMV2QHTzzOdGUYc0jnPDIle6Fg5SAksXgMdiwZXjaPZBNm/Z/UxmhjlWxTH7k4QFu9AkE=", 3589);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEZ9C/X9T5WljQIaeDw2FsWFTsAQIx1NW8erSRVhTIW+7Lug+j9jMer6Ri905bRV5ZasBl4MJCfrQ=", 8328);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEb+t+noMT91+dVelWfuFGP0XLayPE8jYsMWk4S1txu4uCcpPIxWDZcEjPke5zAWMLlss8DwWmg4M=", 5129);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE1wy+EiJqfdDE0NoUOUcZzxnUWeGfkfV+VrQLvc4iQxUgd98TPj32J//qfRf01wzTXSMbJ+SKJp4=", 5047);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEPByppduqhtwk+KBiz4ZCkggppFkbgg5Odiz/EEPbQ94CrWu799u4MzrOOGV6CjL19gr/tprUELE=", 4024);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEt8JZ13A12dAZNfuJzxQDHVhTeSZSMYhFrNDk0zqGmdgFlqIssvkQtdIo1R7Ud/HX2A3nPm2g9qw=", 1206);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEjCyYRTiPnRXig48cqN+3ynmzBKn8xEK6ExtcRFGrNH9aVJWF5BtdOJx29J8VAbN/d9PijqKIeH4=", 3132);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmSsvSG6e41Z8oJAOs80zvaD3uo4pWiVA4E+ZbtrjE9VVBfdYf85klOM9mpFsjQsG0QQ+LBVfdpQ=", 6247);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEBjj+34ZQ8i6/wfPTLnWChIrI6Sbq5UD5qDic5ohX4D4QjtEqsSOlCa8OfVSjyRIo0JoE8iolkqM=", 3695);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmFfrysh05lhYIkImYmD0l1GX75rl+WAUXTS89BfZCVPlpDarg8zWg2+DSI0B2uHtpJf3OUwm+dY=", 4082);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAElsAov4lTjg5djzYNdwr55A7kl3GBFCAW5WLzBOgPjntDpir/+4wPvc//W2H0u0+1/bHIh/1Dvmc=", 8481);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAERmTNHdOhdwb5z6gWkrnblkLDbPnDHBaPqxUA7GQv7lsGI0WL08r3kzTD/Di8WRCczg2iNg6zKt0=", 5859);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEQr8zBVKFVnoL+04nAIVtLCHAtnbcBK1Cflr8xVUtqp2JSjDRmgFIBekGhr6OTrHrsuqiIazV77s=", 1774);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEKPSH5fGlOh7l5u9ip+byTSOJQj0sYP+cruQYwcHEBcVxTVd9RnI26/jbaKRWSPQvhWZbVT6EJME=", 4709);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE//nNdq1Ex77+GhQmupHNQYpiPV66Klt1ZCcSvw6raFGY7ClKIo1E6TtpDacwDIGTub9k8bLXrdU=", 3408);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEaRHAKI3gfctyh8Lp/SDl1+rXUSusXGSlxfFVlo156IILI5CWb7whUJFKPTlsY2m39YO0U50bFRE=", 5202);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAESSzY6RtPIys8+mBzIVqKeD3yXfKP3tNrkFydsfjP2soOh9SzDjuRmAhWFujzAZ/gw/ECnb45ZG4=", 4152);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEGkHJW03X4i//N8ZFSpkX42yBYvqdmqRCQIe3J62cVyFdTzw/MAkB5SkfBMKF9UlsBcSKWcWaD+M=", 3795);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEbmo2bRXvXIZbwmdzLvurL5HBpDAVTqGQy1BsqdDxayMj3bWY+xUVGpE4MxEnjf9Fcb6YJTI5FmY=", 7801);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAExQmZ2TkW+9CkAO2ZPUKN63FsOzdGX+Etm8uve2EcUxOadBzbEBRNuTt0I4I44w3QVgKp8AX76qA=", 5851);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEP4bHdZEfDzjrZnpTp4Z4JBiJXbxtl8192wqVwQw4NJpWcLTu3CxyPx8LxExmuqGPSqZl7okTTpg=", 9951);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEYLIR61ieukQ5ueBJRudE80ltIUEE4F+UFS1zZQVsEscoOEhd07pkEdrV97iSuml7holWs8VlyPY=", 7040);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEFZ6F/3+Nc6JzsbL94RZr/lHu9zU67wWK6ndMSFmFimzYLJShvDJuayZjkSxSESx2VqZSo3TAzc4=", 3925);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEepihr9k9Z9+F2MF32EoU7nR7t1tOp7Hgd4y7QB+gXbTif/UnVdlg0yxcWSVgLLCcQOOzgTELsV4=", 3535);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEfPb37J6HWP+TnVHyTLV5riwT+D0buUlWU4hSeZJHdajEw+Mj394aOdf4jgBEybqiSzAukd057l4=", 8067);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE1V9IBjsa8mF/9dspeezoqUgNjNYtlFQx6E1WHjHDdr/7cOU5yiW1/KXF85CdLSbysYV04av/hb4=", 6600);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAELHP/VUL4ICWQBBxRnZaDe+HgVWFUPPQClSp89FlpSBjwlK4VFECJdygMIvc4Gy2D+RL5xrupoWA=", 8597);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE70BOh5wG121JDfI7jeIiC4t27jhBCxjUnVqxwaxG6nRrlnfivcH4fZR02KShit5aiJ+k2RMB+RU=", 2623);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEUa+IuXSNLn4zFD/M5xWf1wSqZibTFW586qkvUi3wa+qwWRS9vuFKtPeacWUVCZVsbyPw26ZhNCQ=", 3732);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAESNKaVG0vasj5O2rYqpo036IqEh95W6nsPZxUp8VP/PbSYOuZN5sVAmDv/uuSPA7f2n3sAEaPojk=", 5024);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEB2Hs0vpnIv19CaFdVTpTRFG5uIsven86FVU7aINxh7aNO615zqNiMG2nleUN/MZ7IbiX69qzhJw=", 4540);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEn72isMV7RjIASGgMKHgOy+7InQzRzpqlh/V/+qUyWe4p/yMvfzdk9/BPOM6HFBAf/WoQEMQT3XY=", 6280);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEnno3fpbAfTitVP/pHbqBiyAavRkfzi8XBFiyCRBmt5jyS9Axe/o4XamAmx3Y0Ngv9q7rUSEpIWo=", 1831);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE39H2OZngTWW9/Oup/GRF1pp0q+vCsy7RpBev92cVHcOP/ZeXt9EWsc4DTbaO6nNKtm3QkZUb0R8=", 9877);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEzDSnqTlVG2nb/eslY314cL7jUC08LNcYU+dDtZTcfEKxID6Da/AKPupZ8ppAPG3Co+h1Rqft+TQ=", 6421);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEDdfAGWhOcO5S46yAt3Zi3i2LP7xtgcCjSpqKvMec2NT+bbRgdoObPiZ/clQV7KYhkep9KthlPt0=", 4175);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEP3Ovj4mgRBQSw1MqLfz8q5DRN1K899j7gQ1+azXsuct0l0aVcu/KQ8uENkLqzclNITIrvQAnPyA=", 9202);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEfSa7b1g9aUiSFGLsx+UJXuK0YhGJtfzBcSQaUlUFA8evOqA9U+nu1PBJkg6mKodkWZ+CwdWXcC4=", 6498);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEKys6TeWzqLDEoDrc87vFdC40V5BsfzZooe0XPAqLbXcMr37DMXfvXYGLU7OYcrwgWUJvHVcwA9s=", 5651);
-		   this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEZq5SoYSZorB0dk5aJ6N404alDPJMMnm4Cdxls382Pg8xH+IAfIJtAppfFS45Qv7z4KUkRKQQCkM=", 597);
+        this.insertAdr("default", 990000000);
+	this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmzMuWmpif2JdeB1/UA7XQumglLj3o4/qF/CisxzJyXf7JoXXmGvBDJFbCSr8Si09zKtkfoA7jyU=", 1000000);
+		   
     }
 }

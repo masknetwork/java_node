@@ -49,9 +49,9 @@ public class CShareAdrPayload extends CPayload
    	  CResult res=super.check(block);
    	  if (res.passed==false) return res;
    	
-   	  // Target address valid
-   	  if (UTILS.BASIC.adressValid(this.target_adr)==false) 
-   		return new CResult(false, "Invalid target address", "CShareAdrPayload", 39);
+   	  // Sealed address ?
+          if (UTILS.BASIC.hasAttr(this.target_adr, "ID_SEALED"))
+              return new CResult(false, "Target address is sealed.", "CAddSignPayload", 104);
 	  
           // Check hash
 	  String h=UTILS.BASIC.hash(this.getHash()+

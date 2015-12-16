@@ -44,7 +44,7 @@ public class CNewFeedMarketOrderPayload extends CPayload
         
         
             // Statement
-            Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            Statement s=UTILS.DB.getStatement();
             
             // Load data
             ResultSet rs=s.executeQuery("SELECT * "
@@ -116,7 +116,7 @@ public class CNewFeedMarketOrderPayload extends CPayload
               return new CResult(false, "Invalid market symbol", "CNewFeedMarketOrderPayload.java", 74);
         
            // Statement
-           Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY); 
+           Statement s=UTILS.DB.getStatement(); 
            
            // Market exist ?
            ResultSet rs=s.executeQuery("SELECT * "
@@ -278,7 +278,7 @@ public class CNewFeedMarketOrderPayload extends CPayload
         try
         {
            // Statement
-           Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY); 
+           Statement s=UTILS.DB.getStatement(); 
            
            // Market exist ?
            ResultSet rs=s.executeQuery("SELECT * "

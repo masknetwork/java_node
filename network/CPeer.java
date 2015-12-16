@@ -61,8 +61,6 @@ public class CPeer extends Thread
    
 	CPeer(CPeers peers, String adr, int port)
 	{
-           UTILS.CONSOLE.write("New peer created to "+adr);
-           
            // Address
 	   this.adr=adr;
 		
@@ -86,10 +84,17 @@ public class CPeer extends Thread
            {
               // Client
               client=new Socket(InetAddress.getByName(adr), port);
+              
+              // Console
+              UTILS.CONSOLE.write("New peer created to "+adr);
            }
 	   catch (IOException ex) 
 	   { 
 	       UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 67); 
+           }
+           catch (Exception ex) 
+	   { 
+	       UTILS.LOG.log("Exception", ex.getMessage(), "CPeer.java", 67); 
            }
 	}
 	
@@ -146,6 +151,10 @@ public class CPeer extends Thread
        {
            UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 131);
        }
+       catch (Exception ex)
+       {
+           UTILS.LOG.log("Exception", ex.getMessage(), "CPeer.java", 131);
+       }
    }
    
    public void conAtt(String peer)
@@ -175,17 +184,6 @@ public class CPeer extends Thread
                             + "SET in_traffic='"+parent.in_count.getByteCount()+"', "
                                 + "out_traffic='"+parent.out_count.getByteCount()+"' "
                           + "WHERE peer='"+parent.adr+"'");
-           
-         
-     	  // If peer is active but no connection has been established in 2 sec 
-          /* if (UTILS.NETWORK.peers.conectedTo(parent.adr)==false || parent.schedule_delete==true)
-           {
-               if (UTILS.BASIC.tstamp()-parent.created>2)
-               {
-                   //UTILS.CONSOLE.write("Removed for inactivity "+parent.adr);
-                   //parent.close();
-               }
-           }*/
        }
    }
    
@@ -228,22 +226,20 @@ public class CPeer extends Thread
 	   }
 	   catch (EOFException ex) 
 	   { 
+               UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 93);
 	       this.peers.removePeer(this); 
 	   }
 	   catch (IOException ex) 
 	   { 
 		   UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 93);
-                   this.peers.removePeer(this); 
 	   }
 	   catch (ClassNotFoundException ex) 
 	   { 
 		   UTILS.LOG.log("ClassNotFoundException", ex.getMessage(), "CPeer.java", 93);
-                   this.peers.removePeer(this); 
 	   }
 	   catch (Exception ex) 
 	   { 
 		   UTILS.LOG.log("Exception", ex.getMessage(), "CPeer.java", 93);
-                   this.peers.removePeer(this); 
 	   }
    }
    
@@ -259,7 +255,10 @@ public class CPeer extends Thread
 	   catch (IOException e) 
 	   { 
 		   UTILS.LOG.log("IOException", e.getMessage(), "CPeer.java", 252); 
-                   this.peers.removePeer(this); 
 	   }
+           catch (Exception e) 
+	   { 
+		UTILS.LOG.log("Exception", e.getMessage(), "CPeer.java", 267); 
+           }
    }
 }

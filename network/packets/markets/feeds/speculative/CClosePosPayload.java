@@ -34,7 +34,7 @@ public class CClosePosPayload extends CPayload
         try
        {
           // Statement
-          Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+          Statement s=UTILS.DB.getStatement();
           
           // Load position data
           ResultSet rs=s.executeQuery("SELECT * "

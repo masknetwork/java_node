@@ -81,36 +81,37 @@ public class CRestrictRecipientsPayload extends CPayload
    	  if (UTILS.BASIC.adressValid(this.target_adr)==false) 
    		return new CResult(false, "Invalid target address", "CRestrictRecipientsPayload", 70);
    	  
+          
    	  // At least one target address
    	  if (this.adr_1=="" && this.adr_2=="" && this.adr_3=="" && this.adr_4=="")
    		return new CResult(false, "Invalid restricted recipients", "CRemoveEscrowerPayload", 74);
    	  
-      // Recipient valid
+          // Recipient valid
    	  if (!this.adr_1.equals(""))
    	    if (UTILS.BASIC.adressValid(this.adr_1)==false) 
    		 return new CResult(false, "Invalid recipient", "CRestrictRecipientsPayload", 79);
    	  
-      // Recipient valid
+          // Recipient valid
    	  if (!this.adr_2.equals(""))
    	    if (UTILS.BASIC.adressValid(this.adr_2)==false) 
    		 return new CResult(false, "Invalid recipient", "CRestrictRecipientsPayload", 84);
    	  
-      // Recipient valid
+          // Recipient valid
    	  if (!this.adr_3.equals(""))
    	    if (UTILS.BASIC.adressValid(this.adr_3)==false) 
    		 return new CResult(false, "Invalid recipient", "CRestrictRecipientsPayload", 89);
    	  
-      // Recipient valid
+          // Recipient valid
    	  if (!this.adr_4.equals(""))
    	    if (UTILS.BASIC.adressValid(this.adr_4)==false) 
    		 return new CResult(false, "Invalid recipient", "CRestrictRecipientsPayload", 94);
           
-     // Recipient valid
+          // Recipient valid
    	  if (!this.adr_5.equals(""))
    	    if (UTILS.BASIC.adressValid(this.adr_5)==false) 
    		 return new CResult(false, "Invalid recipient", "CRestrictRecipientsPayload", 94);
       
-      // Hash
+          // Hash
   	  String h=UTILS.BASIC.hash(this.getHash()+
   			                    adr_1+
   			                    adr_2+
@@ -145,7 +146,7 @@ public class CRestrictRecipientsPayload extends CPayload
 	   			                 this.adr_4,
                                                  this.adr_5,
                                                  "",
-                                                 block.tstamp+(this.days*86400), 
+                                                 days, 
                                                  block.block);
 	       
 	   	// Return 

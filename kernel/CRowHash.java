@@ -19,7 +19,7 @@ public class CRowHash
 		   ResultSet rs;
 		   
                    // Finds row
-                   Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                   Statement s=UTILS.DB.getStatement();
 		   rs=s.executeQuery("SELECT * FROM "+table+" WHERE "+col+"='"+val+"'");
 		   rs.next();
 		   
@@ -46,7 +46,7 @@ public class CRowHash
 		   ResultSet rs;
 		   
                    // Finds row
-                   Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                   Statement s=UTILS.DB.getStatement();
 		   rs=s.executeQuery("SELECT * FROM "+table+" WHERE "+col+"='"+val+"' AND "+col_2+"='"+val_2+"'");
 		   
                    if (UTILS.DB.hasData(rs))
@@ -78,7 +78,7 @@ public class CRowHash
 		   ResultSet rs;
 		   
                    // Finds row
-                   Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                   Statement s=UTILS.DB.getStatement();
 		   rs=s.executeQuery("SELECT last_insert_id()");
 		   rs.next();
 		   
@@ -103,7 +103,7 @@ public class CRowHash
 	          
 		try
 		{
-                     Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                     Statement s=UTILS.DB.getStatement();
                      ResultSet rs=s.executeQuery("SELECT * FROM "+table+" WHERE ID='"+ID+"'");
 		     rs.next();
                 

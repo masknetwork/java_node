@@ -31,7 +31,7 @@ public class CIncreaseMktBidPacket extends CBroadcastPacket
           this.payload=UTILS.SERIAL.serialize(dec_payload);
           
           // Statement
-          Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+          Statement s=UTILS.DB.getStatement();
 			
           // Load row data
           ResultSet rs=s.executeQuery("SELECT * "
@@ -80,7 +80,7 @@ public class CIncreaseMktBidPacket extends CBroadcastPacket
          try
          {
             // Statement
-            Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            Statement s=UTILS.DB.getStatement();
 			
             // Load row data
             ResultSet rs=s.executeQuery("SELECT * "

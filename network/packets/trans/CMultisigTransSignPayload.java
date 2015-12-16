@@ -53,7 +53,7 @@ public class CMultisigTransSignPayload extends CPayload
     		return new CResult(false, "Invalid signature", "CMultisigTransSignPayload.java", 79);
            
             // Load transaction data
-            Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            Statement s=UTILS.DB.getStatement();
     	          
             // Finds the user
             ResultSet rs=s.executeQuery("SELECT * "
@@ -126,7 +126,7 @@ public class CMultisigTransSignPayload extends CPayload
 	    super.commit(block);
                
             // Load transaction data
-            Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            Statement s=UTILS.DB.getStatement();
     	          
             // Finds the user
             ResultSet rs=s.executeQuery("SELECT * "

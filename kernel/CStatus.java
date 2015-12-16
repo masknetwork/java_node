@@ -67,7 +67,7 @@ public class CStatus extends CTicker
 	{
 		try
 		{
-                     Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                     Statement s=UTILS.DB.getStatement();
 		    ResultSet rs=s.executeQuery("SELECT * FROM  status");
 		    rs.next();
 		    
@@ -238,7 +238,14 @@ public class CStatus extends CTicker
 	
         public void alive()
         {
-           UTILS.DB.executeUpdate("UPDATE status SET alive='"+UTILS.BASIC.tstamp()+"'");
+           Runtime runtime = Runtime.getRuntime();
+           UTILS.DB.executeUpdate("UPDATE web_sys_data "
+                                   + "SET last_ping='"+UTILS.BASIC.tstamp()+"', "
+                                       + "max_memory='"+runtime.maxMemory()+"', "
+                                       + "free_memory='"+runtime.freeMemory()+"', "
+                                       + "total_memory='"+runtime.totalMemory()+"', "
+                                       + "procs='"+runtime.availableProcessors()+"', "
+                                       + "threads_no='"+Thread.getAllStackTraces().size()+"'");
         }
         
 	public void tick()

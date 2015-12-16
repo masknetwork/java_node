@@ -72,7 +72,7 @@ public class CUtils
 			return false;
 		
 		// Search for address
-                Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                Statement s=UTILS.DB.getStatement();
 		ResultSet rs=s.executeQuery("SELECT * "
 				                      + "FROM adr "
 				                      + "WHERE adr='"+adr+"'");
@@ -167,7 +167,7 @@ public class CUtils
 	{
             try
             {
-                Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                Statement s=UTILS.DB.getStatement();
 	       ResultSet rs=s.executeQuery("SELECT * "
 	   		                         + "FROM adr_options "
 	   		                        + "WHERE adr='"+adr+"' "
@@ -204,13 +204,15 @@ public class CUtils
 			         String par_4,
                                  String par_5,
                                  String par_6,
-                                 long expire, 
+                                 long days, 
                                  long block)
 	{
+                long expire=0;
+                
 		try
 		{
 		   // Search for address
-                   Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                   Statement s=UTILS.DB.getStatement();
 		   ResultSet rs_adr=s.executeQuery("SELECT * "
                                                      + "FROM adr "
                                                     + "WHERE adr='"+adr+"'");
@@ -224,7 +226,7 @@ public class CUtils
                    
 		   // Search for option
 		   ResultSet rs;
-                   s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                   s=UTILS.DB.getStatement();
 		   
                    rs=s.executeQuery("SELECT * "
 				     + "FROM adr_options "
@@ -238,21 +240,12 @@ public class CUtils
 			  rs.next();
 			
 			  // Expires
-			  long expires=rs.getLong("expires");
+			  expire=rs.getLong("expires")+days*1440;
 			
-			  // New expiration
-			  expires=expires+expire;
-			  
 			  // Update
 			  UTILS.DB.executeUpdate("UPDATE adr_options "
-			  		          + "SET expires='"+expires+"',"
-			  		              + "par_1='"+par_1+"',"
-			  		              + "par_2='"+par_2+"',"
-			  		              + "par_3='"+par_3+"',"
-			  		              + "par_4='"+par_4+"',"
-                                                      + "par_5='"+par_5+"',"
-                                                      + "par_6='"+par_6+"'"
-                                                      + "block='"+block+"'"
+			  		          + "SET expires='"+expire+"',"
+			  		              + "block='"+block+"'"
 			  		        + "WHERE adr='"+adr+"' "
 			  		          + "AND op_type='"+atr+"'");
                           
@@ -261,6 +254,9 @@ public class CUtils
 		   }
 		   else
 		   {
+                          // Expire
+                          expire=block+days*1440;
+                          
 			  // Insert option
 			  UTILS.DB.executeUpdate("INSERT INTO adr_options(adr, "
 			  		                                       + "op_type, "
@@ -427,13 +423,13 @@ public class CUtils
 		if (dif>=60 && dif<3600) return String.valueOf(Math.round(dif/60))+" minutes";
 		
 		// Hours
-		if (dif>=3600 && dif<86400) return String.valueOf(Math.round(dif/3600))+" hours";
+		if (dif>=3600 && dif<144000) return String.valueOf(Math.round(dif/3600))+" hours";
 		
 		// Day
-		if (dif>=86400 && dif<172800) return "1 day";
+		if (dif>=144000 && dif<172800) return "1 day";
 		
 		// Days
-		if (dif>=172800 && dif<2592000) return String.valueOf(Math.round(dif/86400))+" days";
+		if (dif>=172800 && dif<2592000) return String.valueOf(Math.round(dif/144000))+" days";
 		
 		// Month
 		if (dif>=2592000 && dif<5184000) return "1 month";
@@ -599,7 +595,7 @@ public class CUtils
             try
             {
                 // Statement
-                Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                Statement s=UTILS.DB.getStatement();
                 
                 // Load trans data
                 ResultSet rs_trans=s.executeQuery("SELECT * "
@@ -658,7 +654,7 @@ public class CUtils
             try
             {
                // Statement
-               Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+               Statement s=UTILS.DB.getStatement();
                 
                // Load trans data
                ResultSet rs_trans=s.executeQuery("SELECT * "
@@ -709,7 +705,7 @@ public class CUtils
             try
             {
             // Statement
-            Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            Statement s=UTILS.DB.getStatement();
             
             String query="SELECT * "
                               + "FROM trans "
@@ -843,6 +839,11 @@ public class CUtils
    		                                                 block+"', '" +
    		                                                 UTILS.BASIC.tstamp()+"', '" +
    		                                                 "ID_UNCONFIRMED')");
+                    
+                    UTILS.DB.executeUpdate("UPDATE web_users "
+                                               + "SET unread_trans=unread_trans+1 "
+                                             + "WHERE ID='"+UTILS.BASIC.getAdrUserID(adr)+"' ");
+           
                  
 	    }
                
@@ -925,7 +926,7 @@ public class CUtils
             try
             {
                // Statement
-               Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+               Statement s=UTILS.DB.getStatement();
 		     
                // Load source
                ResultSet rs=s.executeQuery("SELECT * FROM my_adr WHERE adr='"+adr+"'"); 
@@ -956,7 +957,7 @@ public class CUtils
             try
             {
                      // Statement
-                     Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                     Statement s=UTILS.DB.getStatement();
 		     
                      // Load source
                      ResultSet rs=s.executeQuery("SELECT * FROM assets_owners WHERE owner='"+adr+"'");
@@ -1016,7 +1017,7 @@ public class CUtils
             try
             {
                      // Statement
-                     Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                     Statement s=UTILS.DB.getStatement();
 		     
                      // Load source
                      ResultSet rs=s.executeQuery("SELECT * FROM adr WHERE adr='"+adr+"'");
@@ -1135,12 +1136,12 @@ public class CUtils
 	
 	public long daysFromBlock(long block)
 	{
-		return Math.round((block-this.block())/864);
+		return Math.round((block-this.block())/1440);
 	}
 	
 	public long blocskFromDays(long days)
 	{
-		return Math.round(864*days);
+		return Math.round(1440*days);
 	}
 	
 	public String addressFromDomain(String adr)
@@ -1149,7 +1150,7 @@ public class CUtils
 		
 		try
 		{
-                   Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                   Statement s=UTILS.DB.getStatement();
 		   ResultSet rs=s.executeQuery("SELECT * FROM domains WHERE domain='"+adr+"'");
 		   if (UTILS.DB.hasData(rs)==false) 
 		   {
@@ -1205,7 +1206,7 @@ public class CUtils
 	{
             try
             {
-                Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                Statement s=UTILS.DB.getStatement();
 		ResultSet rs=s.executeQuery("SELECT * "
 				                      + "FROM domains "
 				                     + "WHERE domain='"+domain+"'");
@@ -1239,7 +1240,7 @@ public class CUtils
 	{
 	    try
 	    {
-                 Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                 Statement s=UTILS.DB.getStatement();
 		 ResultSet rs=s.executeQuery("SELECT * "
                                                  + "FROM domains "
                                                 + "WHERE domain='"+domain+"'");
@@ -1279,7 +1280,7 @@ public class CUtils
 	{
 		try
 		{
-                     Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                     Statement s=UTILS.DB.getStatement();
 		     ResultSet rs=s.executeQuery("SELECT * "
                                                    + "FROM domains "
                                                   + "WHERE adr='"+adr+"'");
@@ -1308,7 +1309,7 @@ public class CUtils
 	public long daysAheadFromBlock(long block)
 	{
 		long aBlock=UTILS.BASIC.block();
-		long dif=Math.round(((block-aBlock)*100)/86400);
+		long dif=Math.round(((block-aBlock)*100)/144000);
 		return dif;
 	}
 	
@@ -1317,7 +1318,7 @@ public class CUtils
             try
             {
 		 // Frozen address ?
-                 Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                 Statement s=UTILS.DB.getStatement();
 		 ResultSet rs_opt=s.executeQuery("SELECT * "
                                           + "FROM adr_options "
                                          + "WHERE adr='"+adr+"' "
@@ -1364,7 +1365,7 @@ public class CUtils
 	   try
 	   {
 		 // Frozen address ?
-                 Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                 Statement s=UTILS.DB.getStatement();
 		 ResultSet rs=s.executeQuery("SELECT * "
                                           + "FROM adr_options "
                                          + "WHERE adr='"+adr+"' "
@@ -1406,7 +1407,7 @@ public class CUtils
 	    try
 	    {
 		 // Frozen address ?
-                 Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                 Statement s=UTILS.DB.getStatement();
 		 ResultSet rs=s.executeQuery("SELECT * "
                                           + "FROM adr_options "
                                          + "WHERE adr='"+adr+"' "
@@ -1448,7 +1449,7 @@ public class CUtils
 	   try
 	   {
 		 // Frozen address ?
-                 Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                 Statement s=UTILS.DB.getStatement();
 		 
                  ResultSet rs;
                  if (cur.equals("MSK"))
@@ -1518,7 +1519,7 @@ public class CUtils
 		
 		 try
 		   {
-                        Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                        Statement s=UTILS.DB.getStatement();
 			   ResultSet rs=s.executeQuery("SELECT * "
 			   		                         + "FROM "+table+" "
 			   		                     + "ORDER BY rowhash ASC");
@@ -1669,7 +1670,7 @@ public class CUtils
             
             try
             {
-               Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+               Statement s=UTILS.DB.getStatement();
                ResultSet rs=s.executeQuery("SELECT * FROM assets WHERE symbol='"+symbol+"'");
                
                if (!UTILS.DB.hasData(rs))
@@ -1723,7 +1724,7 @@ public class CUtils
            try
            {
               // Statement
-              Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+              Statement s=UTILS.DB.getStatement();
            
               // Market
               ResultSet rs=s.executeQuery("SELECT * FROM feeds WHERE symbol='"+feed+"'");
@@ -1752,7 +1753,7 @@ public class CUtils
             try
             {
               // Statement
-              Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+              Statement s=UTILS.DB.getStatement();
            
               // Market
               ResultSet rs=s.executeQuery("SELECT * "
@@ -1786,7 +1787,7 @@ public class CUtils
           try
           {
               // Statement
-              Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+              Statement s=UTILS.DB.getStatement();
               
               // Used in a bet ?
               ResultSet rs=s.executeQuery("SELECT * "
@@ -1833,7 +1834,7 @@ public class CUtils
              try
              {
                 // Statement
-                Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                Statement s=UTILS.DB.getStatement();
               
                 // Load feed data
                 ResultSet rs=s.executeQuery("SELECT * "
@@ -1869,7 +1870,7 @@ public class CUtils
          public long getUserID(String user) throws SQLException
          {
              // Statement
-             Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+             Statement s=UTILS.DB.getStatement();
                 
               // Load feed data
               ResultSet rs=s.executeQuery("SELECT * "

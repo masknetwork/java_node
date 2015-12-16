@@ -23,7 +23,7 @@ public class CGetPeersResponsePacket extends CPacket
         try
         {
              // Add peers
-             Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+             Statement s=UTILS.DB.getStatement();
              ResultSet rs=s.executeQuery("SELECT * "
                                          + "FROM peers_pool "
                                         + "WHERE accept_con='ID_YES' "

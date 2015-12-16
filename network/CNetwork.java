@@ -94,10 +94,6 @@ public class CNetwork extends Thread
 	      UTILS.DB.executeUpdate("UPDATE peers "
                                       + "SET last_seen='"+UTILS.BASIC.tstamp()+"' "
                                     + "WHERE peer='"+adr+"'");
-              
-              System.out.println("UPDATE peers "
-                                      + "SET last_seen='"+UTILS.BASIC.tstamp()+"' "
-                                    + "WHERE peer='"+adr+"'");
           }
           
 	  public void processRequest(CPacket packet, CPeer sender)
@@ -197,7 +193,7 @@ public class CNetwork extends Thread
 	  {
               try
               {
-                  Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                  Statement s=UTILS.DB.getStatement();
 		  ResultSet rs=s.executeQuery("SELECT * "
 		      		                             + "FROM packets "
 		      		                            + "WHERE hash='"+packet.hash+"'");

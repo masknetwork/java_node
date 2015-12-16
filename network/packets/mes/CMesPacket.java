@@ -15,8 +15,10 @@ public class CMesPacket extends CBroadcastPacket
 		    String subject, 
 		    String mes)
   {
-	  super("ID_SEND_MES");
-	  
+      super("ID_SEND_MES");
+      
+      try
+      {
 	  // Builds the payload class
 	  CMesPayload dec_payload=new CMesPayload(sender_adr, 
 	                                          receiver_adr, 
@@ -31,12 +33,19 @@ public class CMesPacket extends CBroadcastPacket
 	   
 	   // Sign packet
 	   this.sign();
+      }
+      catch (Exception ex) 
+      { 
+	       UTILS.LOG.log("Exception", ex.getMessage(), "CMesPacket.java", 67); 
+      }
   }
   
   // Check 
   public CResult check(CBlockPayload block)
   {
-     // Super class
+      try
+      {
+          // Super class
   	  CResult res=super.check(block);
   	  if (res.passed==false) return res;
   	
@@ -61,13 +70,21 @@ public class CMesPacket extends CBroadcastPacket
           foot.add("Source", dec_payload.target_adr);
           foot.add("Destination", dec_payload.receiver_adr);
           foot.write();
-  	
-  	  // Return 
-  	  return new CResult(true, "Ok", "CMesPacketPacket", 45);
+      }
+      catch (Exception ex) 
+      { 
+	  UTILS.LOG.log("Exception", ex.getMessage(), "CMesPacket.java", 67); 
+          return new CResult(false, "Exception", "CMesPacketPacket", 77);
+      }
+      
+      // Return 
+      return new CResult(true, "Ok", "CMesPacketPacket", 45);
   }
   
   public CResult commit(CBlockPayload block)
   {
+      try
+      {
   	  // Superclass
   	  CResult res=super.commit(block);
   	  if (res.passed==false) return res;
@@ -77,9 +94,15 @@ public class CMesPacket extends CBroadcastPacket
 
 	  // Fee is 0.0001 / day ?
 	 res=dec_payload.commit(block);
-     if (res.passed==false) return res;
-	  
-	  // Return 
-  	  return new CResult(true, "Ok", "CMesPacketPacket", 62);
+         if (res.passed==false) return res;
+      }
+      catch (Exception ex) 
+      { 
+	  UTILS.LOG.log("Exception", ex.getMessage(), "CMesPacket.java", 67); 
+          return new CResult(false, "Exception", "CMesPacketPacket", 77);
+      }
+      
+       // Return 
+       return new CResult(true, "Ok", "CMesPacketPacket", 62);
   }
 }

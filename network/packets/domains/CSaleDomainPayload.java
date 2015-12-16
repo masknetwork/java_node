@@ -81,7 +81,7 @@ public class CSaleDomainPayload extends CPayload
              return new CResult(false, "Invalid days", "CSaleDomainPayload.java", 74);
         
           // Domain exist
-          Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+          Statement s=UTILS.DB.getStatement();
           ResultSet rs=s.executeQuery("SELECT * "
                                     + "FROM domains "
                                    + "WHERE adr='"+this.target_adr+"' "
@@ -125,7 +125,7 @@ public class CSaleDomainPayload extends CPayload
             if (res.passed)
             {
                  // Expire
-                 String expire=String.valueOf(this.block+(864*this.mkt_days));
+                 String expire=String.valueOf(this.block+(1440*this.mkt_days));
             
 	         // Update
 	         UTILS.DB.executeUpdate("UPDATE domains "

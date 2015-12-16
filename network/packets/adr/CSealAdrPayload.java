@@ -73,7 +73,7 @@ public class CSealAdrPayload extends CPayload
 	 	   			                 "",
                                                          "",
                                                          "",
-                                                         block.tstamp+(this.days*86400), 
+                                                         this.days,  
                                                          block.block);
 	 	       
 	 	   	// Return 

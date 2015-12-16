@@ -72,7 +72,7 @@ public class CCurBlock
    public CCurBlock() throws SQLException
    {
        // Load network status
-       Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+       Statement s=UTILS.DB.getStatement();
        
        // Load
        ResultSet rs=s.executeQuery("SELECT * FROM net_stat");
@@ -108,6 +108,9 @@ public class CCurBlock
        
        // Set signer
        this.setSigner();
+       
+       // Close
+       s.close();
    }
  
    
@@ -133,7 +136,7 @@ public class CCurBlock
    public void setSigner() throws SQLException
    {
        // Difficulty
-       Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+       Statement s=UTILS.DB.getStatement();
        
        // Load
        ResultSet rs=s.executeQuery("SELECT * "
@@ -149,27 +152,35 @@ public class CCurBlock
            // Set miner
            this.signer=rs.getString("adr");
        }
+       
+       // Close
+       s.close();
    }
    
    public void broadcast()
    {
-       // Payload timestamp
-       payload.tstamp=UTILS.BASIC.tstamp();
+       try
+       {
+          // Payload timestamp
+          payload.tstamp=UTILS.BASIC.tstamp();
        
-       // Sign using the first address
-       payload.sign(this.signer);
+          // Sign using the first address
+          payload.sign(this.signer);
        
-       // Load payload
-       block=new CBlockPacket(this.signer);
-       block.payload=UTILS.SERIAL.serialize(payload);
+          // Load payload
+          block=new CBlockPacket(this.signer);
+          block.payload=UTILS.SERIAL.serialize(payload);
        
-       // Sign
-       block.sign();
+          // Sign
+          block.sign();
        
-       // Broadcast
-       UTILS.NETWORK.broadcast(block);  
-       
-      
+          // Broadcast
+          UTILS.NETWORK.broadcast(block);  
+       }
+       catch (Exception e) 
+       { 
+		UTILS.LOG.log("Exception", e.getMessage(), "CCurBlock.java", 182); 
+       }
    }
    
    public void newBlock(long block, 
@@ -190,7 +201,7 @@ public class CCurBlock
        this.net_dif=new BigInteger(dif);
        
        // Difficulty
-       Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+       Statement s=UTILS.DB.getStatement();
        
        // Load
        ResultSet rs=s.executeQuery("SELECT COUNT(*) AS total "
@@ -226,6 +237,9 @@ public class CCurBlock
         
        // Nonce
        this.nonce=0;
+       
+       // Close
+       s.close();
    }
    
 }

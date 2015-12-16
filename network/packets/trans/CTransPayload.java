@@ -67,6 +67,9 @@ public class CTransPayload extends CPayload
 		
 	   // Amount
 	   this.amount=amount;
+           
+           // Min fee ?
+           if (this.dest=="default" && this.amount<0.0001) this.amount=0.0001;
 		
 	   // Currency
 	   this.cur=cur;
@@ -187,7 +190,7 @@ public class CTransPayload extends CPayload
                return new CResult(false, "Invalid hash", "CTransPayload", 77);
             
             // Statement
-            Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            Statement s=UTILS.DB.getStatement();
                    
 	    // Check cur
 	    if (!this.cur.equals("MSK"))
@@ -204,6 +207,42 @@ public class CTransPayload extends CPayload
 	        	return new CResult(false, "Invalid escrower.", "CTransPayload", 77);
 	    }
 	    
+             // Restricted recipients ?
+            if (UTILS.BASIC.hasAttr(this.src, "ID_RESTRICT_REC"))
+            {
+                // Load data
+                ResultSet rs=s.executeQuery("SELECT * "
+                                            + "FROM adr_options "
+                                           + "WHERE adr='"+this.src+"' "
+                                             + "AND op_type='ID_RESTRICT_REC'");
+                
+                // Next
+                rs.next();
+                
+                // Recipient 1
+                String rec_1=rs.getString("par_1");
+                
+                // Recipient 2
+                String rec_2=rs.getString("par_2");
+                
+                // Recipient 3
+                String rec_3=rs.getString("par_3");
+                
+                // Recipient 4
+                String rec_4=rs.getString("par_4");
+                
+                // Recipient 5
+                String rec_5=rs.getString("par_5");
+                
+                // Check recipient
+                if (!this.dest.equals(rec_1) && 
+                    !this.dest.equals(rec_2) && 
+                    !this.dest.equals(rec_3) && 
+                    !this.dest.equals(rec_4) && 
+                    !this.dest.equals(rec_5))
+                return new CResult(false, "Invalid recipient.", "CTransPayload", 240);
+            }
+            
             // OTP ?
             if (UTILS.BASIC.hasAttr(this.src, "ID_OTP"))
             {
@@ -288,7 +327,7 @@ public class CTransPayload extends CPayload
              try
              {
                 // Load details
-                Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                Statement s=UTILS.DB.getStatement();
                     
                  // IPN
                  ResultSet rs=s.executeQuery("SELECT * FROM ipn WHERE adr='"+this.dest+"'");
@@ -328,7 +367,7 @@ public class CTransPayload extends CPayload
              }
              catch (SQLException ex) 
        	     {  
-       	       UTILS.LOG.log("SQLException", ex.getMessage(), "CTransPayload.java", 57);
+       	       UTILS.LOG.log("SQLException", ex.getMessage(), "CTransPayload.java", 367);
              }
          }
          
@@ -336,6 +375,12 @@ public class CTransPayload extends CPayload
 	 { 
              try
              {
+                 CResult res=this.check(block);
+                 if (!res.passed) return res;
+                     
+                 // Commit parent
+                 super.commit(block);
+                 
                 // Take coins
                 UTILS.BASIC.clearTrans(hash, "ID_SEND");
                 
@@ -346,7 +391,7 @@ public class CTransPayload extends CPayload
                 if (UTILS.BASIC.hasAttr(this.src, "ID_MULTISIG"))
                 {
                      // Load details
-                     Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                     Statement s=UTILS.DB.getStatement();
                 
                     // Load data
                     ResultSet rs=s.executeQuery("SELECT * "
@@ -397,62 +442,7 @@ public class CTransPayload extends CPayload
                                                               +this.cur+"', '"
                                                               +min+"', '"
                                                               +this.block+"')");
-                    
-                    // Source my address ?
-                    if (UTILS.WALLET.isMine(this.src))
-                    {
-                          UTILS.DB.executeUpdate("UPDATE web_users "
-                                               + "SET unread_multisig=unread_multisig+1 "
-                                             + "WHERE ID='"+UTILS.BASIC.getAdrUserID(this.src)+"' ");
-                    }
-                    
-                    // Destination my address ?
-                    if (UTILS.WALLET.isMine(this.dest))
-                    {
-                          UTILS.DB.executeUpdate("UPDATE web_users "
-                                               + "SET unread_multisig=unread_multisig+1 "
-                                             + "WHERE ID='"+UTILS.BASIC.getAdrUserID(this.dest)+"' ");
-                    }
-                    
-                    // Signer 1 my address ?
-                    if (UTILS.WALLET.isMine(signer_1))
-                    {
-                          UTILS.DB.executeUpdate("UPDATE web_users "
-                                               + "SET unread_multisig=unread_multisig+1 "
-                                             + "WHERE ID='"+UTILS.BASIC.getAdrUserID(signer_1)+"' ");
-                    }
-                    
-                    // Signer 2 my address ?
-                    if (UTILS.WALLET.isMine(signer_2))
-                    {
-                          UTILS.DB.executeUpdate("UPDATE web_users "
-                                               + "SET unread_multisig=unread_multisig+1 "
-                                             + "WHERE ID='"+UTILS.BASIC.getAdrUserID(signer_2)+"' ");
-                    }
-                    
-                    // Signer 3 my address ?
-                    if (UTILS.WALLET.isMine(signer_3))
-                    {
-                          UTILS.DB.executeUpdate("UPDATE web_users "
-                                               + "SET unread_multisig=unread_multisig+1 "
-                                             + "WHERE ID='"+UTILS.BASIC.getAdrUserID(signer_3)+"' ");
-                    }
-                    
-                    // Signer 4 my address ?
-                    if (UTILS.WALLET.isMine(signer_4))
-                    {
-                          UTILS.DB.executeUpdate("UPDATE web_users "
-                                               + "SET unread_multisig=unread_multisig+1 "
-                                             + "WHERE ID='"+UTILS.BASIC.getAdrUserID(signer_4)+"' ");
-                    }
-                    
-                    // Signer 5 my address ?
-                    if (UTILS.WALLET.isMine(signer_5))
-                    {
-                          UTILS.DB.executeUpdate("UPDATE web_users "
-                                               + "SET unread_multisig=unread_multisig+1 "
-                                             + "WHERE ID='"+UTILS.BASIC.getAdrUserID(signer_5)+"' ");
-                    }
+                   
                 }
                 else
                 {
@@ -462,12 +452,6 @@ public class CTransPayload extends CPayload
                       // Clear transaction for receiver
                       UTILS.BASIC.clearTrans(hash, "ID_RECEIVE");
                 
-                      // New transaction
-                      if (UTILS.WALLET.isMine(this.dest))
-                      UTILS.DB.executeUpdate("UPDATE web_users "
-                                              + "SET unread_trans=unread_trans+1 "
-                                            + "WHERE ID='"+UTILS.BASIC.getAdrUserID(this.dest)+"' ");
-                      
                       // OTP
                       if (!this.otp_new_hash.equals(""))
                           UTILS.DB.executeUpdate("UPDATE adr_options "
@@ -520,11 +504,11 @@ public class CTransPayload extends CPayload
              }
              catch (SQLException ex) 
        	     {  
-       	       UTILS.LOG.log("SQLException", ex.getMessage(), "CTransPayload.java", 57);
+       	       UTILS.LOG.log("SQLException", ex.getMessage(), "CTransPayload.java", 559);
              }
              
              // Ok
-	     return new CResult(true, "Ok", "CTransPayload", 130);
+	     return new CResult(true, "Ok", "CTransPayload", 563);
 	}
 	 
 }

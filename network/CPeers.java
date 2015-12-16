@@ -40,6 +40,7 @@ public class CPeers
         
         // Task
         RemindTask task;
+       
         
    CPeers(CNetwork station)
    {   
@@ -65,34 +66,34 @@ public class CPeers
    {
        try
        {
-       // Return if connected
-       if (this.conectedTo(peer.adr)) return;
+            // Return if connected
+            if (this.conectedTo(peer.adr)) return;
        
-       // Add peer	   
-       peers.add(peer);
+            // Add peer	   
+            peers.add(peer);
        
-       // Add peer
-       UTILS.DB.executeUpdate("INSERT INTO peers (peer, "
-                                         + "port, "
-                                         + "in_traffic, "
-                                         + "out_traffic, "
-                                         + "last_seen,"
-                                         + "tstamp) "
-                             + "VALUES('"+peer.adr+"', '"
-                                         +port+"', "
-                                         +"'0', "
-                                         +"'0', '"
-                                         +UTILS.BASIC.tstamp()+"', '"
-                                         +UTILS.BASIC.tstamp()+"')");
+            // Add peer
+            UTILS.DB.executeUpdate("INSERT INTO peers (peer, "
+                                                    + "port, "
+                                                    + "in_traffic, "
+                                                    + "out_traffic, "
+                                                    + "last_seen,"
+                                                    + "tstamp) "
+                                        + "VALUES('"+peer.adr+"', '"
+                                                    +port+"', "
+                                                    +"'0', "
+                                                    +"'0', '"
+                                                    +UTILS.BASIC.tstamp()+"', '"
+                                                    +UTILS.BASIC.tstamp()+"')");
        
-        // Peer recorded
-       Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-       ResultSet rs=s.executeQuery("SELECT * "
+           // Peer recorded
+           Statement s=UTILS.DB.getStatement();
+           ResultSet rs=s.executeQuery("SELECT * "
                                      + "FROM peers_pool "
                                     + "WHERE peer='"+peer.adr+"'");
        
-       if (UTILS.DB.hasData(rs)==false)
-       UTILS.DB.executeUpdate("INSERT INTO peers_pool (peer, "
+           if (UTILS.DB.hasData(rs)==false)
+            UTILS.DB.executeUpdate("INSERT INTO peers_pool (peer, "
                                          + "port, "
                                          + "con_att_no, "
                                          + "con_att_last, "
@@ -106,20 +107,24 @@ public class CPeers
                                            + "'ID_YES', "
                                            + "'0', '"
                                            +UTILS.BASIC.tstamp()+"')");
-       else
-       UTILS.DB.executeUpdate("UPDATE peers "
+           else
+           UTILS.DB.executeUpdate("UPDATE peers "
 	   		 + "SET last_seen='"+UTILS.BASIC.tstamp()+"' "
 	   	       + "WHERE peer='"+peer.adr+"'");
        
-       // Close
-       if (s!=null) s.close();
+           // Close
+           if (s!=null) s.close();
        
-       // Console
-       UTILS.CONSOLE.write("Peer Added "+peer.adr);
+           // Console
+           UTILS.CONSOLE.write("Peer Added "+peer.adr);
        }
        catch (SQLException ex)
        {
            UTILS.LOG.log("SQLException", ex.getMessage(), "CPeers.java", 120);
+       }
+       catch (Exception ex)
+       {
+           UTILS.LOG.log("Exception", ex.getMessage(), "CPeers.java", 120);
        }
    }
    
@@ -182,6 +187,10 @@ public class CPeers
        {
               UTILS.LOG.log("InterruptedException", ex.getMessage(), "CPeers.java", 161);
        }
+       catch (Exception ex)
+       {
+              UTILS.LOG.log("InterruptedException", ex.getMessage(), "CPeers.java", 161);
+       }
        
      return null;
    }
@@ -206,7 +215,7 @@ public class CPeers
      		    int dif=UTILS.SETTINGS.min_peers-peers.size();
      		 
      		    // Loads peers
-                    Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                    Statement s=UTILS.DB.getStatement();
  		        ResultSet rs=s.executeQuery("SELECT * "
  		  		                               + "FROM peers "
  		  		                              + "WHERE connected=0 "
@@ -247,55 +256,33 @@ public class CPeers
    {
        try
        {
-           
-       // Delete inactive peers having over 3 connection attempts
-       UTILS.DB.executeUpdate("DELETE FROM peers_pool WHERE con_att_no>3");
-       
-       // Set to pending peers that are active and last seen more than an hour ago
-       Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-       ResultSet rs=s.executeQuery("SELECT * "
-                                     + "FROM peers_pool "
-                                     + "WHERE last_seen<"+String.valueOf(UTILS.BASIC.tstamp()-36));
-        
-       if (UTILS.DB.hasData(rs))
-        {
-          while (rs.next())
+          if (this.peers.size()<3)
           {
-            String peer=rs.getString("peer");
-            if (this.conectedTo(peer)==false) 
-               UTILS.DB.executeUpdate("UPDATE peers_pool "
-                                 + "SET accept_con='ID_PENDING' "
-                               + "WHERE peer='"+rs.getString("peer")+"'");
-          }
-        }
-       
-        // Close
-        if (s!=null) s.close();
-        
-       // Select pending peers
-       s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-       rs=s.executeQuery("SELECT * "
-                                     + "FROM peers_pool "
-                                    + "WHERE accept_con='ID_PENDING' "
-                                 + "ORDER BY RAND() "
-                                    + "LIMIT 0, 10");
+             // Select pending peers
+             Statement s=UTILS.DB.getStatement();
+             ResultSet rs=s.executeQuery("SELECT * "
+                                      + "FROM peers_pool "
+                                  + "ORDER BY rand() "
+                                     + "LIMIT 0,1");
        
      
          
-          if (UTILS.DB.hasData(rs))
-          {
-            while (rs.next())
-            {
-              if (this.conectedTo(rs.getString("peer"))==false) 
-              {
-                CPeer temp=new CPeer(UTILS.NETWORK.peers, rs.getString("peer"), rs.getInt("port"));
-                temp.start();
-              }
-            }
-          }
+             if (UTILS.DB.hasData(rs))
+             {
+               // Next
+               rs.next();
+            
+               // Connect
+               if (this.conectedTo(rs.getString("peer"))==false) 
+               {
+                  System.out.println("Connecting to "+rs.getString("peer")+"...");
+                  UTILS.NETWORK.connectTo(rs.getString("peer"), rs.getInt("port"));
+               }
+             }
           
-          // Close
-          s.close();
+             // Close
+             s.close();
+          }
        }
        catch (SQLException ex)
        {
@@ -307,6 +294,35 @@ public class CPeers
        }
    }
    
+   public void removeInactives()
+   {
+       try
+       {
+           Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, 
+                                                    ResultSet.CONCUR_READ_ONLY);
+           
+           // Load data
+           ResultSet rs=s.executeQuery("SELECT * "
+                                     + "FROM peers "
+                                     + "WHERE last_seen<"+String.valueOf(UTILS.BASIC.tstamp()-600));
+           
+           // Remove peers
+           while (rs.next()) this.removePeer(rs.getString("peer"));
+           
+           // Close connection
+           s.close();
+       }
+       catch (SQLException ex)
+       {
+           UTILS.LOG.log("SQLexception", ex.getMessage(), "CPeers.java", 209);
+       }
+       catch (Exception ex)
+       {
+           UTILS.LOG.log("Exception", ex.getMessage(), "CPeers.java", 284);
+       }
+       
+   }
+   
    class RemindTask extends TimerTask 
    {  
        public CPeers parent;
@@ -316,15 +332,14 @@ public class CPeers
        {  
              
          // Tick
-         // tick++;
+         tick++;
         
-          // Finds new peers
-          //if (tick % 3600==0)  
-          //      parent.getNewPeers();
+         // Try to connect to pending peers
+         if (tick % 10==0) 
+            parent.checkPendingPeers();
            
-           // Try to connect to pending peers
-           //if (tick % 1800==0) 
-           //      parent.checkPendingPeers();
+          // Removes inactive peers
+          parent.removeInactives();
        }
    }
  
@@ -396,7 +411,7 @@ public class CPeers
            return false;
        
        // Search for the same IP
-       Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+       Statement s=UTILS.DB.getStatement();
        ResultSet rs=s.executeQuery("SELECT * "
                                      + "FROM con_log "
                                     + "WHERE IP='"+IP+"' "

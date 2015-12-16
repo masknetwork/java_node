@@ -36,7 +36,7 @@ public class CBuyBetPayload extends CPayload
          this.amount=amount;
       
          // Statement
-         Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+         Statement s=UTILS.DB.getStatement();
       
          // Load bet details
          ResultSet rs=s.executeQuery("SELECT * FROM feeds_bets WHERE uid='"+this.bet_uid+"'");
@@ -79,7 +79,7 @@ public class CBuyBetPayload extends CPayload
             return new CResult(false, "Invalid UID", "CNewBetPayload.java", 74); 
           
           // Statement
-          Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+          Statement s=UTILS.DB.getStatement();
           
           // Bet uid exist
           ResultSet rs=s.executeQuery("SELECT * FROM feeds_bets WHERE uid='"+this.bet_uid+"'");

@@ -79,7 +79,7 @@ public class CIncreaseMktBidPayload  extends CPayload
               return new CResult(false, "Invalid row hash", "CIncreaseMktBidPayload.java", 61);
            
             // Row exist ?
-            Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            Statement s=UTILS.DB.getStatement();
             
             ResultSet rs=s.executeQuery("SELECT * "
   		                        + "FROM  "+this.table+

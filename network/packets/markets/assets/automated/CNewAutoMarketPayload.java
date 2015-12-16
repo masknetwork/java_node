@@ -257,7 +257,7 @@ public class CNewAutoMarketPayload extends CPayload
                                                         UTILS.FORMAT.format(this.init_price)+"', '"+
                                                         UTILS.FORMAT.format(this.init_price)+"', '"+
                                                         UTILS.FORMAT.format(this.bid)+"', '"+
-                                                        (this.block+this.days*864)+"', '"+
+                                                        (this.block+this.days*1440)+"', '"+
                                                         this.block+"')");
         
         // Rowhash

@@ -44,7 +44,7 @@ public class CTransPool
 	{	
             try
 	    {
-                    Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                    Statement s=UTILS.DB.getStatement();
                     
 		    String q="SELECT SUM(amount) AS total "
 		    		            + "FROM trans_pool "

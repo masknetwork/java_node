@@ -106,10 +106,10 @@ public class CReqDataPayload extends CPayload
     	CResult res=super.check(block);
     	if (res.passed==false) return res;
     	
-    	// Target address valid
-    	if (UTILS.BASIC.adressValid(this.target_adr)==false) 
-           return new CResult(false, "Invalid target address", "CReqDataPayload", 47);
-    	
+    	 // Sealed address ?
+         if (UTILS.BASIC.hasAttr(this.target_adr, "ID_SEALED"))
+              return new CResult(false, "Target address is sealed.", "CAddSignPayload", 104);
+           
         // Message
         this.mes=UTILS.BASIC.base64_decode(this.mes);
         if (!this.mes.equals(""))
@@ -242,7 +242,7 @@ public class CReqDataPayload extends CPayload
         try
     	{ 
 	  // Load transaction data
-            Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            Statement s=UTILS.DB.getStatement();
     	          
             // Finds the user
             ResultSet rs=s.executeQuery("SELECT * "
@@ -314,7 +314,7 @@ public class CReqDataPayload extends CPayload
 	                             "",
                                      "",
                                      "",
-                                     block.tstamp+(this.days*86400), 
+                                     this.days,  
                                      block.block);
     	
         }

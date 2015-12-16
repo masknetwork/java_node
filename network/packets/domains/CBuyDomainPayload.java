@@ -37,7 +37,7 @@ public class CBuyDomainPayload extends CPayload
         try
         {
            // Load seller address
-           Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+           Statement s=UTILS.DB.getStatement();
            ResultSet rs=s.executeQuery("SELECT * "
   		                             + "FROM domains "
   		                            + "WHERE domain='"+this.domain+
@@ -104,7 +104,7 @@ public class CBuyDomainPayload extends CPayload
                      return new CResult(false, "Invalid domain name", "CBuyDomainPayload.java", 79);
        
                  // Domain for sale ?
-                 Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                 Statement s=UTILS.DB.getStatement();
                  ResultSet rs=s.executeQuery("SELECT * "
   		                             + "FROM domains "
   		                            + "WHERE domain='"+this.domain+

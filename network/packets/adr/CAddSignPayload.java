@@ -45,124 +45,153 @@ public class CAddSignPayload extends CPayload
     	// Constructor
     	super(target_adr);
     	
+        try
+        {
 	    // Target address
-    	this.target_adr=target_adr;
+    	    this.target_adr=target_adr;
     	
-    	// Signer
-    	this.signer_1=signer_1;
+    	    // Signer
+    	    this.signer_1=signer_1;
     	
-    	// Signer
-    	this.signer_2=signer_2;
+    	    // Signer
+    	    this.signer_2=signer_2;
     	
-        // Signer
-    	this.signer_3=signer_3;
+            // Signer
+    	    this.signer_3=signer_3;
     	
-        // Signer
-    	this.signer_4=signer_4;
+            // Signer
+    	    this.signer_4=signer_4;
     	
-        // Signer
-    	this.signer_5=signer_5;
+            // Signer
+    	    this.signer_5=signer_5;
     	
-        // Min
-        this.min=min;
+            // Min
+            this.min=min;
         
-       // Days 
-    	this.days=days;
+           // Days 
+    	   this.days=days;
     	
-    	// Hash
- 	hash=UTILS.BASIC.hash(this.getHash()+
- 			      target_adr+
- 			      signer_1+
-                              signer_2+
-                              signer_3+
-                              signer_4+
-                              signer_5+
- 			      min+
-                              days);
+    	   // Hash
+ 	   hash=UTILS.BASIC.hash(this.getHash()+
+ 			         target_adr+
+ 			         signer_1+
+                                 signer_2+
+                                 signer_3+
+                                 signer_4+
+                                 signer_5+
+ 			         min+
+                                 days);
  	   
  	   // Signature
- 	   this.sign();
+           this.sign();
+        }
+        catch (Exception ex) 
+        { 
+	    UTILS.LOG.log("Exception", ex.getMessage(), "CAddSignPacket.java", 90); 
+        }
     }
     
     public CResult check(CBlockPayload block)
     {
-    	// Super class
-    	CResult res=super.check(block);
-    	if (res.passed==false) return res;
+        try
+        {
+    	   // Super class
+    	   CResult res=super.check(block);
+    	   if (res.passed==false) return res;
+    	   
+           // Sealed address ?
+           if (UTILS.BASIC.hasAttr(this.target_adr, "ID_SEALED"))
+              return new CResult(false, "Target address is sealed.", "CAddSignPayload", 104);
+           
+    	   // Target adsress valid
+    	   if (UTILS.BASIC.adressValid(this.target_adr)==false) 
+    		return new CResult(false, "Invalid signer.", "CAddSignPayload", 104);
     	
-    	// Target adsress valid
-    	if (UTILS.BASIC.adressValid(this.target_adr)==false) 
-    		return new CResult(false, "Invalid signer.", "CAddSignPayload", 60);
-    	
-    	// Signer 1 valid
-        if (!this.signer_1.equals(""))
-    	  if (UTILS.BASIC.adressValid(this.signer_1)==false) 
-    		return new CResult(false, "Invalid target address", "CAddSignPayload", 50);
+    	   // Signer 1 valid
+           if (!this.signer_1.equals(""))
+    	     if (UTILS.BASIC.adressValid(this.signer_1)==false) 
+    		return new CResult(false, "Invalid target address", "CAddSignPayload", 109);
         
-        // Signer 2 valid
-        if (!this.signer_2.equals(""))
-    	  if (UTILS.BASIC.adressValid(this.signer_2)==false) 
-    		return new CResult(false, "Invalid target address", "CAddSignPayload", 50);
+           // Signer 2 valid
+           if (!this.signer_2.equals(""))
+    	       if (UTILS.BASIC.adressValid(this.signer_2)==false) 
+    		return new CResult(false, "Invalid target address", "CAddSignPayload", 114);
         
-        // Signer 3 valid
-        if (!this.signer_3.equals(""))
-    	  if (UTILS.BASIC.adressValid(this.signer_3)==false) 
-    		return new CResult(false, "Invalid target address", "CAddSignPayload", 50);
+           // Signer 3 valid
+           if (!this.signer_3.equals(""))
+    	      if (UTILS.BASIC.adressValid(this.signer_3)==false) 
+    		return new CResult(false, "Invalid target address", "CAddSignPayload", 119);
         
-        // Signer 4 valid
-        if (!this.signer_4.equals(""))
-    	  if (UTILS.BASIC.adressValid(this.signer_4)==false) 
-    		return new CResult(false, "Invalid target address", "CAddSignPayload", 50);
+           // Signer 4 valid
+           if (!this.signer_4.equals(""))
+    	      if (UTILS.BASIC.adressValid(this.signer_4)==false) 
+    		return new CResult(false, "Invalid target address", "CAddSignPayload", 124);
         
-        // Signer 5 valid
-        if (!this.signer_5.equals(""))
-    	  if (UTILS.BASIC.adressValid(this.signer_5)==false) 
-    		return new CResult(false, "Invalid target address", "CAddSignPayload", 50);
+           // Signer 5 valid
+           if (!this.signer_5.equals(""))
+    	      if (UTILS.BASIC.adressValid(this.signer_5)==false) 
+    		return new CResult(false, "Invalid target address", "CAddSignPayload", 129);
+           
+           // Min
+           if (this.min<1)
+              return new CResult(false, "Invalid minimum signers", "CAddSignPayload", 133);
         
-        // Min
-        if (this.min<1)
-           return new CResult(false, "Invalid minimum signers", "CAddSignPayload", 50);
-        
- 	// Check hash
-   	String h=UTILS.BASIC.hash(this.getHash()+
- 			          target_adr+
- 			          signer_1+
-                                  signer_2+
-                                  signer_3+
-                                  signer_4+
-                                  signer_5+
- 			          min+
-                                  days);
+ 	   // Check hash
+   	   String h=UTILS.BASIC.hash(this.getHash()+
+ 			             target_adr+
+ 			             signer_1+
+                                     signer_2+
+                                     signer_3+
+                                     signer_4+
+                                     signer_5+
+ 			             min+
+                                     days);
    	    
-        if (!this.hash.equals(h))
-   	   return new CResult(false, "Invalid hash code", "CAddSignPayload", 65);
+           if (!this.hash.equals(h))
+   	      return new CResult(false, "Invalid hash code", "CAddSignPayload", 147);
    	    
-   	// Signature
-   	if (this.checkSig()==false)
-   	    return new CResult(false, "Invalid signature", "CAddSignPayload", 65);
-   	    	
+   	   // Signature
+   	   if (this.checkSig()==false)
+   	       return new CResult(false, "Invalid signature", "CAddSignPayload", 151);
+   	 }
+         catch (Exception ex) 
+         { 
+	       UTILS.LOG.log("Exception", ex.getMessage(), "CAddSignPacket.java", 155); 
+         }
+        
         // Return
-  	return new CResult(true, "Ok", "CAddSignPayload", 61);
+  	return new CResult(true, "Ok", "CAddSignPayload", 160);
     }
     
     public CResult commit(CBlockPayload block)
     {
-        // Superclass
-        super.commit(block);
+        try
+        {
+           // Check payload
+           CResult res=this.check(block);
+           if (!res.passed) return res;
            
-        // Commit
-    	UTILS.BASIC.applyAdrAttr(this.target_adr, 
-			         "ID_MULTISIG", 
-			         this.signer_1, 
-			         this.signer_2, 
-			         this.signer_3,
-			         this.signer_4,
-                                 this.signer_5,
-                                 String.valueOf(this.min),
-                                 block.tstamp+(this.days*86400), 
-                                 block.block);
-    	
+           // Superclass
+           super.commit(block);
+                 
+           // Commit
+    	   UTILS.BASIC.applyAdrAttr(this.target_adr, 
+			            "ID_MULTISIG", 
+			            this.signer_1, 
+			            this.signer_2, 
+			            this.signer_3,
+			            this.signer_4,
+                                    this.signer_5,
+                                    String.valueOf(this.min),
+                                    this.days, 
+                                    block.block);
+    	}
+        catch (Exception ex) 
+        { 
+	    UTILS.LOG.log("Exception", ex.getMessage(), "CAddSignPacket.java", 155); 
+        }
+        
     	// Return
-  	    return new CResult(true, "Ok", "CAddSignPayload", 77);
+  	return new CResult(true, "Ok", "CAddSignPayload", 77);
     }
 }

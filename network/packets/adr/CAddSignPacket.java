@@ -23,9 +23,11 @@ public class CAddSignPacket extends CBroadcastPacket
     {
 	   // Constructor
 	   super("ID_MULTISIG_PACKET");
-	   
-	   // Builds the transaction
-	   CAddSignPayload sign_payload=new CAddSignPayload(target_adr, 
+           
+           try
+           {
+	      // Builds the transaction
+	      CAddSignPayload sign_payload=new CAddSignPayload(target_adr, 
                                                             signer_1, 
                                                             signer_2, 
                                                             signer_3,
@@ -34,44 +36,51 @@ public class CAddSignPacket extends CBroadcastPacket
                                                             min,
                                                             days);
 			
-	   // Build the payload
-	   this.payload=UTILS.SERIAL.serialize(sign_payload);
+	      // Build the payload
+	      this.payload=UTILS.SERIAL.serialize(sign_payload);
 			
-	   // Network fee
-	   fee=new CFeePayload(fee_adr, days*0.0001);
+	      // Network fee
+	      fee=new CFeePayload(fee_adr, days*0.0001);
 	   
-	   // Sign packet
-	   this.sign();
+	      // Sign packet
+	      this.sign();
+           }
+           catch (Exception ex) 
+           { 
+	       UTILS.LOG.log("Exception", ex.getMessage(), "CAddSignPacket.java", 50); 
+           }
     }
     
     // Check 
     public CResult check(CBlockPayload block)
     {
-    	// Super class
-     	  CResult res=super.check(block);
-     	  if (res.passed==false) return res;
+    	  try
+          {
+             // Super class
+     	     CResult res=super.check(block);
+     	     if (res.passed==false) return res;
      	
-     	  // Check type
-     	  if (!this.tip.equals("ID_MULTISIG_PACKET")) 
-     		return new CResult(false, "Invalid packet type", "CAddSignPacket", 42);
+     	     // Check type
+     	     if (!this.tip.equals("ID_MULTISIG_PACKET")) 
+     		 return new CResult(false, "Invalid packet type", "CAddSignPacket", 64);
      	  
-     	  // Deserialize
-          CAddSignPayload pay=(CAddSignPayload) UTILS.SERIAL.deserialize(this.payload);
+     	     // Deserialize
+             CAddSignPayload pay=(CAddSignPayload) UTILS.SERIAL.deserialize(this.payload);
 		  
-	  // Check fee
-	  if (this.fee.amount<pay.days*0.0001)
-	      return new CResult(false, "Invalid packet type", "CBlockAdrPacket", 44);
+	     // Check fee
+	     if (this.fee.amount<pay.days*0.0001)
+	         return new CResult(false, "Invalid packet type", "CAddSignPacket", 72);
 		  
-          // Check sig
-	  if (!this.checkSign())
-	      return new CResult(false, "Invalid signature", "CBlockAdrPacket", 44);
+             // Check sig
+	     if (!this.checkSign())
+	         return new CResult(false, "Invalid signature", "CAddSignPacket", 76);
 		  
-	  // Check payload
-	  res=pay.check(block);
-	  if (res.passed==false) return res;
+	     // Check payload
+	     res=pay.check(block);
+	     if (res.passed==false) return res;
                   
-          // Footprint
-          CFootprint foot=new CFootprint("ID_MULTISIG_PACKET", 
+             // Footprint
+             CFootprint foot=new CFootprint("ID_MULTISIG_PACKET", 
                                          this.hash, 
                                          pay.hash, 
                                          this.fee.src, 
@@ -79,34 +88,46 @@ public class CAddSignPacket extends CBroadcastPacket
                                          this.fee.hash,
                                          this.block);
           
-          foot.add("Address", pay.target_adr);
-          foot.add("Signer 1", String.valueOf(pay.signer_1));
-          foot.add("Signer 2", String.valueOf(pay.signer_2));
-          foot.add("Signer 3", String.valueOf(pay.signer_3));
-          foot.add("Signer 4", String.valueOf(pay.signer_4));
-          foot.add("Signer 5", String.valueOf(pay.signer_5));
-          foot.add("Minimum signers", String.valueOf(pay.min));
-          foot.add("Days", String.valueOf(pay.days));
-          foot.write();
-     	 
+             foot.add("Address", pay.target_adr);
+             foot.add("Signer 1", String.valueOf(pay.signer_1));
+             foot.add("Signer 2", String.valueOf(pay.signer_2));
+             foot.add("Signer 3", String.valueOf(pay.signer_3));
+             foot.add("Signer 4", String.valueOf(pay.signer_4));
+             foot.add("Signer 5", String.valueOf(pay.signer_5));
+             foot.add("Minimum signers", String.valueOf(pay.min));
+             foot.add("Days", String.valueOf(pay.days));
+             foot.write();
+          }
+          catch (Exception ex) 
+          { 
+	       UTILS.LOG.log("Exception", ex.getMessage(), "CMesPacket.java", 103); 
+          }
+      
      	  // Return 
-     	  return new CResult(true, "Ok", "CAddSignPacket", 45);
+     	  return new CResult(true, "Ok", "CAddSignPacket", 107);
     }
     
     public CResult commit(CBlockPayload block)
     {
-    	// Superclass
-    	CResult res=super.commit(block);
-    	if (res.passed==false) return res;
+        try
+        {
+    	   // Superclass
+    	   CResult res=super.commit(block);
+    	   if (res.passed==false) return res;
     	
-    	// Deserialize transaction data
-    	sign_payload=(CAddSignPayload) UTILS.SERIAL.deserialize(payload);
+    	   // Deserialize transaction data
+    	   sign_payload=(CAddSignPayload) UTILS.SERIAL.deserialize(payload);
 	
-       
-        res=this.sign_payload.commit(block);
-	if (res.passed==false) return res;
-		
+           // Result
+           res=this.sign_payload.commit(block);
+	   if (res.passed==false) return res;
+        }
+        catch (Exception ex) 
+        { 
+	    UTILS.LOG.log("Exception", ex.getMessage(), "CAddSignPacket.java", 127); 
+        }
+        
 	// Return 
-   	return new CResult(true, "Ok", "CAddSignPacket", 65);
+   	return new CResult(true, "Ok", "CAddSignPacket", 131);
     }
 }

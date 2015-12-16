@@ -108,7 +108,7 @@ public class CBlockPayload implements java.io.Serializable
 		
 		// Get address
 		CAddress adr=UTILS.WALLET.getAddress(signer);
-		this.sign=adr.sign(this.hash);
+		if (adr!=null) this.sign=adr.sign(this.hash);
 	}
 	
 	// Commits all transactions
@@ -146,12 +146,30 @@ public class CBlockPayload implements java.io.Serializable
                
                 // New block
                 UTILS.CBLOCK.newBlock(this.block, this.hash, this.tstamp, this.dificulty);
+                
+                // Delete expired items
+                this.delExpired();
               
 		// Ok
 		return new CResult(true, "Ok", "CBlock", 68);
 
         }
 	
+        public void delExpired()
+        {
+            // Expired address options
+            UTILS.DB.executeUpdate("DELETE FROM adr_options WHERE expires<"+this.block);
+            
+            // Expired ads
+            UTILS.DB.executeUpdate("DELETE FROM ads WHERE expires<"+this.block);
+            
+            // Expired domains
+            UTILS.DB.executeUpdate("DELETE FROM domains WHERE expires<"+this.block);
+            
+            // Expired domains listings
+            UTILS.DB.executeUpdate("UPDATE domains SET market_expires=0, market_bid=0 WHERE expires<"+this.block);
+        }
+        
 	// Compare two blocks and returns the accuracy
 	public int compare(CBlockPayload block)
 	{

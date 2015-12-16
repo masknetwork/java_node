@@ -98,12 +98,12 @@ public class CProfilePayload extends CPayload
    	  // Super class
    	  CResult res=super.check(block);
    	  if (res.passed==false) return res;
-   	
-   	  // Target address valid
-   	  if (UTILS.BASIC.adressValid(this.target_adr)==false) 
-   		return new CResult(false, "Invalid target address", "CProfilePayload", 48);
-   	
-          // Name
+   	  
+           // Sealed address ?
+           if (UTILS.BASIC.hasAttr(this.target_adr, "ID_SEALED"))
+              return new CResult(false, "Target address is sealed.", "CAddSignPayload", 104);
+           
+   	  // Name
           if (!this.name.equals(""))
             if (this.name.length()>50)
               return new CResult(false, "Invalid name length", "CProfilePayload", 48);
@@ -171,7 +171,7 @@ public class CProfilePayload extends CPayload
        try
        {
               // Statement
-              Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+              Statement s=UTILS.DB.getStatement();
    	      
               // Result Set
               ResultSet rs=s.executeQuery("SELECT * "
@@ -185,7 +185,7 @@ public class CProfilePayload extends CPayload
    		    long expire=rs.getLong("expire");
    		    
    		    // New expiration block
-   		    expire=block.tstamp+(this.days*86400);
+   		    expire=this.block+(this.days*1440);
    		    
    		    // Update
    		    UTILS.DB.executeUpdate("UPDATE profiles "
@@ -203,7 +203,7 @@ public class CProfilePayload extends CPayload
    	      else
    	      {
    	    	  // Expires
-   	    	  long expire=block.tstamp+(days*86400);
+   	    	  long expire=this.block+(this.days*1440);
    	    	
    	    	  UTILS.DB.executeUpdate("INSERT INTO profiles(adr, "
    	    	  		                      + "name, "

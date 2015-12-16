@@ -26,7 +26,7 @@ public class CBroadcasters
 		// Can broadcast
 		if (address.balance>1) 
 		{	
-                    Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                    Statement s=UTILS.DB.getStatement();
 		     ResultSet rs=s.executeQuery("SELECT * "
 					           + "FROM blocks "
 						  + "WHERE signer='"+adr+"' "
@@ -92,7 +92,7 @@ public class CBroadcasters
     		try
     		{
     		   // Load data
-                    Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                    Statement s=UTILS.DB.getStatement();
                     ResultSet rs=s.executeQuery("SELECT * "
                                                   + "FROM broadcasters "
                                               + "ORDER BY second ASC");

@@ -209,7 +209,7 @@ public class CWallet
 	    this.addresses.add(adr);
          
             // Load user ID
-            Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            Statement s=UTILS.DB.getStatement();
            
             // Load address data
             ResultSet rs=s.executeQuery("SELECT * "

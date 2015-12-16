@@ -50,7 +50,7 @@ public class CRenewDomainPayload extends CPayload
                  return new CResult(false, "Invalid domain", "CRentDomainPayload.java", 61);
               
               // Domain exist ?
-              Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+              Statement s=UTILS.DB.getStatement();
               ResultSet rs=s.executeQuery("SELECT * "
    		                          + "FROM domains "
    		                         + "WHERE domain='"+this.domain+"' "

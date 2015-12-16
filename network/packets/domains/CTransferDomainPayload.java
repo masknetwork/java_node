@@ -60,7 +60,7 @@ public class CTransferDomainPayload extends CPayload
      	       return new CResult(false, "Invalid hash", "CTransferDomainPayload.java", 61);
        
             // Domain owned by address ?
-            Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            Statement s=UTILS.DB.getStatement();
             ResultSet rs=s.executeQuery("SELECT * "
   		                              + "FROM domains "
   		                             + "WHERE domain='"+this.domain+"' "

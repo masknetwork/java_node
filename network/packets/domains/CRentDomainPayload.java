@@ -61,7 +61,7 @@ public class CRentDomainPayload extends CPayload
       	         return new CResult(false, "Invalid hash", "CRentDomainPayload.java", 61);
         
               // Domain already taken ?
-              Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+              Statement s=UTILS.DB.getStatement();
               ResultSet rs=s.executeQuery("SELECT * "
    		                          + "FROM domains "
    		                         + "WHERE domain='"+this.domain+"'");
@@ -104,7 +104,7 @@ public class CRentDomainPayload extends CPayload
                                                           + "block) VALUES ('"+
                                                           this.target_adr+"', '"+
                                                           this.domain+"', '"+
-                                                          String.valueOf(UTILS.BASIC.block()+(this.days*864))+"', "
+                                                          (this.block+this.days*1440)+"', "
                                                           + "'0', "
                                                           + "'0', "
                                                           + "'0', '"+

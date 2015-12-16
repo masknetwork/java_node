@@ -36,7 +36,7 @@ public class CNewRegMarketOrderPayload extends CPayload
           this.qty=qty;
           
           // Statement
-          Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+          Statement s=UTILS.DB.getStatement();
         
           // Load order data
           ResultSet rs_order=s.executeQuery("SELECT * "
@@ -130,7 +130,7 @@ public class CNewRegMarketOrderPayload extends CPayload
                return new CResult(false, "Invalid order UID", "CNewRegMarketOrderPayload.java", 74);
            
            // Statement
-           Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+           Statement s=UTILS.DB.getStatement();
            
            // Load position details
            ResultSet rs_pos=s.executeQuery("SELECT * "
@@ -299,7 +299,7 @@ public class CNewRegMarketOrderPayload extends CPayload
                                  + "WHERE uid='"+this.uid+"'");
            
            // Statement
-          Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+          Statement s=UTILS.DB.getStatement();
         
           // Load order data
           ResultSet rs_pos=s.executeQuery("SELECT * "

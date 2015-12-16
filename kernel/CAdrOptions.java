@@ -171,7 +171,7 @@ public class CAdrOptions
 		this.adr=adr;
 		
 		// Balance and other details
-                Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                Statement s=UTILS.DB.getStatement();
 		ResultSet rs_adr=s.executeQuery("SELECT * "
                                                 + "FROM adr "
                                                + "WHERE adr='"+adr+"'");	
@@ -200,7 +200,7 @@ public class CAdrOptions
 		try
 		{
                     // Balance and other details
-                    Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                    Statement s=UTILS.DB.getStatement();
 		    ResultSet rs_adr=s.executeQuery("SELECT * "
 		                                    + "FROM adr "
 		                                   + "WHERE adr='"+adr+"'");	
@@ -236,7 +236,7 @@ public class CAdrOptions
         try
         {
             // Find address options
-                Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                Statement s=UTILS.DB.getStatement();
             ResultSet rs=s.executeQuery("SELECT * "
     		                      + "FROM adr_options "
     		                      + "WHERE adr='"+adr+"'");

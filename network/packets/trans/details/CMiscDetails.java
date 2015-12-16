@@ -98,7 +98,7 @@ public class CMiscDetails extends CPayDetails
         try
         {
             // Statement
-            Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            Statement s=UTILS.DB.getStatement();
             
             // Load address data
             ResultSet rs=s.executeQuery("SELECT * FROM req_data WHERE adr='"+adr+"'");

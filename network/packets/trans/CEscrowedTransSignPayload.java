@@ -51,7 +51,7 @@ public class CEscrowedTransSignPayload extends CPayload
 	            return new CResult(false, "Invalid signture type", "CEscrowedTransSignPayload.java", 79);
 	   
                 // Load transaction data
-                Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                Statement s=UTILS.DB.getStatement();
     	          
                 // Finds the user
                 ResultSet rs=s.executeQuery("SELECT * "
@@ -124,27 +124,43 @@ public class CEscrowedTransSignPayload extends CPayload
                                           escrower, 
                                           this.hash, 
                                           this.block);
+                 
+                 // Close
+                 s.close();
             }
     	   catch (SQLException ex)
     	   {
-    	       UTILS.LOG.log("SQLException", ex.getMessage(), "CMesPayload.java", 158);
-    	   }
-            
-	 	// Return
-	 	return new CResult(true, "Ok", "CNewAssetPayload", 67);
-	   }
+                UTILS.LOG.log("SQLException", ex.getMessage(), "CMesPayload.java", 158);
+               return new CResult(false, "Ok", "CNewAssetPayload", 67);
+           }
+           
+           // Return
+	   return new CResult(true, "Ok", "CNewAssetPayload", 67);
+	}
 	   
 	   public CResult commit(CBlockPayload block)
 	   {
-	       // Superclass
-	       super.commit(block);
+               try
+               {
+                   // Check payload
+                   CResult res=this.check(block);
+                   if (!res.passed) return res;
+           
+	            // Superclass
+	            super.commit(block);
                
-               // Clear transactions
-               UTILS.BASIC.clearTrans(hash, "ID_ALL");
+                    // Clear transactions
+                    UTILS.BASIC.clearTrans(hash, "ID_ALL");
                
-               // Delete transaction
-               UTILS.DB.executeUpdate("DELETE FROM escrowed "
+                    // Delete transaction
+                    UTILS.DB.executeUpdate("DELETE FROM escrowed "
                                           + "WHERE trans_hash='"+this.trans_hash+"'");
+               }
+               catch (Exception ex)
+               {
+                   UTILS.LOG.log("SQLException", ex.getMessage(), "CMesPayload.java", 158);
+                   return new CResult(false, "Ok", "CMesPayload.java", 149);
+               }
 	         
 	       // Return 
 	       return new CResult(true, "Ok", "CMesPayload.java", 149);

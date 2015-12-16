@@ -72,7 +72,7 @@ public class CWebOps
         try
         {
            // Statement
-           Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+           Statement s=UTILS.DB.getStatement();
            
            // Pending images
            ResultSet rs=s.executeQuery("SELECT * FROM imgs_stack");
@@ -97,16 +97,64 @@ public class CWebOps
                {
                    op=rs.getString("op");
                    
+                   // New account is created.
+                   if (op.equals("ID_NEW_ACCOUNT"))
+                   {
+                       UTILS.WALLET.newAddress(rs.getString("user"), 
+                                               rs.getString("par_1"), 
+                                               UTILS.BASIC.base64_decode(rs.getString("par_2")));
+                       
+                       // UserID
+                       long userID=rs.getLong("par_3");
+                       
+                       // Load newly created adddress data
+                       rs=s.executeQuery("SELECT * "
+                                         + "FROM my_adr "
+                                        + "WHERE userID='"+userID+"'");
+                       
+                       // Has data
+                       if (UTILS.DB.hasData(rs))
+                       {
+                           // Next
+                           rs.next();
+                           
+                           // Address
+                           String adr=rs.getString("adr");
+                       
+                           // Initial coins 
+                           CTransPacket packet=new CTransPacket("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmzMuWmpif2JdeB1/UA7XQumglLj3o4/qF/CisxzJyXf7JoXXmGvBDJFbCSr8Si09zKtkfoA7jyU=", 
+			                                       "ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmzMuWmpif2JdeB1/UA7XQumglLj3o4/qF/CisxzJyXf7JoXXmGvBDJFbCSr8Si09zKtkfoA7jyU=", 
+			                                       adr, 
+			                                       5, 
+			                                       "MSK",
+			                                       "Welcome to MaskNetwork",
+                                                               "",
+                                                               "",
+                                                               "",
+                                                               "",
+                                                               "",
+                                                               "",
+                                                               "",
+                                                               "",
+                                                               0);
+                        
+                           UTILS.NETWORK.broadcast(packet);
+                       }
+                   }
                    
+                   // Add peer
                    if (op.equals("ID_ADD_PEER")) 
                        UTILS.NETWORK.connectTo(rs.getString("par_1"), rs.getInt("par_2")); 
-                      
+                   
+                   // Remove peer
                    if (op.equals("ID_REMOVE_PEER")) 
                        UTILS.NETWORK.removePeer(rs.getString("par_1"));
                    
+                   // Broadcast the actual block
                    if (op.equals("ID_SEND_CBLOCK")) 
                        UTILS.CBLOCK.broadcast();
                    
+                   // New transaction
                    if (op.equals("ID_TRANSACTION")) 
                    {
                         CTransPacket packet=new CTransPacket(rs.getString("fee_adr"),
@@ -584,7 +632,11 @@ public class CWebOps
         }
         catch (SQLException ex)
         {
-            UTILS.LOG.log("SQLexception", ex.getMessage(), "CWebOps.java", 35);
+            UTILS.LOG.log("SQLexception", ex.getMessage(), "CWebOps.java", 635);
+        }
+        catch (Exception e) 
+	{ 
+		UTILS.LOG.log("Exception", e.getMessage(), "CWebOps.java", 639); 
         }
        }
      }

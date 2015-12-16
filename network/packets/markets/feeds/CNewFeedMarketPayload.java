@@ -167,7 +167,7 @@ public class CNewFeedMarketPayload extends CPayload
     {
          try
          {
-            Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            Statement s=UTILS.DB.getStatement();
             ResultSet rs=s.executeQuery("SELECT * FROM feeds WHERE symbol='"+symbol+"'");
            
             if (UTILS.DB.hasData(rs))
@@ -192,7 +192,7 @@ public class CNewFeedMarketPayload extends CPayload
     {
          try
          {
-            Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            Statement s=UTILS.DB.getStatement();
             ResultSet rs=s.executeQuery("SELECT * "
                                        + "FROM feeds_components "
                                       + "WHERE feed_symbol='"+feed_symbol+"' "
@@ -241,7 +241,7 @@ public class CNewFeedMarketPayload extends CPayload
               return new CResult(false, "MArket symbol already used", "CNewFeedMarketPayload.java", 74); 
            
            // Statement
-           Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+           Statement s=UTILS.DB.getStatement();
            
            // Asset symbol
            if (tip.equals("ID_REGULAR"))

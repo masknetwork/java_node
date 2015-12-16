@@ -72,7 +72,7 @@ public class CRemoveItemPayload extends CPayload
               return new CResult(false, "Invalid row hash", "CRemoveItemPayload.java", 61);
            
             // Record exist ?
-            Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            Statement s=UTILS.DB.getStatement();
            
             ResultSet rs=s.executeQuery("SELECT * "
   		                        + "FROM  "+this.table+

@@ -147,7 +147,7 @@ public class CNewFeedPayload extends CPayload
         if (res.passed)
         {
             // Expire
-            String expire=String.valueOf(this.block+(864*this.mkt_days));
+            String expire=String.valueOf(this.block+(1440*this.mkt_days));
                     
             // Insert feed
             UTILS.DB.executeUpdate("INSERT INTO feeds(adr,"
@@ -185,7 +185,7 @@ public class CNewFeedPayload extends CPayload
         try
         {      
            // Load data
-           Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+           Statement s=UTILS.DB.getStatement();
            ResultSet rs=s.executeQuery("SELECT * "
                                        + "FROM feeds "
                                       + "WHERE symbol='"+symbol+"'");

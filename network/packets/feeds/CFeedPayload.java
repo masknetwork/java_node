@@ -48,7 +48,7 @@ public class CFeedPayload extends CPayload
         try
         {
            // Check if feed exist
-           Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+           Statement s=UTILS.DB.getStatement();
            ResultSet rs=s.executeQuery("SELECT * "
                                        + "FROM feeds "
                                       + "WHERE symbol='"+this.feed_symbol+"' "

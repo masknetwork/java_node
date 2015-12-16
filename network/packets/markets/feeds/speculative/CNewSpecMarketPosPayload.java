@@ -78,7 +78,7 @@ public class CNewSpecMarketPosPayload extends CPayload
           this.leverage=leverage;
        
           // Statement
-          Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+          Statement s=UTILS.DB.getStatement();
            
           // Load Market
           ResultSet rs=s.executeQuery("SELECT * "
@@ -155,7 +155,7 @@ public class CNewSpecMarketPosPayload extends CPayload
               return new CResult(false, "Invalid market symbol", "CFeedMarketgMarketPayload.java", 74); 
         
            // Statement
-           Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+           Statement s=UTILS.DB.getStatement();
            
            // Market
            ResultSet rs=s.executeQuery("SELECT * FROM feed_markets WHERE symbol='"+this.mkt_symbol+"'");
@@ -273,7 +273,7 @@ public class CNewSpecMarketPosPayload extends CPayload
          try
         {
            // Statement
-           Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+           Statement s=UTILS.DB.getStatement();
            
            // Market
            ResultSet rs=s.executeQuery("SELECT * FROM feed_markets WHERE symbol='"+this.mkt_symbol+"'");

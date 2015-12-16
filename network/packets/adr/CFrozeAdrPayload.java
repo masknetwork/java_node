@@ -18,42 +18,62 @@ public class CFrozeAdrPayload extends CPayload
     {
 	// Block address
 	super(adr);
+	
+        try
+        {
+	   // Days
+	   this.days=days;
 		   
-	// Days
-	this.days=days;
+	   // Hash
+	   hash=UTILS.BASIC.hash(this.getHash()+
+			         String.valueOf(days));
 		   
-	// Hash
-	hash=UTILS.BASIC.hash(this.getHash()+
-			      String.valueOf(days));
-		   
-	// Sign
-	this.sign();   
+	   // Sign
+	   this.sign();
+        }
+        catch (Exception ex) 
+        { 
+	    UTILS.LOG.log("Exception", ex.getMessage(), "CFrozeAdrPayload.java", 36); 
+        }
     }
 	   
     public CResult check(CBlockPayload block) 
     {
-	  		  // Super class
-	          CResult res=super.check(block);
-	          if (res.passed==false) return res;
-	  	
-	          // Hash
-	          String h=UTILS.BASIC.hash(this.getHash()+
+	try
+        {
+            // Super class
+	    CResult res=super.check(block);
+	    if (res.passed==false) return res;
+	    
+             // Sealed address ?
+             if (UTILS.BASIC.hasAttr(this.target_adr, "ID_SEALED"))
+              return new CResult(false, "Target address is sealed.", "CAddSignPayload", 104);
+           
+	    // Hash
+	    String h=UTILS.BASIC.hash(this.getHash()+
 	  		                    String.valueOf(this.days));
+	    
+            // Hash
+            if (!h.equals(this.hash))
+	       return new CResult(false, "Invalid hash", "CFrozeAdrPayload.java", 54);
 	          
-                  if (!h.equals(this.hash))
-	          	return new CResult(false, "Invalid hash", "CBlockAdrPayload.java", 49);
+	    // Check expire block
+	    if (this.days<1)
+	       return new CResult(false, "Invalid expire block", "CFrozeAdrPayload.java", 58);
 	          
-	          // Check expire block
-	          if (this.days<1)
-	          	return new CResult(false, "Invalid expire block", "CBlockAdrPayload.java", 49);
+	    // Signature
+	    if (this.checkSig()==false)
+	        return new CResult(false, "Invalid hash", "CFrozeAdrPayload.java", 62);
 	          
-	          // Signature
-	          if (this.checkSig()==false)
-	        	  return new CResult(false, "Invalid hash", "CBlockAdrPayload.java", 49);
-	          
-	          // Return
-	  	      return new CResult(true, "Ok", "CBlockAdrPayload", 67);
-	  	}
+	}
+        catch (Exception ex) 
+        { 
+	    UTILS.LOG.log("Exception", ex.getMessage(), "CFrozeAdrPayload.java", 67); 
+        }
+        
+        // Return
+	return new CResult(true, "Ok", "CFrozeAdrPayload", 71);
+    }
 	  	
 	  	public CResult commit(CBlockPayload block)
 	  	{		
@@ -69,10 +89,10 @@ public class CFrozeAdrPayload extends CPayload
 	  	   			         "",
                                                  "",
                                                  "",
-                                                 block.tstamp+(this.days*86400), 
+                                                 this.days, 
                                                  block.block);
 	  	       
 	  	   	// Return 
-	  	   	return new CResult(true, "Ok", "CBlockAdrPayload.java", 149);
+	  	   	return new CResult(true, "Ok", "CFrozeAdrPayload.java", 92);
 	  	}
 	 }

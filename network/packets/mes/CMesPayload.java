@@ -29,8 +29,10 @@ public class CMesPayload extends CPayload
 			           String subj, 
 			           String mes) 
 	{
-		 super(sender_adr);
-			
+            super(sender_adr);
+	         
+            try
+            {
 		 // Receiver
 		 this.receiver_adr=receiver_adr;
 		
@@ -59,8 +61,13 @@ public class CMesPayload extends CPayload
 		 
 		 // Sign
 		 this.sign();
-         
-	}
+            }
+            catch (Exception ex) 
+            { 
+	         UTILS.LOG.log("Exception", ex.getMessage(), "CMesPacket.java", 67); 
+            }
+        }
+	
 	
 	public CResult check(CBlockPayload block)
 	{
@@ -118,7 +125,7 @@ public class CMesPayload extends CPayload
                                                            + "'0')");
     	      
                  // Statement
-                 Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                 Statement s=UTILS.DB.getStatement();
     	          
                  // Finds the user
                  ResultSet rs=s.executeQuery("SELECT * "
@@ -137,20 +144,26 @@ public class CMesPayload extends CPayload
 	   }
     	   catch (SQLException ex)
     	   {
-    	       UTILS.LOG.log("SQLException", ex.getMessage(), "CMesPayload.java", 158);
+    	       UTILS.LOG.log("SQLException", ex.getMessage(), "CNewMesPayload.java", 147);
+               return new CResult(false, "SQLException", "CNewMesPayload", 148);
+    	   }
+           catch (Exception ex)
+    	   {
+    	       UTILS.LOG.log("SQLException", ex.getMessage(), "CNewMesPayload.java", 152);
+               return new CResult(false, "SQLException", "CNewMesPayload", 153);
     	   }
             
-	 	// Return
-	 	return new CResult(true, "Ok", "CNewAssetPayload", 67);
-	   }
-	   
-	   public CResult commit(CBlockPayload block)
-	   {
-	       // Superclass
-	       super.commit(block);
-	         
-	       // Return 
-	       return new CResult(true, "Ok", "CMesPayload.java", 149);
-	    }
+	   // Return
+	   return new CResult(true, "Ok", "CNewAssetPayload", 67);
 	}
+	   
+	public CResult commit(CBlockPayload block)
+	{
+	    // Superclass
+	    super.commit(block);
+	         
+	    // Return 
+	    return new CResult(true, "Ok", "CMesPayload.java", 149);
+	}
+    }
 

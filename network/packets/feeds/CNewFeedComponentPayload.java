@@ -136,7 +136,7 @@ public class CNewFeedComponentPayload extends CPayload
         if (res.passed)
         {
            // Expire
-            String expire=String.valueOf(this.block+(864*this.days));
+            String expire=String.valueOf(this.block+(1440*this.days));
                     
             // Insert feed
             UTILS.DB.executeUpdate("INSERT INTO feeds_components(feed_symbol, "
@@ -169,7 +169,7 @@ public class CNewFeedComponentPayload extends CPayload
         try
         {      
            // Load data
-           Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+           Statement s=UTILS.DB.getStatement();
            
            ResultSet rs=s.executeQuery("SELECT * "
                                        + "FROM feeds "

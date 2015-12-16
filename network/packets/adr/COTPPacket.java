@@ -17,9 +17,10 @@ public class COTPPacket extends CBroadcastPacket
 		// Constructor
 	    super("ID_OTP_PACKET");
 		
-	    
+	    try
+            {
 		// Builds the transaction
-	    COTPPayload otp_payload=new COTPPayload(otp_adr, 
+	        COTPPayload otp_payload=new COTPPayload(otp_adr, 
 	    		                                next_pass, 
 	    		                                def_address, 
 	    		                                days);
@@ -32,32 +33,39 @@ public class COTPPacket extends CBroadcastPacket
 	    
 		// Sign packet
 		this.sign();
+            }
+            catch (Exception ex) 
+            { 
+	       UTILS.LOG.log("Exception", ex.getMessage(), "COTPPacket.java", 36); 
+            }
 	}
 	
 	public CResult check(CBlockPayload block)
 	{
-	    // Super class
-	    CResult res=super.check(block);
-            if (res.passed==false) return res;
+            try
+            {
+	       // Super class
+	       CResult res=super.check(block);
+               if (res.passed==false) return res;
 		   	
-	    // Check type
-	    if (!this.tip.equals("ID_OTP_PACKET")) 
-		return new CResult(false, "Invalid packet type", "COTPPacket", 42);
+	       // Check type
+	       if (!this.tip.equals("ID_OTP_PACKET")) 
+		   return new CResult(false, "Invalid packet type", "COTPPacket", 42);
 		   
-            // Deserialize transaction data
-	    COTPPayload ass_payload=(COTPPayload) UTILS.SERIAL.deserialize(payload);
+               // Deserialize transaction data
+	       COTPPayload ass_payload=(COTPPayload) UTILS.SERIAL.deserialize(payload);
 		   
-	    // Check fee
-	    if (this.fee.amount<ass_payload.days*0.0001) 
-	        return new CResult(false, "Invalid fee", "COTPPacket", 42);
+	       // Check fee
+	       if (this.fee.amount<ass_payload.days*0.0001) 
+	           return new CResult(false, "Invalid fee", "COTPPacket", 42);
 		   
-	    // Check
-	    COTPPayload pay=(COTPPayload) UTILS.SERIAL.deserialize(payload);
-	    res=pay.check(block);
-	    if (!res.passed) return res;
+	       // Check
+	       COTPPayload pay=(COTPPayload) UTILS.SERIAL.deserialize(payload);
+	       res=pay.check(block);
+	       if (!res.passed) return res;
                
-            // Footprint
-            CFootprint foot=new CFootprint("ID_OTP_PACKET", 
+               // Footprint
+               CFootprint foot=new CFootprint("ID_OTP_PACKET", 
                                          this.hash, 
                                          pay.hash, 
                                          this.fee.src, 
@@ -65,30 +73,42 @@ public class COTPPacket extends CBroadcastPacket
                                          this.fee.hash,
                                          this.block);
           
-          foot.add("Address", pay.target_adr);
-          foot.add("Next Password Hash", String.valueOf(pay.next_hash));
-          foot.add("Emergency Address", String.valueOf(pay.def_address));
-          foot.add("Days", String.valueOf(pay.days));
-          foot.write();
-		   	
+               foot.add("Address", pay.target_adr);
+               foot.add("Next Password Hash", String.valueOf(pay.next_hash));
+               foot.add("Emergency Address", String.valueOf(pay.def_address));
+               foot.add("Days", String.valueOf(pay.days));
+               foot.write();
+        }
+        catch (Exception ex) 
+        { 
+	    UTILS.LOG.log("Exception", ex.getMessage(), "COTPPacket.java", 36); 
+        }
+        
           // Return 
           return new CResult(true, "Ok", "COTPPacket", 74);
    }
 		   
    public CResult commit(CBlockPayload block)
    {
-       // Superclass
-       CResult res=super.commit(block); 
-       if (res.passed==false) return res;
+       try
+       {
+          // Superclass
+          CResult res=super.commit(block); 
+          if (res.passed==false) return res;
 		   	  
-       // Deserialize transaction data
-       COTPPayload ass_payload=(COTPPayload) UTILS.SERIAL.deserialize(payload);
+          // Deserialize transaction data
+          COTPPayload ass_payload=(COTPPayload) UTILS.SERIAL.deserialize(payload);
 
-       // Fee is 0.0001 / day ?
-       res=ass_payload.commit(block);
-       if (res.passed==false) return res;
-			  
+          // Fee is 0.0001 / day ?
+          res=ass_payload.commit(block);
+          if (res.passed==false) return res;
+       }
+       catch (Exception ex) 
+       { 
+	    UTILS.LOG.log("Exception", ex.getMessage(), "COTPPacket.java", 36); 
+       }
+       
        // Return 
-       return new CResult(true, "Ok", "CPublicAddressPacket", 9);
+       return new CResult(true, "Ok", "COTPPacket", 9);
    }
 }

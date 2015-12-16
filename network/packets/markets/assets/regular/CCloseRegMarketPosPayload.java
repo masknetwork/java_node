@@ -40,7 +40,7 @@ public class CCloseRegMarketPosPayload  extends CPayload
                return new CResult(false, "Invalid order UID", "CCloseRegMarketPosPayload.java", 74);
            
            // Statement
-           Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+           Statement s=UTILS.DB.getStatement();
            
            // Load position details
            ResultSet rs_pos=s.executeQuery("SELECT * "
@@ -142,22 +142,13 @@ public class CCloseRegMarketPosPayload  extends CPayload
         res=this.check(block);
         if (!res.passed) return res;
         
-        try
-        {
-          // Statement
-          Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-        
-          // Position type
+        // Position type
           UTILS.BASIC.clearTrans(hash, "ID_ALL");
            
           // Remove
           UTILS.DB.executeUpdate("DELETE FROM assets_markets_pos "
                                           + "WHERE uid='"+this.uid+"'");         
-        }
-        catch (SQLException ex) 
-       	{  
-       		UTILS.LOG.log("SQLException", ex.getMessage(), "CCloseRegMarketPosPayload.java", 57);
-        }
+       
         
         // Return
 	return new CResult(true, "Ok", "CCloseRegMarketPosPayload", 67); 
