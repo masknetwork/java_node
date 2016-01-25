@@ -260,8 +260,6 @@ public class CNewAutoMarketPayload extends CPayload
                                                         (this.block+this.days*1440)+"', '"+
                                                         this.block+"')");
         
-        // Rowhash
-        UTILS.ROWHASH.updateLastID("assets_markets");
         
         // Return
 	return new CResult(true, "Ok", "CNewAutoMarketPayload", 67); 

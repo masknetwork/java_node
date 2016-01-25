@@ -469,14 +469,20 @@ public class CPeers
 	   catch (SocketTimeoutException ex) 
 	   { 
 	       UTILS.LOG.log("SocketTimeoutException", ex.getMessage(), "CPeers.java", 88);
+               UTILS.LOG.log("Exiting application", "EXIT", "CPeers.java", 471);
+               System.exit(0); 
 	   }
 	   catch (SocketException ex) 
 	   { 
 	       UTILS.LOG.log("SocketException", ex.getMessage(), "CPeers.java", 88);
+               UTILS.LOG.log("Exiting application", "EXIT", "CPeers.java", 478);
+               System.exit(0); 
 	   }
 	   catch (IOException ex) 
 	   { 
 	       UTILS.LOG.log("IOException", ex.getMessage(), "CPeers.java", 88);
+               UTILS.LOG.log("Exiting application", "EXIT", "CPeers.java", 485);
+               System.exit(0); 
 	   }
    }
    

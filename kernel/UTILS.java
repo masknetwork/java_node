@@ -26,10 +26,7 @@ public class UTILS
     // Wallet
     public static CWallet WALLET;
     
-    // Row hash
-    public static CRowHash ROWHASH;
-    
-    // AES
+   // AES
     public static CAES AES;
     
     // ECC
@@ -49,6 +46,15 @@ public class UTILS
     
     // Emailer
     public static CEmail EMAIL;
+    
+    // Net stat
+    public static CNetStat NET_STAT;
+    
+    // Log queries
+    public static boolean LOG_QUERIES=false;
+    
+    // Binary options engine
+    public static COptions BIN_OPTIONS;
     
     // Formatter
     public static DecimalFormat FORMAT = new DecimalFormat("#.####");

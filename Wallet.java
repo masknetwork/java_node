@@ -17,6 +17,9 @@ import wallet.network.packets.domains.CUpdatePriceDomainPacket;
 import wallet.network.packets.trans.CTransPacket;
 import wallet.network.packets.feeds.*;
 import wallet.network.packets.markets.assets.automated.*;
+import wallet.network.packets.tweets.CLikePacket;
+import wallet.network.packets.tweets.CNewTweetPacket;
+
 
 public class Wallet 
 {
@@ -47,6 +50,8 @@ public class Wallet
         CUtils utils=new CUtils();
         UTILS.BASIC=utils;
         
+       
+        
         // Bootstrap sequence
         CBootstrap boot=new CBootstrap();
         
@@ -69,16 +74,25 @@ public class Wallet
         // Serializer
         UTILS.SERIAL=new CSerializer();
         
-        // Hasher
-        UTILS.ROWHASH=new CRowHash();
+         // Net stat
+        UTILS.NET_STAT=new CNetStat();
+        UTILS.NET_STAT.refreshTables(0);
         
         // Current block
         CCurBlock block=new CCurBlock();
         UTILS.CBLOCK=block;
-        UTILS.CBLOCK.miner.start();
+        
+        UTILS.CBLOCK.miner_1.start();
+        
         
         // Web operations
         CWebOps ops=new CWebOps();
+        
+        CFeedsSources src=new CFeedsSources();
+        
+        // Binary Options Engine
+        UTILS.BIN_OPTIONS=new COptions();
+        
         
       }
       catch (Exception e) 

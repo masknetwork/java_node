@@ -68,8 +68,7 @@ public class CRentDomainPacket extends CBroadcastPacket
           foot.add("Name", dec_payload.domain);
           foot.add("Days", String.valueOf(dec_payload.days));
           foot.write();
-           
-		  
+          
 	   // Return 
 	   return new CResult(true, "Ok", "CRentDomainPacket", 74);
 	}

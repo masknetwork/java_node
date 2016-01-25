@@ -17,8 +17,11 @@ public class CProfilePayload extends CPayload
    // Name
    String name;
    
-   // Avatar
-   String avatar;
+   // Pic back
+   String pic_back;
+   
+   // Pic
+   String pic;
    
    // Description
    String description;
@@ -26,14 +29,8 @@ public class CProfilePayload extends CPayload
    // Website
    String website;
    
-   // Facebook
-   String facebook;
-    
    // Email
    String email;
-   
-   // Telephone
-   String tel;
    
    // Days
    long days;
@@ -42,10 +39,9 @@ public class CProfilePayload extends CPayload
                           String name, 
 		          String description,
                           String email, 
-                          String tel,
                           String website, 
-                          String facebook, 
-                          String avatar, 
+                          String pic_back, 
+                          String pic, 
 		          long days)
    {
 	   // Superclass
@@ -57,8 +53,11 @@ public class CProfilePayload extends CPayload
 	   // Name
 	   this.name=name;
 	   
-	   // Avatar
-	   this.avatar=avatar;
+	   // Pic back
+	   this.pic_back=pic_back;
+           
+           // Pic 
+	   this.pic=pic;
 	   
 	   // Description
 	   this.description=description;
@@ -66,27 +65,20 @@ public class CProfilePayload extends CPayload
 	   // Website
 	   this.website=website;
 	   
-	   // Facebook
-	   this.facebook=facebook;
-	   
 	   // Email
 	   this.email=email;
 	   
-	   // Telephone
-	   this.tel=tel;
-	    
 	   // Days
 	   this.days=days;
 	   
 	   // Hash
  	   hash=UTILS.BASIC.hash(this.getHash()+
  			         name+
- 			         avatar+
+ 			         pic_back+
+                                 pic+
  			         description+
  			         website+
- 			         facebook+
  			         email+
- 			         tel+
  			         String.valueOf(days));
            
            // Sign
@@ -116,24 +108,20 @@ public class CProfilePayload extends CPayload
           if (!UTILS.BASIC.emailValid(this.email))
               return new CResult(false, "Invalid email", "CProfilePayload", 48);
           
-          // Tel
-          if (!this.tel.equals(""))
-             if (this.tel.length()<5 || this.tel.length()>25)    
-                return new CResult(false, "Invalid telephone", "CProfilePayload", 48);
-          
           // Website
           if (!this.website.equals(""))
              if (!UTILS.BASIC.isLink(this.website))
                return new CResult(false, "Invalid website", "CProfilePayload", 48);
           
-          // Facebook
-          if (!this.website.equals(""))
-             if (!UTILS.BASIC.isLink(this.website))
-               return new CResult(false, "Invalid website", "CProfilePayload", 48);
+         
+          // Pic back
+          if (!this.pic_back.equals(""))
+             if (!UTILS.BASIC.isLink(this.pic_back))
+               return new CResult(false, "Invalid avatar", "CProfilePayload", 48);
           
-          // Avatar
-          if (!this.avatar.equals(""))
-             if (!UTILS.BASIC.isLink(this.avatar) || this.avatar.indexOf(".jpg")==-1)
+          // Pic 
+          if (!this.pic.equals(""))
+             if (!UTILS.BASIC.isLink(this.pic))
                return new CResult(false, "Invalid avatar", "CProfilePayload", 48);
    	 
 	   // Check days
@@ -143,12 +131,11 @@ public class CProfilePayload extends CPayload
  	    // Check hash
  	    String h=UTILS.BASIC.hash(this.getHash()+
  			              name+
- 			              avatar+
+ 			              pic_back+
+                                      pic+
  			              description+
  			              website+
- 			              facebook+
  			              email+
- 			              tel+
  			              String.valueOf(days));
  	    
             if (!this.hash.equals(h)) 
@@ -190,12 +177,11 @@ public class CProfilePayload extends CPayload
    		    // Update
    		    UTILS.DB.executeUpdate("UPDATE profiles "
    		    		            + "SET name='"+UTILS.BASIC.base64_encode(this.name)+"', "
-   		    		            + "avatar='"+UTILS.BASIC.base64_encode(this.avatar)+"', "
+   		    		            + "pic='"+UTILS.BASIC.base64_encode(this.pic)+"', "
+                                            + "pic_back='"+UTILS.BASIC.base64_encode(this.pic_back)+"', "
    		    		            + "description='"+UTILS.BASIC.base64_encode(this.description)+"', "
    		    		            + "website='"+UTILS.BASIC.base64_encode(this.website)+"', "
-   		    		            + "facebook='"+UTILS.BASIC.base64_encode(this.facebook)+"', "
    		    		            + "email='"+UTILS.BASIC.base64_encode(this.email)+"', "
-   		    		            + "tel='"+UTILS.BASIC.base64_encode(this.tel)+"',"
    		    		            + "block='"+this.block+"',"
    		    		            + "expire='"+String.valueOf(expire)+"' "
    		    		   + "WHERE adr='"+this.target_adr+"'");
@@ -207,31 +193,29 @@ public class CProfilePayload extends CPayload
    	    	
    	    	  UTILS.DB.executeUpdate("INSERT INTO profiles(adr, "
    	    	  		                      + "name, "
-   	    	  		                      + "avatar, "
+   	    	  		                      + "pic, "
+                                                      + "pic_back, "
    	    	  		                      + "description, "
    	    	  		                      + "website, "
-   	    	  		                      + "facebook, "
    	    	  		                      + "email, "
-   	    	  		                      + "tel, "
    	    	  		                      + "block, "
    	    	  		                      + "expire) "
    	    	  		          + "VALUES('"+this.target_adr+"', '"+
    	    	  		                       UTILS.BASIC.base64_encode(this.name)+"', '"+
-   	    	  		                       UTILS.BASIC.base64_encode(this.avatar)+"', '"+
+   	    	  		                       UTILS.BASIC.base64_encode(this.pic_back)+"', '"+
+                                                       UTILS.BASIC.base64_encode(this.pic)+"', '"+
    	    	  		                       UTILS.BASIC.base64_encode(this.description)+"', '"+
    	    	  		                       UTILS.BASIC.base64_encode(this.website)+"', '"+
-   	    	  		                       UTILS.BASIC.base64_encode(this.facebook)+"', '"+
    	    	  		                       UTILS.BASIC.base64_encode(this.email)+"', '"+
-   	    	  		                       UTILS.BASIC.base64_encode(this.tel)+"', '"+
    	    	  		                       this.block+"', '"+
    	    	  		                       String.valueOf(expire)+"')");
-                  
-                  // Image
-                  if (!this.avatar.equals(""))
-                      UTILS.DB.executeUpdate("INSERT INTO imgs_stack(url) VALUES('"+this.avatar+"')");
+                
    	      }
        }
-       catch (SQLException ex) { UTILS.LOG.log("SQLException", ex.getMessage(), "CProfilePayload.java", 249);}
+       catch (SQLException ex) 
+       { 
+           UTILS.LOG.log("SQLException", ex.getMessage(), "CProfilePayload.java", 249);
+       }
    		   
    	   // Return 
    	   return new CResult(true, "Ok", "CAddEscrowPayload", 82);

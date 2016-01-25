@@ -5,6 +5,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 
 
@@ -21,11 +23,16 @@ public class CSerializer {
 		try
 		{
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-		    ObjectOutputStream os = new ObjectOutputStream(out);
-		    os.writeObject(obj);
-		    return out.toByteArray();
+                        GZIPOutputStream gzipOut = new GZIPOutputStream(out);
+		        ObjectOutputStream os = new ObjectOutputStream(gzipOut);
+		        os.writeObject(obj);
+                        gzipOut.close();
+		        return out.toByteArray();
 		}
-		catch (IOException ex) { UTILS.LOG.log("IOException", ex.getMessage(), "CSerializer.java", 27); }
+		catch (IOException ex) 
+                { 
+                    UTILS.LOG.log("IOException", ex.getMessage(), "CSerializer.java", 27); 
+                }
 		
 		return new byte[100];
 	}
@@ -34,12 +41,19 @@ public class CSerializer {
     {
 		try
 		{
-	      ByteArrayInputStream in = new ByteArrayInputStream(data);
-	      ObjectInputStream is = new ObjectInputStream(in);
-	      return is.readObject();
+	           ByteArrayInputStream in = new ByteArrayInputStream(data);
+                   GZIPInputStream gzipIn = new GZIPInputStream(in);
+	           ObjectInputStream is = new ObjectInputStream(gzipIn);
+                   return is.readObject();
 		}
-		catch (IOException ex) { UTILS.LOG.log("IOException", ex.getMessage(), "CSerializer.java", 40); }
-		catch (ClassNotFoundException ex) { UTILS.LOG.log("ClassNotFoundException", ex.getMessage(), "CSerializer.java", 41); }
+		catch (IOException ex) 
+                { 
+                      UTILS.LOG.log("IOException", ex.getMessage(), "CSerializer.java", 40); 
+                }
+		catch (ClassNotFoundException ex) 
+                { 
+                    UTILS.LOG.log("ClassNotFoundException", ex.getMessage(), "CSerializer.java", 41); 
+                }
 		
 		return new Object();
 	}

@@ -129,8 +129,7 @@ public class CIncreaseMktBidPayload  extends CPayload
                                        +" SET mkt_bid='"+UTILS.FORMAT.format(this.mkt_bid)+"'"
                                      + " WHERE rowhash='"+this.rowhash+"'");
                
-               // Rowhash
-               UTILS.ROWHASH.update(this.table, "rowhash", this.rowhash);
+               
             }
             
 	    // Return 

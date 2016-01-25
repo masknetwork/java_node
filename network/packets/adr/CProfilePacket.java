@@ -13,10 +13,9 @@ public class CProfilePacket extends CBroadcastPacket
 		         String name, 
 		         String description,
                          String email, 
-                         String tel,
                          String website, 
-                         String facebook, 
-                         String avatar, 
+                         String pic_back, 
+                         String pic, 
 		         long days)
    {
 	   // Super class
@@ -27,10 +26,9 @@ public class CProfilePacket extends CBroadcastPacket
 		                                           name, 
 		                                           description,
                                                            email, 
-                                                           tel,
                                                            website, 
-                                                           facebook, 
-                                                           avatar, 
+                                                           pic_back,
+                                                           pic,
 		                                           days);
 			
 	   // Build the payload
@@ -79,12 +77,11 @@ public class CProfilePacket extends CBroadcastPacket
         
         // Footprint data
         foot.add("Name", payload.name);
-        foot.add("Avatar", payload.avatar);
+        foot.add("Back pic", payload.pic_back);
+        foot.add("Pic", payload.pic);
         foot.add("Description", payload.description);
         foot.add("Website", payload.website);
-        foot.add("Facebook", payload.facebook);
         foot.add("Email", payload.email);
-        foot.add("Telephone", payload.tel);
         foot.add("Days", String.valueOf(payload.days));
         foot.write();
 		  

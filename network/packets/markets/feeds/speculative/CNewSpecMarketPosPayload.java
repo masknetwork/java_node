@@ -314,8 +314,7 @@ public class CNewSpecMarketPosPayload extends CPayload
                                                                 +"ID_MARKET', '"
                                                                 +this.block+"')");
         
-            // Rowhash
-            UTILS.ROWHASH.updateLastID("feeds_spec_mkts_pos");
+            
         }
         catch (SQLException ex) 
        	{  

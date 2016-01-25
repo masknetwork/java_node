@@ -22,16 +22,19 @@ public class CIssueAssetPayload extends CPayload
         // Description
         String description;
         
+        // How to buy
+        String how_buy;
+        
+        // How to sell
+        String how_sell;
+        
         // Web page
         String web_page;
         
         // Pic
         String pic;
         
-        // Market bid
-        double mkt_bid;
-        
-        // Market days
+         // Market days
         double mkt_days;
         
         // Qty
@@ -45,19 +48,28 @@ public class CIssueAssetPayload extends CPayload
         
         // Can issue more assets
         String can_increase;
+        
+        // Interest
+        double interest;
+        
+        // Interval
+        long interval;
 	
         public CIssueAssetPayload(String adr,
                                   String symbol,
                                   String title,
                                   String description,
+                                  String how_buy,
+                                  String how_sell,
                                   String web_page,
                                   String pic,
-                                  double mkt_bid,
                                   long mkt_days,
                                   long qty,
                                   String trans_fee_adr,
                                   double trans_fee,
-                                  String can_increase)
+                                  String can_increase,
+                                  double interest,
+                                  long interval)
         {
 	    super(adr);
 	   
@@ -72,15 +84,18 @@ public class CIssueAssetPayload extends CPayload
         
             // Description
             this.description=description;
+            
+            // How to buy
+            this.how_buy=how_buy;
+            
+            // How to sell
+            this.how_sell=how_sell;
         
             // Web page
             this.web_page=web_page;
         
             // Pic
             this.pic=pic;
-        
-            // Market bid
-            this.mkt_bid=mkt_bid;
         
             // Market days
             this.mkt_days=mkt_days;
@@ -96,6 +111,12 @@ public class CIssueAssetPayload extends CPayload
             
             // Can increase
             this.can_increase=can_increase;
+            
+            // Interest
+            this.interest=interest;
+            
+            // Interval
+            this.interval=interval;
 	   
 	   // Hash
  	   hash=UTILS.BASIC.hash(this.getHash()+
@@ -103,14 +124,17 @@ public class CIssueAssetPayload extends CPayload
                                  this.symbol+
                                  this.title+
                                  this.description+
+                                 this.how_buy+
+                                 this.how_sell+
                                  this.web_page+
                                  this.pic+
-                                 UTILS.FORMAT.format(this.mkt_bid)+
                                  String.valueOf(this.mkt_days)+
                                  String.valueOf(this.qty)+
                                  this.trans_fee_adr+
                                  UTILS.FORMAT.format(this.trans_fee)+
-                                 this.can_increase);
+                                 this.can_increase+
+                                 this.interest+
+                                 this.interval);
         
         // Sign
         this.sign();
@@ -152,9 +176,14 @@ public class CIssueAssetPayload extends CPayload
           if (!UTILS.BASIC.isLink(this.pic))
              return new CResult(false, "Invalid pic", "CIssueAssetPayload.java", 79);
         
-        // Market bid
-        if (this.mkt_bid<0.0001)
-           return new CResult(false, "Invalid market bid", "CIssueAssetPayload.java", 79);
+        // Interest
+        if (this.interest<-10000 || this.interest>10000)
+          return new CResult(false, "Invalid interest", "CIssueAssetPayload.java", 79);
+        
+        // Interval
+        if (this.interest!=0)
+          if (this.interval<60 || this.interest>518400)
+             return new CResult(false, "Invalid interest interval", "CIssueAssetPayload.java", 79);
         
         // Market days
         if (mkt_days<1)
@@ -196,18 +225,21 @@ public class CIssueAssetPayload extends CPayload
         
         // Calculates hash
         String h=UTILS.BASIC.hash(this.getHash()+
-                                  this.adr+
-                                  this.symbol+
-                                  this.title+
-                                  this.description+
-                                  this.web_page+
-                                  this.pic+
-                                  UTILS.FORMAT.format(this.mkt_bid)+
-                                  String.valueOf(this.mkt_days)+
-                                  String.valueOf(this.qty)+
-                                  this.trans_fee_adr+
-                                  UTILS.FORMAT.format(this.trans_fee)+
-                                  this.can_increase);
+                                 this.adr+
+                                 this.symbol+
+                                 this.title+
+                                 this.description+
+                                 this.how_buy+
+                                 this.how_sell+
+                                 this.web_page+
+                                 this.pic+
+                                 String.valueOf(this.mkt_days)+
+                                 String.valueOf(this.qty)+
+                                 this.trans_fee_adr+
+                                 UTILS.FORMAT.format(this.trans_fee)+
+                                 this.can_increase+
+                                 this.interest+
+                                 this.interval);
         
         // Check hash
         if (!this.hash.equals(h))
@@ -231,31 +263,34 @@ public class CIssueAssetPayload extends CPayload
                                                    + "symbol, "
                                                    + "title, "
                                                    + "description, "
+                                                   + "how_buy, "
+                                                   + "how_sell, "
                                                    + "web_page, "
                                                    + "pic, "
-                                                   + "mkt_bid, "
-                                                   + "mkt_days, "
+                                                   + "expire, "
                                                    + "qty, "
                                                    + "trans_fee_adr, "
                                                    + "trans_fee, "
                                                    + "can_increase, "
+                                                   + "interest, "
+                                                   + "interest_interval, "
                                                    + "block) "
                                           + "VALUES('"+this.adr+"', '"+
                                                        this.symbol+"', '"+
                                                        UTILS.BASIC.base64_encode(this.title)+"', '"+
                                                        UTILS.BASIC.base64_encode(this.description)+"', '"+
+                                                       UTILS.BASIC.base64_encode(this.how_buy)+"', '"+
+                                                       UTILS.BASIC.base64_encode(this.how_sell)+"', '"+
                                                        UTILS.BASIC.base64_encode(this.web_page)+"', '"+
                                                        UTILS.BASIC.base64_encode(this.pic)+"', '"+
-                                                       UTILS.FORMAT.format(this.mkt_bid)+"', '"+
-                                                       String.valueOf(this.mkt_days)+"', '"+
+                                                       (UTILS.BASIC.block()+this.mkt_days*1440)+"', '"+
                                                        String.valueOf(this.qty)+"', '"+
                                                        this.trans_fee_adr+"', '"+
                                                        UTILS.FORMAT.format(this.trans_fee)+"', '"+
                                                        this.can_increase+"', '"+
+                                                       this.interest+"', '"+
+                                                       this.interval+"', '"+
                                                        String.valueOf(UTILS.BASIC.block())+"')");
-           
-           // Hash
-           UTILS.ROWHASH.updateLastID("assets");
            
            // Update 
            UTILS.DB.executeUpdate("INSERT INTO assets_owners(owner, "
@@ -267,8 +302,6 @@ public class CIssueAssetPayload extends CPayload
                                                               String.valueOf(this.qty)+"', '"+
                                                               String.valueOf(this.block)+"')");
            
-           // Hash
-           UTILS.ROWHASH.updateLastID("assets_owners");
            
             // Superclass
            super.commit(block);

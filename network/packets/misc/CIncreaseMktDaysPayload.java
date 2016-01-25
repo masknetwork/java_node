@@ -120,8 +120,7 @@ public class CIncreaseMktDaysPayload extends CPayload
                                        +" SET expires=expires+"+(this.days*1440)
                                      + "WHERE rowhash='"+this.rowhash+"'");
                
-               // Rowhash
-               UTILS.ROWHASH.update(table, rowhash, this.rowhash);
+              
             }
             
 	    // Return 

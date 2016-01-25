@@ -165,9 +165,7 @@ public class CBuyDomainPayload extends CPayload
                                          + "block='"+this.block+"' "
 	     		           + "WHERE domain='"+this.domain+"'");
              
-             // Update
-             UTILS.ROWHASH.update("domains", "domain", this.domain);
-	    
+             
 	     // Return 
 	     return new CResult(true, "Ok", "CBuyDomainPayload.java", 149);
 	}

@@ -37,6 +37,9 @@ public class CBootstrap
                                                      + "total_received FLOAT(25, 8) DEFAULT 0, "
                                                      + "total_spent FLOAT(25, 8) DEFAULT 0, "
                                                      + "trans_no VARCHAR(100) DEFAULT 0, "
+                                                     + "tweets VARCHAR(100) DEFAULT 0, "
+                                                     + "following VARCHAR(100) DEFAULT 0, "
+                                                     + "followers VARCHAR(100) DEFAULT 0, "
 				                     + "last_interest BIGINT DEFAULT 0)");
 		   
             UTILS.DB.executeUpdate("CREATE INDEX adr ON adr(adr)");
@@ -115,7 +118,9 @@ public class CBootstrap
                                                      + "packets BIGINT DEFAULT 0, "
                                                      + "tstamp BIGINT DEFAULT 0, "
                                                      + "nonce BIGINT DEFAULT 0, "
-                                                     + "dificulty VARCHAR(250) DEFAULT '')");
+                                                     + "size BIGINT DEFAULT 0, "
+                                                     + "payload_hash VARCHAR(250) DEFAULT '', "
+                                                     + "signer_balance DOUBLE(20, 8) DEFAULT 0)");
 				    
 	    UTILS.DB.executeUpdate("CREATE INDEX blocks_hash ON blocks(block)");
 	    UTILS.DB.executeUpdate("CREATE INDEX blocks_block ON blocks(signer)");
@@ -329,7 +334,7 @@ public class CBootstrap
                                                       + "last_tstamp) "
                                             + "VALUES('0', "
                                                     + "'c1d709b7eac7d14f040b95aea35895ce7c2f0cd059d7a157674dbffd598d7872', "
-                                                    + "net_dif='12796879944219474945405226983986958825515335341711337340794840515119360', "
+                                                    + "net_dif='10000000000000', "
                                                     + "last_tstamp='1447522627')");
 	}
         
@@ -624,18 +629,114 @@ public class CBootstrap
              UTILS.DB.executeUpdate("INSERT INTO web_sys_data(status, msk_price) VALUES('ID_OFFLINE', '1')");
          }
          
+         // ------------------------------------- Tweets ------------------------------------------------
+         if (tab.equals("tweets"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE tweets(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                        +"tweetID BIGINT DEFAULT '0', "
+                                                        +"adr VARCHAR(250) DEFAULT '', "
+                                                        +"target_adr VARCHAR(250) DEFAULT '', "
+                                                        +"mes VARCHAR(1000) DEFAULT '', "
+                                                        +"pic_1 VARCHAR(250) DEFAULT '', "
+                                                        +"pic_2 VARCHAR(250) DEFAULT '', "
+                                                        +"pic_3 VARCHAR(250) DEFAULT '', "
+                                                        +"pic_4 VARCHAR(250) DEFAULT '', "
+                                                        +"pic_5 VARCHAR(250) DEFAULT '', "
+                                                        +"video VARCHAR(250) DEFAULT '', "
+                                                        +"rowhash VARCHAR(100) DEFAULT '', "
+                                                        +"block BIGINT DEFAULT '0', "
+                                                        +"status VARCHAR(50) DEFAULT 'ID_APROVE', "
+                                                        +"retweet VARCHAR(2) DEFAULT 'N', "
+                                                        +"retweet_tweet_ID BIGINT DEFAULT '0', "
+                                                        +"received BIGINT DEFAULT '0', "
+                                                        +"likes BIGINT DEFAULT '0', "
+                                                        +"comments BIGINT DEFAULT '0', "
+                                                        +"retweets BIGINT DEFAULT '0')");
+             
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_tweetID ON tweets(tweetID)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_adr ON tweets(adr)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_target_adr ON tweets(target_adr)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_status ON tweets(status)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_retweet_tweet_ID ON tweets(retweet_tweet_ID)");
+         }
+         
+         // ------------------------------------- Tweets Comments ------------------------------------------------
+         if (tab.equals("tweets_comments"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE tweets_comments(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                +"tweetID BIGINT DEFAULT '0', "
+                                                                +"mes VARCHAR(1000) DEFAULT '', "
+                                                                +"rowhash VARCHAR(100) DEFAULT '', "
+                                                                +"block BIGINT DEFAULT '0', "
+                                                                +"status VARCHAR(25) DEFAULT '', "
+                                                                +"rowID BIGINT DEFAULT '', "
+                                                                +"comID BIGINT DEFAULT '', "
+                                                                +"adr VARCHAR(250) DEFAULT '')");
+             
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_comments_tweetID ON tweets_comments(tweetID)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_comments_rowhash ON tweets_comments(rowhash)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_comments_block ON tweets_comments(block)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_comments_status ON tweets_comments(status)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_comments_rowID ON tweets_comments(rowID)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_comments_comID ON tweets_comments(comID)");
+         }
+         
+         // ------------------------------------- Tweets Follow ------------------------------------------------
+         if (tab.equals("tweets_follow"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE tweets_follow(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                +"adr VARCHAR(250) DEFAULT '', "
+                                                                +"follows VARCHAR(250) DEFAULT '', "
+                                                                +"block BIGINT DEFAULT '0', "
+                                                                +"rowhash VARCHAR(100) DEFAULT '')");
+             
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_follow_adr ON tweets_follow(adr)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_follow_follows ON tweets_follow(follows)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_follow_block ON tweets_follow(block)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_follow_rowhash ON tweets_follow(rowhash)");
+         }
+         
+         // ------------------------------------- Tweets Likes ------------------------------------------------
+         if (tab.equals("tweets_likes"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE tweets_likes(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                +"tweetID BIGINT DEFAULT '0', "
+                                                                +"adr VARCHAR(250) DEFAULT '', "
+                                                                +"block BIGINT DEFAULT '0', "
+                                                                +"rowhash VARCHAR(100) DEFAULT '')");
+             
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_likes_tweetID ON tweets_likes(tweetID)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_likes_adr ON tweets_likes(adr)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_likes_block ON tweets_likes(block)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_likes_rowhash ON tweets_likes(rowhash)");
+         }
+         
+         // ------------------------------------- Tweets trends ------------------------------------------------
+         if (tab.equals("tweets_trends"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE tweets_trends(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                +"term BIGINT DEFAULT '0', "
+                                                                +"type VARCHAR(250) DEFAULT '', "
+                                                                +"tweets BIGINT DEFAULT '0', "
+                                                                +"retweets BIGINT DEFAULT '0', "
+                                                                +"likes BIGINT DEFAULT '0', "
+                                                                +"comments BIGINT DEFAULT '0')");
+             
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_trends_term ON tweets_trends(term)");
+              UTILS.DB.executeUpdate("CREATE INDEX tweets_trends_type ON tweets_trends(type)");
+         }
+         
          // ------------------------------------- Profiles ------------------------------------------------
          if (tab.equals("profiles"))
          {
              UTILS.DB.executeUpdate("CREATE TABLE profiles(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
                                                          +"adr VARCHAR(250) DEFAULT '', "
                                                          +"name VARCHAR(50) DEFAULT '', "
-                                                         +"avatar VARCHAR(250) DEFAULT '', "
+                                                         +"pic_back VARCHAR(250) DEFAULT '', "
+                                                         +"pic VARCHAR(250) DEFAULT '', "
                                                          +"description VARCHAR(500) DEFAULT '', "
                                                          +"website VARCHAR(250) DEFAULT '', "
-                                                         +"facebook VARCHAR(250) DEFAULT '', "
                                                          +"email VARCHAR(200) DEFAULT '', "
-                                                         +"tel VARCHAR(50) DEFAULT '', "
                                                          +"expire BIGINT DEFAULT '0', "
                                                          +"block BIGINT DEFAULT '0')");
              
@@ -671,6 +772,184 @@ public class CBootstrap
                                                         + "'', "
                                                         + "'', '"
                                                         +UTILS.BASIC.tstamp()+"')");
+         }
+         
+         // ------------------------------------- Profiles ------------------------------------------------
+         if (tab.equals("assets"))
+         {
+              UTILS.DB.executeUpdate("CREATE TABLE assets(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                             +"adr VARCHAR(250) DEFAULT '', "
+                                                             +"symbol VARCHAR(10) DEFAULT '', "
+                                                             +"title VARCHAR(250) DEFAULT '', "
+                                                             +"description VARCHAR(1000) DEFAULT '', "
+                                                             +"how_buy VARCHAR(1000) DEFAULT '', "
+                                                             +"how_sell VARCHAR(1000) DEFAULT '', "
+                                                             +"web_page VARCHAR(250) DEFAULT '', "
+                                                             +"pic VARCHAR(250) DEFAULT '', "
+                                                             +"expire BIGINT DEFAULT 0, "
+                                                             +"qty BIGINT DEFAULT 0, "
+                                                             +"trans_fee_adr VARCHAR(250), "
+                                                             +"trans_fee FLOAT(9,2), "
+                                                             +"can_increase VARCHAR(2) DEFAULT 'Y', "
+                                                             +"interest DOUBLE(9,2) DEFAULT 0, "
+                                                             +"interest_interval BIGINT DEFAULT 0, "
+                                                             +"rowhash VARCHAR(100) DEFAULT '', "
+                                                             +"block BIGINT DEFAULT 0)");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX assets_adr ON assets(adr)");
+             UTILS.DB.executeUpdate("CREATE INDEX assets_symbol ON assets(symbol)");
+             UTILS.DB.executeUpdate("CREATE INDEX assets_block ON assets(block)");
+         }
+         
+         // ------------------------------------- Profiles ------------------------------------------------
+         if (tab.equals("assets_owners"))
+         {
+              UTILS.DB.executeUpdate("CREATE TABLE assets_owners(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                               +"owner VARCHAR(250) DEFAULT '', "
+                                                               +"symbol VARCHAR(10) DEFAULT '', "
+                                                               +"qty FLOAT(20,8) DEFAULT 0, "
+                                                               +"last_interest BIGINT DEFAULT 0, "
+                                                               +"rowhash VARCHAR(100) DEFAULT '', "
+                                                               +"block BIGINT DEFAULT 0)");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX assets_owners_owner ON assets_owners(owner)");
+             UTILS.DB.executeUpdate("CREATE INDEX assets_owners_symbol ON assets_owners(symbol)");
+             UTILS.DB.executeUpdate("CREATE INDEX assets_owners_block ON assets_owners(block)");
+         }
+         
+         // ------------------------------------- Feeds ------------------------------------------------
+         if (tab.equals("feeds"))
+         {
+              UTILS.DB.executeUpdate("CREATE TABLE feeds(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                       +"adr VARCHAR(250) DEFAULT '', "
+                                                       +"name VARCHAR(100) DEFAULT '', "
+                                                       +"description VARCHAR(1000) DEFAULT '', "
+                                                       +"datasource VARCHAR(250) DEFAULT '', "
+                                                       +"website VARCHAR(250) DEFAULT '', "
+                                                       +"symbol VARCHAR(10) DEFAULT '', "
+                                                       +"expire BIGINT DEFAULT 0, "
+                                                       +"branches BIGINT DEFAULT 0, "
+                                                       +"rowhash VARCHAR(100) DEFAULT '', "
+                                                       +"block BIGINT DEFAULT 0)");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_adr ON feeds(owner)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_symbol ON feeds(symbol)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_rowhash ON feeds(rowhash)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_block ON feeds(block)");
+         }
+         
+         // ------------------------------------- Feeds Branches ------------------------------------------------
+         if (tab.equals("feeds_branches"))
+         {
+              UTILS.DB.executeUpdate("CREATE TABLE feeds_branches(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                 +"feed_symbol VARCHAR(100) DEFAULT '', "
+                                                                 +"symbol VARCHAR(10) DEFAULT '', "
+                                                                 +"name VARCHAR(250) DEFAULT '', "
+                                                                 +"description VARCHAR(500) DEFAULT '', "
+                                                                 +"rl_symbol VARCHAR(20) DEFAULT '', "
+                                                                 +"fee FLOAT(9, 4) DEFAULT 0.0001, "
+                                                                 +"expire BIGINT DEFAULT 0, "
+                                                                 +"val FLOAT(20,8) DEFAULT 0, "
+                                                                 +"mkt_status VARCHAR(50) DEFAULT '', "
+                                                                 +"rowhash VARCHAR(100) DEFAULT '', "
+                                                                 +"block BIGINT DEFAULT 0)");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_branches_feed_symbol ON feeds_branches(feed_symbol)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_branches_symbol ON feeds_branches(symbol)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_branches_rowhash ON feeds_branches(rowhash)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_branches_block ON feeds_branches(block)");
+         }
+         
+         // ------------------------------------- Feeds Sources ------------------------------------------------
+         if (tab.equals("feeds_sources"))
+         {
+              UTILS.DB.executeUpdate("CREATE TABLE feeds_sources(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                 +"feed_symbol VARCHAR(100) DEFAULT ''");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_sources ON feeds_sources(feed_symbol)");
+         }
+         
+         // ------------------------------------- Feeds Data ------------------------------------------------
+         if (tab.equals("feeds_data"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE feeds_data(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                            +"feed VARCHAR(10) DEFAULT '', "
+                                                            +"feed_branch VARCHAR(10) DEFAULT '', "
+                                                            +"val FLOAT(20, 8) DEFAULT 0, "
+                                                            +"mkt_status VARCHAR(20) DEFAULT 'ID_OPEN', "
+                                                            +"tstamp BIGINT DEFAULT 0, "
+                                                            +"block BIGINT DEFAULT 0)");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_data_feed ON feeds_data(feed)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_data_feed_branch ON feeds_data(feed_branch)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_data_block ON feeds_data(block)");
+         }
+         
+         // ------------------------------------- Feeds Pos Data ------------------------------------------------
+         if (tab.equals("feeds_pos_data"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE feeds_pos_data(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                +"pos_type VARCHAR(10) DEFAULT '', "
+                                                                +"posID BIGINT DEFAULT 0, "
+                                                                +"pos_symbol VARCHAR(10) DEFAULR '', "
+                                                                +"val DOUBLE(20,8) DEFAULT 0, "
+                                                                +"block BIGINT DEFAULT 0)");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_pos_posID ON feeds_pos_data(posID)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_pos_pos_symbol ON feeds_pos_data(pos_symbol)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_pos_data_block ON feeds_pos_data(block)");
+         }
+         
+         // ------------------------------------- Feeds Bets ------------------------------------------------
+         if (tab.equals("feeds_bets"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE feeds_bets(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                            +"uid BIGINT DEFAULT 0, "
+                                                            +"adr VARCHAR(250) DEFAULT '', "
+                                                            +"feed_symbol_1 VARCHAR(10) DEFAULT '', "
+                                                            +"branch_symbol_1 VARCHAR(10) DEFAULT '', "
+                                                            +"price_1 DOUBLE(20,8) DEFAULT 0, "
+                                                            +"feed_symbol_2 VARCHAR(10) DEFAULT '', "
+                                                            +"branch_symbol_2 VARCHAR(10) DEFAULT '', "
+                                                            +"price_2 DOUBLE(20,8) DEFAULT 0, "
+                                                            +"feed_symbol_3 VARCHAR(10) DEFAULT '', "
+                                                            +"branch_symbol_3 VARCHAR(10) DEFAULT '', "
+                                                            +"price_3 DOUBLE(20,8) DEFAULT 0, "
+                                                            +"tip VARCHAR(10) DEFAULT 'ID_TOUCH', "
+                                                            +"val_1 DOUBLE(20, 8) DEFAULT 0, "
+                                                            +"val_2 DOUBLE(20, 8) DEFAULT 0, "
+                                                            +"title VARCHAR(150) DEFAULT '', "
+                                                            +"description VARCHAR(250) DEFAULT '', "
+                                                            +"budget DOUBLE(9,2) DEFAULT 0, "
+                                                            +"win_multiplier INT DEFAULT 0, "
+                                                            +"start_block BIGINT DEFAULT 0, "
+                                                            +"end_block BIGINT DEFAULT 0, "
+                                                            +"accept_block BIGINT DEFAULT 0, "
+                                                            +"cur VARCHAR(10) DEFAULT '', "
+                                                            +"status VARCHAR(10) DEFAULT 'ID_PENDING', "
+                                                            +"rowhash VARCHAR(100) DEFAULT '', "
+                                                            +"block BIGINT DEFAULT 0)");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_bets_uid ON feeds_bets(uid)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_bets_feed_symbol ON feeds_bets(feed_symbol)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_bets_feed_component ON feeds_bets(feed_component)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_bets_block ON feeds_bets(block)");
+         }
+         
+         // ------------------------------------- Feeds Bets ------------------------------------------------
+         if (tab.equals("feeds_bets_pos"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE feeds_bets_pos(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                               +"bet_uid BIGINT DEFAULT 0, "
+                                                               +"adr VARCHAR(250) DEFAULT '', "
+                                                               +"amount DOUBLE(9,4) DEFAULT 0, "
+                                                               +"block BIGINT DEFAULT 0, "
+                                                               +"rowhash VARCHAR(100) DEFAULT '')");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_bets_pos_uid ON feeds_bets_pos(bet_uid)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_bets_pos_adr ON feeds_bets_pos(adr)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_bets_pos_block ON feeds_bets_pos(block)");
+         
          }
          
         // Done
@@ -753,12 +1032,6 @@ public class CBootstrap
         if (this.tableExist("footprints")==false)
             this.createTable("footprints");
         
-        if (this.tableExist("imgs")==false)
-            this.createTable("imgs");
-        
-        if (this.tableExist("imgs_stack")==false)
-            this.createTable("imgs_stack");
-        
         if (this.tableExist("interest")==false)
             this.createTable("interest");
         
@@ -818,6 +1091,36 @@ public class CBootstrap
         
         if (this.tableExist("profiles")==false)
             this.createTable("profiles");
+        
+        if (this.tableExist("tweets")==false)
+            this.createTable("tweets");
+        
+        if (this.tableExist("tweets_comments")==false)
+            this.createTable("tweets_comments");
+        
+        if (this.tableExist("tweets_follow")==false)
+            this.createTable("tweets_follow");
+        
+        if (this.tableExist("tweets_likes")==false)
+            this.createTable("tweets_likes");
+        
+         if (this.tableExist("tweets_trends")==false)
+            this.createTable("tweets_trends");
+         
+         if (this.tableExist("assets")==false)
+            this.createTable("assets");
+         
+         if (this.tableExist("assets_owners")==false)
+            this.createTable("assets_owners");
+         
+         if (this.tableExist("feeds_data")==false)
+            this.createTable("feeds_data");
+         
+         if (this.tableExist("feeds_bets")==false)
+            this.createTable("feeds_bets");
+         
+         if (this.tableExist("feeds_pos_data")==false)
+            this.createTable("feeds_pos_data");
     }
    
     public void insertAdr(String adr, double balance)

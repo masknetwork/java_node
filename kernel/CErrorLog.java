@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Properties;
@@ -23,6 +24,9 @@ public class CErrorLog
    
    public CErrorLog()
    {
+         // Port busy ?
+        if (portBusy()) System.exit(0);
+       
        // Data directory 
        UTILS.WRITEDIR=this.getAppDataDirectory();
 		  
@@ -68,6 +72,20 @@ public class CErrorLog
         }
     }
 	  
+   public boolean portBusy()
+         {
+             try 
+             {
+               Socket s = new Socket("127.0.0.1", 10000);
+               s.close();
+               return true;
+             }
+             catch(Exception e) 
+             {
+                return false;
+             }
+         }
+   
 	  public void init()
 	  {
 		  try

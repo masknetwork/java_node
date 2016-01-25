@@ -136,8 +136,6 @@ public class CSaleDomainPayload extends CPayload
 	    		               + "WHERE domain='"+this.domain+"'");
             }
             
-            // Rowhash
-            UTILS.ROWHASH.update("domains", "domain", this.domain);
             
 	    // Return 
 	    return new CResult(true, "Ok", "CAddNewAssetPayload.java", 149);

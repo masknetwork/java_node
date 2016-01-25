@@ -260,8 +260,7 @@ public class CNewRegMarketPosPayload extends CPayload
                                                                 (this.block+this.mkt_days*1440)+
                                                                 "', '"+this.block+"')");
             
-            // Assets
-            UTILS.ROWHASH.updateLastID("assets_markets_pos");
+            
         }
         catch (SQLException ex) 
        	{  

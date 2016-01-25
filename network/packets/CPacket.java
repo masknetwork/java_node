@@ -11,9 +11,6 @@ public class CPacket implements java.io.Serializable
    // Tip
    public String tip;
    
-   // Tstamp
-   public Long tstamp;
-   
    // Payload 
    public byte[] payload=null;
    
@@ -21,27 +18,25 @@ public class CPacket implements java.io.Serializable
    public String hash;
    
    // Prev packet hash
-   String prev_packet;
+   String prev_packet_hash;
    
    // Next packet hash
-   String next_packet;
+   String next_packet_hash;
    
    
    public CPacket(String tip)
    {
 	   // Tip
 	   this.tip=tip;
-	   
-	   // Tstamp
-	   this.tstamp=System.currentTimeMillis(); 
-   }
+           
+    }
    
-   public void hash()
+   public String hash()
    {
 	// Hash
-	this.hash=UTILS.BASIC.hash(this.tip+
-			           String.valueOf(this.tstamp)+
-			           UTILS.BASIC.hash(this.payload));
+	return UTILS.BASIC.hash(this.tip+
+			        UTILS.BASIC.hash(this.payload));
+        
    }
    
    public CResult check(CBlockPayload block)

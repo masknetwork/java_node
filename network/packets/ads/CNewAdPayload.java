@@ -107,7 +107,7 @@ public class CNewAdPayload extends CPayload
                 return new CResult(false, "Invalid title.", "CNewAdPayload", 77);
    	  
           // Check Message
-  	  if (this.mes.length()<50 || title.length()>70)
+  	  if (this.mes.length()<50 || this.mes.length()>70)
             return new CResult(false, "Invalid message.", "CNewAdPayload", 77);
 	  
           if (!this.mes.matches("[A-Za-z0-9\\.,?!$%'\\s]+"))
@@ -164,9 +164,7 @@ public class CNewAdPayload extends CPayload
    		   		                (this.block+(this.hours*60))+"', '"+
    		   		                this.block+"')");
    	  
-           // Rowhash
-           UTILS.ROWHASH.updateLastID("ads");
-       
+          
    	  // Return 
    	   return new CResult(true, "Ok", "CReqDataPayload", 70);
     }

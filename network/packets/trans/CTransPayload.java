@@ -274,8 +274,13 @@ public class CTransPayload extends CPayload
             }
             
 	    // Check source balance
-            double balance=UTILS.NETWORK.TRANS_POOL.getBalance(this.src, this.cur);
-	    if (balance<this.amount)
+            double balance=0;
+            if (block==null)
+                balance=UTILS.NETWORK.TRANS_POOL.getBalance(this.src, this.cur);
+	    else
+                balance=UTILS.BASIC.getBalance(this.src, this.cur);
+            
+            if (balance<this.amount) 
 	    	return new CResult(false, "Insufficient funds to execute transaction ("+this.amount+")", "CTransPayload", 77);
 	    
             // Insert pending transaction

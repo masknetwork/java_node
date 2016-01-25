@@ -41,7 +41,7 @@ public class CPayload  implements java.io.Serializable
            this.tstamp=UTILS.BASIC.mtstamp();
            
            // Block
-	   this.block=UTILS.CBLOCK.prev_block_no+1;
+	   this.block=UTILS.NET_STAT.last_block+1;
            
            // Hash
            this.hash=this.getHash();

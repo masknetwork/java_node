@@ -110,9 +110,6 @@ public class CRentDomainPayload extends CPayload
                                                           + "'0', '"+
                                                           String.valueOf(UTILS.BASIC.block())+"')");
                 
-            // Rowhash
-            UTILS.ROWHASH.updateLastID("domains");
-          
             
 	   // Return 
 	   return new CResult(true, "Ok", "CAddNewAssetPayload.java", 149);

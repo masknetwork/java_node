@@ -12,7 +12,7 @@ import wallet.network.packets.blocks.CBlockPayload;
 public class CFeedPayload extends CPayload
 {
     // Feed
-    String feed_symbol;
+    public String feed_symbol;
     
     // Values
     ArrayList values=new ArrayList();
@@ -37,9 +37,9 @@ public class CFeedPayload extends CPayload
        this.sign();
    }
    
-   public void addVal(String symbol, double val)
+   public void addVal(String symbol, double val, String mkt_status)
    {
-       CFeedComponent fc=new CFeedComponent(symbol, val);
+       CFeedComponent fc=new CFeedComponent(symbol, val, mkt_status);
        this.values.add(fc);
    }
    

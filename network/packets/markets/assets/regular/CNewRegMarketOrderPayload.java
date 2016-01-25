@@ -334,9 +334,7 @@ public class CNewRegMarketOrderPayload extends CPayload
            if (left_qty-this.qty<0.0001)
                UTILS.DB.executeUpdate("DELETE FROM assets_markets_pos "
                                           + "WHERE uid='"+this.uid+"'");
-           else
-            // Rowhash
-            UTILS.ROWHASH.update("assets_markets_pos", "uid", this.uid);
+          
            
            // Insert transaction
            String buyer="";

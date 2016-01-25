@@ -66,10 +66,14 @@ public class CFootprint
        this.block=block;
        
        // Names
-       this.names=new String[100];
+       this.names=new String[30];
        
        // Values
-       this.values=new String[100];
+       this.values=new String[30];
+       
+       // Init
+       for (int a=0; a<=29; a++) this.values[a]="";
+       for (int a=0; a<=29; a++) this.names[a]="";
        
        // Number
        no=0;
@@ -127,15 +131,15 @@ public class CFootprint
                                                  + this.fee_amount+"', '"
                                                  + this.fee_hash+"', '"
                                                  + this.names[1]+"', '"
-                                                 + this.values[1]+"', '"
+                                                 + UTILS.BASIC.base64_encode(this.values[1])+"', '"
                                                  + this.names[2]+"', '"
-                                                 + this.values[2]+"', '"
+                                                 + UTILS.BASIC.base64_encode(this.values[2])+"', '"
                                                  + this.names[3]+"', '"
-                                                 + this.values[3]+"', '"
+                                                 + UTILS.BASIC.base64_encode(this.values[3])+"', '"
                                                  + this.names[4]+"', '"
-                                                 + this.values[4]+"', '"
+                                                 + UTILS.BASIC.base64_encode(this.values[4])+"', '"
                                                  + this.names[5]+"', '"
-                                                 + this.values[5]+"', '"
+                                                 + UTILS.BASIC.base64_encode(this.values[5])+"', '"
                                                  + this.block+"', '"
                                                  +UTILS.BASIC.tstamp()+"')");
            

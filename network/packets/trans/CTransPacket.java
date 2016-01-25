@@ -51,7 +51,7 @@ public class CTransPacket extends CBroadcastPacket
                 if (cur.equals("MSK"))
 		  fee=new CFeePayload(fee_adr,  amount*0.001);
 		else
-                  fee=new CFeePayload(fee_adr,  0.0001);
+                  fee=new CFeePayload(fee_adr,  amount*0.0001);
                 
 		// Sign packet
 		this.sign();

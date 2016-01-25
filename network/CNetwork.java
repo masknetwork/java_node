@@ -104,7 +104,7 @@ public class CNetwork extends Thread
                   if (sender!=null) seen(sender.adr);
 		  
                    // Console
-		  //UTILS.CONSOLE.write("Received packet........... : "+packet.tip+" ("+packet.hash+")");
+		  UTILS.CONSOLE.write("Received packet ("+String.valueOf(UTILS.BASIC.tstamp())+")..........."+packet.tip+" ("+packet.hash+")");
                   
 		  // Already processed
 		  if (this.packetExist(packet, sender)) return;

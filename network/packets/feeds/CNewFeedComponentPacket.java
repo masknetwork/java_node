@@ -16,11 +16,12 @@ public class CNewFeedComponentPacket extends CBroadcastPacket
                                   String title, 
                                   String description, 
                                   String symbol, 
+                                  String rl_symbol, 
                                   double branch_fee,
                                   long days)
     {
          // Constructor
-        super("ID_NEW_FEED_COMPONENT_PACKET");
+        super("ID_NEW_FEED_BRANCH_PACKET");
         
         try
         {
@@ -37,6 +38,7 @@ public class CNewFeedComponentPacket extends CBroadcastPacket
                                                                               title,
                                                                               description,
                                                                               symbol,
+                                                                              rl_symbol,
                                                                               branch_fee,
                                                                               days);
             
@@ -66,7 +68,7 @@ public class CNewFeedComponentPacket extends CBroadcastPacket
 	    if (res.passed==false) return res;
 		   	
 	    // Check type
-	    if (!this.tip.equals("ID_NEW_FEED_COMPONENT_PACKET")) 
+	    if (!this.tip.equals("ID_NEW_FEED_BRANCH_PACKET")) 
 	       return new CResult(false, "Invalid packet type", "CNewFeedComponentPacket.java", 42);
 		   
 	    // Deserialize transaction data

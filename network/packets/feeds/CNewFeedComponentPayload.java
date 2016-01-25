@@ -22,6 +22,9 @@ public class CNewFeedComponentPayload extends CPayload
     
     // Symbol
     String symbol;
+    
+    // Real Symbol
+    String rl_symbol;
 
     // Fee
     double fee;
@@ -34,6 +37,7 @@ public class CNewFeedComponentPayload extends CPayload
                                     String title,
                                     String description,
                                     String symbol,
+                                    String rl_symbol,
                                     double fee,
                                     long days)
     {
@@ -52,6 +56,9 @@ public class CNewFeedComponentPayload extends CPayload
        // Symbol
        this.symbol=symbol;
        
+       // RL symbol
+       this.rl_symbol=rl_symbol;
+       
        // Fee
        this.fee=fee;
        
@@ -64,6 +71,7 @@ public class CNewFeedComponentPayload extends CPayload
 		             title+
                              description+
                              symbol+
+                             rl_symbol+
                              String.valueOf(fee)+
 			     String.valueOf(days));
        
@@ -109,6 +117,7 @@ public class CNewFeedComponentPayload extends CPayload
 		                       title+
                                        description+
                                        symbol+
+                                       rl_symbol+
                                        String.valueOf(fee)+
 			               String.valueOf(days));
              if (!h.equals(hash))
@@ -139,24 +148,23 @@ public class CNewFeedComponentPayload extends CPayload
             String expire=String.valueOf(this.block+(1440*this.days));
                     
             // Insert feed
-            UTILS.DB.executeUpdate("INSERT INTO feeds_components(feed_symbol, "
-                                                              + "title, "
+            UTILS.DB.executeUpdate("INSERT INTO feeds_branches(feed_symbol, "
+                                                              + "name, "
                                                               + "description, "
                                                               + "symbol, "
-                                                              + "val, "
                                                               + "expire, "
                                                               + "fee, "
+                                                              + "rl_symbol, "
                                                               + "block) VALUES('"+
                                                               this.feed_symbol+"', '"+
                                                               UTILS.BASIC.base64_encode(this.title)+"', '"+
                                                               UTILS.BASIC.base64_encode(this.description)+"', '"+
-                                                              this.symbol+"', '0', '"+
+                                                              this.symbol+"', '"+
                                                               expire+"', '"+
                                                               this.fee+"', '"+
+                                                              this.rl_symbol+"', '"+
                                                               this.block+"')");
-            
-            // Rowhash
-            UTILS.ROWHASH.updateLastID("feeds_components");    
+         
         }
         else return res;
         
@@ -180,7 +188,7 @@ public class CNewFeedComponentPayload extends CPayload
                return false;
            
            rs=s.executeQuery("SELECT * "
-                             + "FROM feeds_components "
+                             + "FROM feeds_branches "
                             + "WHERE feed_symbol='"+feed_symbol+"' "
                               + "AND symbol='"+symbol+"'");
            

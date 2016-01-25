@@ -403,8 +403,6 @@ public class CNewFeedMarketPayload extends CPayload
                                                         this.days+"', '"+
                                                         UTILS.BASIC.block()+"')");
         
-        // Update
-        UTILS.ROWHASH.updateLastID("feeds_markets");
         
         if (this.tip.equals("ID_REGULAR"))
         {
@@ -434,8 +432,7 @@ public class CNewFeedMarketPayload extends CPayload
                                                 this.days+"', '"+                                
                                                 UTILS.BASIC.block()+"')");
         
-           // Update
-           UTILS.ROWHASH.updateLastID("assets");
+         
         
            // Asset owner
            UTILS.DB.executeUpdate("INSERT INTO assets_owners(owner, "
@@ -447,8 +444,7 @@ public class CNewFeedMarketPayload extends CPayload
                                                        this.asset_qty+"', '"+
                                                        UTILS.BASIC.block()+"')");
         
-           // Update
-           UTILS.ROWHASH.updateLastID("assets_owners");
+   
         }
         
         // Return

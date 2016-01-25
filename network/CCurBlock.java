@@ -27,23 +27,17 @@ public class CCurBlock
    // Timer
    public Timer timer;
    
-   // Last block number
-   public long prev_block_no;
-   
-   // Prev hash
-   public String prev_hash;
-   
-   // Prev tstamp
-   public long prev_tstamp;
+   // Block hash
+   public String block_hash;
    
    // Actual block hash
-   public String hash;
+   public String payload_hash;
    
-   // Network Dificulty
-   public BigInteger net_dif=null;
-   
-   // Dificulty
+  // Dificulty
    public BigInteger dif=null;
+   
+   // Last tstamp
+   public long last_tstamp;
    
    // Signer balance
    public long balance=1;
@@ -51,11 +45,21 @@ public class CCurBlock
    // Signer
    public String signer="";
    
+   // Signer balance
+   public long signer_balance=0;
+   
    // Nonce
    public long nonce=0;
    
    // CPU miner
-   public CCPUMiner miner;
+   public CCPUMiner miner_1;
+   public CCPUMiner miner_2;
+   public CCPUMiner miner_3;
+   public CCPUMiner miner_4;
+   public CCPUMiner miner_5;
+   public CCPUMiner miner_6;
+   public CCPUMiner miner_7;
+   public CCPUMiner miner_8;
    
    // Block time
    public long block_time=60;
@@ -68,6 +72,7 @@ public class CCurBlock
    
    // Peers number
    public long peers=0;
+ 
    
    public CCurBlock() throws SQLException
    {
@@ -80,31 +85,21 @@ public class CCurBlock
        // Next
        rs.next();
        
-       // Last block
-       this.prev_block_no=rs.getLong("last_block");
-       
-       // Prev hash
-       this.prev_hash=rs.getString("last_hash");
-       
-       // Network minimum dificulty
-       this.net_dif=new BigInteger(rs.getString("net_dif"));
-       
-       // Last timestamp
-       this.prev_tstamp=rs.getLong("last_tstamp");
-      
-       // Dificulty
-       this.dif=this.net_dif.multiply(BigInteger.valueOf(this.balance));
-       
-       // Last timestamp
-       this.dif=this.net_dif.multiply(BigInteger.valueOf(this.balance));
-       
        // Start CPU miner
-       miner=new CCPUMiner();
+       miner_1=new CCPUMiner();
+       miner_2=new CCPUMiner();
+       miner_3=new CCPUMiner();
+       miner_4=new CCPUMiner();
+       miner_5=new CCPUMiner();
+       miner_6=new CCPUMiner();
+       miner_7=new CCPUMiner();
+       miner_8=new CCPUMiner();
       
        // Payload
-       payload=new CBlockPayload(prev_block_no, 
-                                 prev_hash, 
-                                 this.net_dif.toString());
+       payload=new CBlockPayload(UTILS.NET_STAT.last_block);
+       
+       // New hash
+       this.payload_hash=UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload));
        
        // Set signer
        this.setSigner();
@@ -121,14 +116,16 @@ public class CCurBlock
            // Add packet
            payload.addPacket(packet);
            
+           // Sign using the first address
+           payload.sign(this.signer);
+           
            // New hash
-           this.hash=this.payload.hash;
+           this.payload_hash=UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload));
        }
    }
    
    public void setNonce(long nonce)
    {
-      this.payload.nonce=nonce;
       this.payload.hash();
       this.nonce=nonce;
    }
@@ -159,20 +156,26 @@ public class CCurBlock
    
    public void broadcast()
    {
+       
        try
        {
-          // Payload timestamp
-          payload.tstamp=UTILS.BASIC.tstamp();
-       
-          // Sign using the first address
-          payload.sign(this.signer);
-       
           // Load payload
           block=new CBlockPacket(this.signer);
+         
+          // Serialize
           block.payload=UTILS.SERIAL.serialize(payload);
+          
+          // Payload hash
+          block.payload_hash=this.payload_hash;
+          
+          // Tstamp
+          block.tstamp=this.last_tstamp;
+          
+          // Nonce
+          block.nonce=this.nonce;
        
           // Sign
-          block.sign();
+          block.sign(this.block_hash);
        
           // Broadcast
           UTILS.NETWORK.broadcast(block);  
@@ -184,62 +187,60 @@ public class CCurBlock
    }
    
    public void newBlock(long block, 
-                        String prev_hash, 
-                        long prev_tstamp, 
-                        String dif) throws SQLException
+                        String prev_hash,
+                        long last_tstamp) throws SQLException
    {
        // New block
-       this.prev_hash=prev_hash;
+       UTILS.NET_STAT.last_block_hash=prev_hash;
                 
        // New block number
-       this.prev_block_no=block;
-                
-       // Last timestamp
-       this.prev_tstamp=prev_tstamp;
+       UTILS.NET_STAT.last_block=block;
        
-       // Difficulty
-       this.net_dif=new BigInteger(dif);
+       // Last tstamp
+       UTILS.NET_STAT.last_block_tstamp=last_tstamp;
+       
+       // Payload hash
+       this.payload_hash=UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload));
        
        // Difficulty
        Statement s=UTILS.DB.getStatement();
        
        // Load
-       ResultSet rs=s.executeQuery("SELECT COUNT(*) AS total "
+       ResultSet rs=s.executeQuery("SELECT *  "
                                    + "FROM blocks "
-                                  + "WHERE tstamp>"+(this.prev_tstamp-(this.block_time*this.retarget)));
+                                  + "WHERE block>="+(UTILS.NET_STAT.last_block-this.retarget)+" ORDER BY block ASC");
        
        // Next
        rs.next();
        
        // Total
-       long blocks=rs.getLong("total");
+       long tstamp=rs.getLong("tstamp");
        
        // Change dificulty ?
-       if (blocks>(this.retarget+1))
-           this.net_dif=this.net_dif.subtract(this.net_dif.divide(BigInteger.valueOf(100)));
-       else if (blocks<this.retarget)
-         this.net_dif=this.net_dif.add(this.net_dif.divide(BigInteger.valueOf(100)));
+       if (tstamp>last_tstamp-(this.retarget*60))
+           UTILS.NET_STAT.net_dif=UTILS.NET_STAT.net_dif-UTILS.NET_STAT.net_dif/100;
+      
+       else if (tstamp<last_tstamp-(this.retarget*60))
+         UTILS.NET_STAT.net_dif=UTILS.NET_STAT.net_dif+UTILS.NET_STAT.net_dif/100;
+       
+       System.out.println(UTILS.NET_STAT.net_dif+", "+(last_tstamp-(this.retarget*60)));
        
        // Update net stat
        UTILS.DB.executeUpdate("UPDATE net_stat "
-                                        + "SET last_block='"+this.prev_block_no + "', "
-                                            + "last_hash='"+prev_hash+"', "
-                                            + "last_tstamp='"+prev_tstamp+"', "
-                                            + "net_dif='"+this.net_dif+"'");
+                                        + "SET last_block='"+UTILS.NET_STAT.last_block + "', "
+                                            + "last_hash='"+UTILS.NET_STAT.last_block_hash+"', "
+                                            + "net_dif='"+UTILS.NET_STAT.net_dif+"'");
        
        // New block
-       this.payload=new CBlockPayload(this.prev_block_no++, 
-                                      this.prev_hash, 
-                                      this.net_dif.toString());
+       this.payload=new CBlockPayload(UTILS.NET_STAT.last_block+1);
        
-       // Adjust dif
-       this.dif=this.net_dif;
-        
+      
        // Nonce
        this.nonce=0;
        
        // Close
        s.close();
    }
+   
    
 }

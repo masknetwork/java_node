@@ -158,8 +158,6 @@ public class CReqInterestPayload extends CPayload
             UTILS.LOG.log("SQLException", ex.getMessage(), "CReqInterestPayload.java", 57);
         }
         
-        // Rowhash
-        UTILS.ROWHASH.update("adr", "adr", this.adr);
          
     	// Return 
     	return new CResult(true, "Ok", "CReqInterestPayload", 70);

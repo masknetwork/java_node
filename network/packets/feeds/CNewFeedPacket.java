@@ -15,7 +15,6 @@ public class CNewFeedPacket extends CBroadcastPacket
                           String description,
                           String website,
                           String symbol, 
-                          double mkt_bid, 
                           long mkt_days)
     {
         // Constructor
@@ -27,14 +26,13 @@ public class CNewFeedPacket extends CBroadcastPacket
                                                         description,
                                                         website,
                                                         symbol, 
-                                                        mkt_bid, 
                                                         mkt_days);
         
 	// Build the payload
 	this.payload=UTILS.SERIAL.serialize(dec_payload);
 					
         // Network fee
-	fee=new CFeePayload(fee_adr, mkt_bid*mkt_days);
+	fee=new CFeePayload(fee_adr, 0.0001*mkt_days);
 			   
 	// Sign packet
 	this.sign();
@@ -59,7 +57,7 @@ public class CNewFeedPacket extends CBroadcastPacket
             if (!res.passed) return res;
             
             // Check fee
-            if (this.fee.amount<(dec_payload.mkt_bid*dec_payload.mkt_days))
+            if (this.fee.amount<(0.0001*dec_payload.mkt_days))
                return new CResult(false, "Invalid price", "CNewFeedPacket", 42);
             
 	    // Return 

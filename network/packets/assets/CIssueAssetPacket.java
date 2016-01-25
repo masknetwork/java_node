@@ -13,14 +13,17 @@ public class CIssueAssetPacket extends CBroadcastPacket
                             String symbol,
                             String title,
                             String description,
+                            String how_buy,
+                            String how_sell,
                             String web_page,
                             String pic,
-                            double mkt_bid,
                             long mkt_days,
                             long qty,
                             String trans_fee_adr,
                             double trans_fee,
-                            String can_issue)
+                            String can_issue,
+                            double interest,
+                            long interval)
    {
 	   super("ID_NEW_ASSET_PACKET");
 
@@ -29,20 +32,23 @@ public class CIssueAssetPacket extends CBroadcastPacket
                                                                  symbol,
                                                                  title,
                                                                  description,
+                                                                 how_buy,
+                                                                 how_sell,
                                                                  web_page,
                                                                  pic,
-                                                                 mkt_bid,
                                                                  mkt_days,
                                                                  qty,
                                                                  trans_fee_adr,
                                                                  trans_fee,
-                                                                 can_issue);
+                                                                 can_issue,
+                                                                 interest,
+                                                                 interval); 
            
 	   // Build the payload
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
 			
 	   // Network fee
-	   fee=new CFeePayload(fee_adr, (mkt_bid*mkt_days)+(qty*0.0001));
+	   fee=new CFeePayload(fee_adr, (0.0001*mkt_days)+(qty*0.0001));
 	   
 	   // Sign packet
 	   this.sign();

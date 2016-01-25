@@ -22,22 +22,42 @@ public class CTransPool
 			     String hash, 
 			     long block)
 	{
-	    // Insert transaction in pool
-	    UTILS.DB.executeUpdate("INSERT INTO trans_pool(src, "
+            try
+            {
+                // Statement
+                Statement s=UTILS.DB.getStatement();
+                
+                // Hash exist ?
+                ResultSet rs=s.executeQuery("SELECT * "
+                                       + "FROM trans_pool "
+                                      + "WHERE src='"+src+"' "
+                                        + "AND hash='"+hash+"' "
+                                        + "AND amount='"+amount+"' "
+                                        + "AND block='"+block+"'");
+                
+                if (!UTILS.DB.hasData(rs))
+	        UTILS.DB.executeUpdate("INSERT INTO trans_pool(src, "
 				                        + "amount, "
 				                        + "cur, " 
+                                                        + "hash, " 
 				                        + "block) "
 				               + "VALUES('"+src+"', '"
 				                           +UTILS.FORMAT.format(amount)+"', '"
 				                           +cur+"', '"
+                                                           +hash+"', '" 
 				                           +block+"')");
+            }
+            catch (SQLException e) 
+            { 
+                UTILS.LOG.log("Exception", e.getMessage(), "CTransPool.java", 85);
+            }
 	}
 	
-	public void delBlock(long block)
+	public void newBlock(long block)
 	{
 		UTILS.DB.executeUpdate("DELETE "
-				 + "FROM trans_pool "
-				+ "WHERE block='"+block+"'");
+				       + "FROM trans_pool "
+				      + "WHERE block<="+block);
 	}
 	
 	public double getBalance(String adr, String cur)
@@ -49,7 +69,8 @@ public class CTransPool
 		    String q="SELECT SUM(amount) AS total "
 		    		            + "FROM trans_pool "
 		      		           + "WHERE src='"+adr+"' "
-		      		             + "AND cur='"+cur+"'"; 
+		      		             + "AND cur='"+cur+"'"
+                                             + "AND amount<0"; 
 		    ResultSet rs=s.executeQuery(q);
                             
 		    // Another transaction exists in pool ?
@@ -65,7 +86,7 @@ public class CTransPool
                         double act_balance=UTILS.BASIC.getBalance(adr, cur);
                         
                         // Final balance
-                        double balance=act_balance-spent;
+                        double balance=act_balance+spent;
                         
                         // Close 
                         if (s!=null) s.close();

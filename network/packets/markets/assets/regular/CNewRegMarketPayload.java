@@ -234,8 +234,6 @@ public class CNewRegMarketPayload extends CPayload
                                                         (this.block+this.days*1440)+"', '"+
                                                         this.block+"')");
         
-        // Rowhash
-        UTILS.ROWHASH.updateLastID("assets_markets");
         
         // Return
 	return new CResult(true, "Ok", "CNewFeedPayload", 67); 

@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.Socket;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.SecureRandom;
@@ -555,12 +556,13 @@ public class CUtils
 	
 	public String base64_encode(String s)
 	{
+           if (s.equals("")) return "";
            return new String(org.apache.commons.codec.binary.Base64.encodeBase64(s.getBytes()));
 	}
 	
 	public String base64_encode(byte[] s)
 	{
-	   return new String(org.apache.commons.codec.binary.Base64.encodeBase64(s));
+           return new String(org.apache.commons.codec.binary.Base64.encodeBase64(s));
 	}
 	
 	public String base64_decode(String s)
@@ -966,7 +968,13 @@ public class CUtils
                      if (!UTILS.DB.hasData(rs))
                      {
                         // Insert address
-                        UTILS.DB.executeUpdate("INSERT INTO assets_owners(owner, symbol, qty) VALUES('"+adr+"', '"+cur+"', '0')");
+                        UTILS.DB.executeUpdate("INSERT INTO assets_owners(owner, "
+                                                                       + "symbol, "
+                                                                       + "qty, "
+                                                                       + "last_interest) VALUES('"
+                                                                       +adr+"', '"
+                                                                       +cur+"', '0', '"
+                                                                       +UTILS.NET_STAT.last_block+"')");
                          
                         // New balance
                         new_balance=Double.parseDouble(UTILS.FORMAT.format(amount));
@@ -992,10 +1000,6 @@ public class CUtils
 		   		                    + "block='"+UTILS.BASIC.block()+
                                                 "' WHERE owner='"+adr+"'");
                      
-                     // Hash
-                     UTILS.ROWHASH.update("assets_owners", "owner", adr, "symbol", cur);
-                     
-                
                      
                      // Close
                      s.close();
@@ -1075,12 +1079,7 @@ public class CUtils
                                                    + "SET total_received=total_spent+"+Math.abs(amount)+", "
                                                        + "trans_no=trans_no+1 "
                                                  + "WHERE adr='"+adr+"'");
-                     
-                     // Hash
-                     UTILS.ROWHASH.update("adr", "adr", adr);
-                     
-                     
-                     
+                    
                      // Close
                      s.close();
             }
@@ -1129,7 +1128,7 @@ public class CUtils
 	public long block()
 	{
 	    if (UTILS.CBLOCK!=null) 
-                return UTILS.CBLOCK.prev_block_no+1;
+                return UTILS.NET_STAT.last_block+1;
             else
                 return 0;
 	}
@@ -1622,7 +1621,7 @@ public class CUtils
         public boolean titleValid(String title)
         {
             // Check length
-            if (title.length()<5 || title.length()>60)
+            if (title.length()<3 || title.length()>60)
                 return false;
             else
                 return true;
@@ -1745,38 +1744,7 @@ public class CUtils
            return false;
         }
         
-        public boolean feedComponentExist(String feed, String feed_component)
-        {
-            if (!this.symbolValid(feed_component) || !this.symbolValid(feed))
-              return false;
-             
-            try
-            {
-              // Statement
-              Statement s=UTILS.DB.getStatement();
-           
-              // Market
-              ResultSet rs=s.executeQuery("SELECT * "
-                                          + "FROM feeds_components "
-                                         + "WHERE feed_symbol='"+feed+"' "
-                                           + "AND symbol='"+feed_component+"'");
-              if (UTILS.DB.hasData(rs))
-              {
-                 s.close();
-                 return true;
-              }
-              
-              s.close();
-              return false;
-           }
-           catch (SQLException ex) 
-       	   {  
-       	       UTILS.LOG.log("SQLException", ex.getMessage(), "CFeedMarketgMarketPayload.java", 57);
-           } 
-            
-           return false;
-        }
-        
+      
         public boolean countryExist(String cou)
         {
            return true;  
@@ -1889,4 +1857,69 @@ public class CUtils
                 // Return
                 return userID;
          }
+         
+         public String clean(String str)
+         {
+             String clean=str.replace("<", "");
+             clean=clean.replace(">", "");
+             for (int a=1; a<=100; a++) clean=clean.replace("  ", " ");
+             return clean;
+         }
+         
+         public boolean feedValid(String feed, String branch)
+         {
+            try
+            {
+               // Statement
+               Statement s=UTILS.DB.getStatement();
+            
+               // Feed symbol valid
+               if (!this.symbolValid(feed))
+               {
+                  s.close();
+                  return false;
+               }
+           
+               // Feed symbol exist ?
+               ResultSet rs=s.executeQuery("SELECT * "
+                                           + "FROM feeds "
+                                          + "WHERE symbol='"+feed+"'");
+           
+               if (!UTILS.DB.hasData(rs)) 
+               {
+                  s.close();
+                  return false;
+               }
+           
+               // Feed branch valid
+               if (!UTILS.BASIC.symbolValid(branch)) 
+               {
+                  s.close();
+                  return false;
+               }
+           
+               // Feed symbol exist ?
+               rs=s.executeQuery("SELECT * "
+                                 + "FROM feeds_branches "
+                                + "WHERE feed_symbol='"+feed
+                                 +"' AND symbol='"+branch+"'");
+           
+              if (!UTILS.DB.hasData(rs)) 
+              {
+                 s.close();
+                 return false;
+              }
+           
+              s.close();
+        }
+        catch (SQLException ex) 
+       	{  
+            UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
+        }
+        
+        
+        return true;
+    }
+         
+         
 }

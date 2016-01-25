@@ -103,8 +103,7 @@ public class CTransferDomainPayload extends CPayload
 	    		                    + "block='"+this.block+"' "
 	    		              + "WHERE domain='"+this.domain+"'");
           
-                // Hash
-                UTILS.ROWHASH.update("domains", "domain", this.domain);
+                
             }
             
 	    // Return 

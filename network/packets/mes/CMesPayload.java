@@ -124,30 +124,9 @@ public class CMesPayload extends CPayload
     	   		                                   String.valueOf(UTILS.BASIC.tstamp())+"', "
                                                            + "'0')");
     	      
-                 // Statement
-                 Statement s=UTILS.DB.getStatement();
-    	          
-                 // Finds the user
-                 ResultSet rs=s.executeQuery("SELECT * "
-                                             + "FROM my_adr "
-                                            + "WHERE adr='"+this.receiver_adr+"'");
-                 rs.next();
-                 long userID=rs.getLong("userID");
-                 
-                 // Increase unread messages
-                 UTILS.DB.executeUpdate("UPDATE web_users "
-                                         + "SET unread_mes=unread_mes+1 "
-                                       + "WHERE ID='"+userID+"'");
-                 
-       
-            }
-	   }
-    	   catch (SQLException ex)
-    	   {
-    	       UTILS.LOG.log("SQLException", ex.getMessage(), "CNewMesPayload.java", 147);
-               return new CResult(false, "SQLException", "CNewMesPayload", 148);
-    	   }
-           catch (Exception ex)
+              }
+           }
+	   catch (Exception ex)
     	   {
     	       UTILS.LOG.log("SQLException", ex.getMessage(), "CNewMesPayload.java", 152);
                return new CResult(false, "SQLException", "CNewMesPayload", 153);

@@ -23,7 +23,8 @@ public class CBroadcastPacket extends CPacket
 	    super(tip);
 		
 	    // Block
-	    this.block=UTILS.CBLOCK.prev_block_no+1;
+	    this.block=UTILS.NET_STAT.last_block+1;
+            
 	}
 	
 	public CResult check(CBlockPayload block)
@@ -34,10 +35,9 @@ public class CBroadcastPacket extends CPacket
         
              // Check hash
              String h=UTILS.BASIC.hash(this.tip+
-				       String.valueOf(this.tstamp)+
                                        String.valueOf(this.block)+
-				       new String(UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.fee)))+
-				       new String(UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload))));
+				       UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.fee))+
+				       UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload)));
 	     
              if (!h.equals(this.hash))
 	        return new CResult(false, "Invalid hash", "CBroadcastPacket", 30);
@@ -75,15 +75,11 @@ public class CBroadcastPacket extends CPacket
 	
 	public void sign()
 	{
-            // Block
-	    this.block=UTILS.BASIC.block(); 
-		   
             // Packet hash
             this.hash=UTILS.BASIC.hash(this.tip+
-				       String.valueOf(this.tstamp)+
-                                       String.valueOf(this.block)+
-				       new String(UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.fee)))+
-				       new String(UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload))));
+				       String.valueOf(this.block)+
+				       UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.fee))+
+				       UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload)));
 		   
             // Signature address
             CAddress adr=UTILS.WALLET.getAddress(this.fee.target_adr);
@@ -92,17 +88,13 @@ public class CBroadcastPacket extends CPacket
 	
 	public void sign(String signer)
 	{
-		 // Tstamp
-		   this.tstamp=System.currentTimeMillis(); 
-		   
-		   // Block
+		  // Block
 		   this.block=UTILS.BASIC.block(); 
 		   
 		   // Packet hash
 		   this.hash=UTILS.BASIC.hash(this.tip+
-				                      String.valueOf(this.tstamp)+
-				                      new String(UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.fee)))+
-				                      new String(UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload))));
+				              UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.fee))+
+				              UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload)));
 		   
 		   // Signature address
 		   CAddress adr=UTILS.WALLET.getAddress(signer);

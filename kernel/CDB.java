@@ -66,7 +66,7 @@ public class CDB
 	      {
   	         Class.forName("org.hsqldb.jdbcDriver");
   	         con = DriverManager.getConnection("jdbc:hsqldb:file:"+UTILS.WRITEDIR+"wallet", "SA", "");
-                
+                 
 	      }
 		   
 	      if (UTILS.SETTINGS.db.equals("mysql"))
@@ -78,6 +78,9 @@ public class CDB
                  
                  
               } 
+              
+              // Abort
+              if (con.isClosed()) System.exit(0);
           }
           else
           {
@@ -149,7 +152,7 @@ public class CDB
   	}
     }
 	
-   public Statement executeUpdate(String query)
+   public Statement executeUpdate(String query) 
    {
        // Check connection
        this.checkConnection();
@@ -162,19 +165,21 @@ public class CDB
               p.close();
               s.close();
               
+              // Log ?
+              if (UTILS.LOG_QUERIES) UTILS.NET_STAT.addQuery(query);
+              
               return null;     
-	   }
-	   catch (SQLException e) 
-	   { 
-		   UTILS.CONSOLE.write("SQL error - " + e.getMessage()+", "+query); 
-	   }
-           catch (Exception e) 
-	   { 
-		   UTILS.CONSOLE.write("SQL Exception - " + e.getMessage()+", "+query); 
-	   }
-	   
-	   
-	   return null;
-   }
+	}
+	catch (SQLException e) 
+	{ 
+              UTILS.LOG.log("Query Error", e.getMessage()+query, "CDB.java", 172);
+	}
+        catch (Exception e) 
+	{ 
+	      UTILS.LOG.log("Query Error", e.getMessage()+query, "CDB.java", 176);
+	}
+       
+       return null;
+   } 
   
 }

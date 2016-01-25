@@ -96,9 +96,7 @@ public class CRenewDomainPayload extends CPayload
                                         + "block='"+this.block+"' "
                                   + "WHERE domain='"+this.domain+"'");
                 
-            // Rowhash
-            UTILS.ROWHASH.update("domains", "domain", this.domain);
-          
+            
             
 	   // Return 
 	   return new CResult(true, "Ok", "CAddNewAssetPayload.java", 149);

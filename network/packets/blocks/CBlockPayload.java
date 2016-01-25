@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import wallet.kernel.*;
 import wallet.network.*;
 import wallet.network.packets.*;
+import wallet.network.packets.feeds.CFeedPayload;
 
 
 public class CBlockPayload implements java.io.Serializable
@@ -31,29 +32,14 @@ public class CBlockPayload implements java.io.Serializable
 	// Block
 	public long block;
         
-        // Tstamp
-        public long tstamp;
         
-        // Prev hash
-        public String prev_block_hash;
-	
-	// Dificulty
-	public String dificulty;
-        
-        // Nonce
-        public long nonce=0;
 		
-	public CBlockPayload(long prev_block_no, String prev_block_hash, String dif) 
+	public CBlockPayload(long prev_block_no) 
 	{
 	    // ID
 	    this.block=prev_block_no+1;
             
-            // Prev block hash
-            this.prev_block_hash=prev_block_hash;
-            
-            // Dificulty
-            this.dificulty=dif;
-            
+       
             // Hash
             this.hash();
 	}
@@ -67,19 +53,55 @@ public class CBlockPayload implements java.io.Serializable
 		return false;
 	}
 	
-	public void addPacket(CPacket pack)
+	public void addPacket(CPacket packet)
 	{
+            try
+            {
 		// Packet exist ?
-		if (this.exist(pack.hash)) return;
+		if (this.exist(packet.hash)) return;
 		
+                // Data feed packet ?
+                if (packet.tip.equals("ID_FEED_PACKET"))
+                {
+                   // Deserialize payload
+                   CFeedPayload dec_payload=(CFeedPayload) UTILS.SERIAL.deserialize(packet.payload);
+                   
+                   // Feed symbol
+                   String feed=dec_payload.feed_symbol;
+                           
+                   // Already in block
+                   for (int a=0; a<=this.packets.size()-1; a++)
+                   {
+                       // Load packet data
+                       CPacket p=(CPacket)this.packets.get(a);
+                       
+                       // Feed packet ?
+                       if (p.tip.equals("ID_FEED_PACKET"))
+                       {
+                           // Deserialize
+                           dec_payload=(CFeedPayload) UTILS.SERIAL.deserialize(p.payload);
+                           
+                           // Remove if same feed ?
+                           if (dec_payload.feed_symbol.equals(feed))
+                               this.packets.remove(a);
+                       }
+                   }
+                }
+                
 		// Adds packet
-		this.packets.add(pack);
+		this.packets.add(packet);
 		
                 // Console
 		//UTILS.CONSOLE.write("Packet "+pack.hash+" added to block "+this.hash+"+("+this.packets.size()+" packets)");
                 
                 // Recalculate hash
                 this.hash();
+            }
+            catch (Exception ex) 
+       	    {  
+       		UTILS.LOG.log("Exception", ex.getMessage(), "SQLException.java", 57);
+            }
+            
 	}
 	
 	// Hash
@@ -87,10 +109,6 @@ public class CBlockPayload implements java.io.Serializable
 	{
 	   String hash=UTILS.BASIC.hash(this.signer+
                                         String.valueOf(this.block)+
-                                        this.prev_block_hash+
-                                        String.valueOf(this.tstamp)+
-                                        String.valueOf(this.dificulty)+
-                                        String.valueOf(this.nonce)+
                                         UTILS.SERIAL.serialize(this.packets));
            
            // Return
@@ -114,7 +132,8 @@ public class CBlockPayload implements java.io.Serializable
 	// Commits all transactions
 	public CResult commit() throws SQLException
 	{
-             //UTILS.CONSOLE.write("--------------- Committing block "+this.block+"--------------------");
+                // Start logging
+                UTILS.LOG_QUERIES=true;
 			
 		for (int a=0; a<=this.packets.size()-1; a++)
 	        {
@@ -123,33 +142,17 @@ public class CBlockPayload implements java.io.Serializable
 	        }
 		
 		// Trans pool
-		UTILS.NETWORK.TRANS_POOL.delBlock(this.block);
-			
-                // Insert the block
-                UTILS.DB.executeUpdate("INSERT INTO blocks(hash, "
-                                                        + "prev_hash,"
-        		                                + "block, "
-        		                                + "signer, "
-        		                                + "packets, "
-                                                        + "dificulty, "
-                                                        + "nonce, "
-                                                        + "tstamp) "
-        		                + "VALUES('"+this.hash+"', '"+
-                                                     this.prev_block_hash+"', '"+
-        		                             String.valueOf(this.block)+"', '"+
-        		                             this.signer+"', '"+
-        		                             String.valueOf(this.packets.size())+"', '"+
-                                                     this.dificulty+"', '"+
-                                                     String.valueOf(this.nonce)+"', '"+
-                                                     this.tstamp+"')");
-                
-               
-                // New block
-                UTILS.CBLOCK.newBlock(this.block, this.hash, this.tstamp, this.dificulty);
-                
+		UTILS.NETWORK.TRANS_POOL.newBlock(this.block);
+		 
                 // Delete expired items
                 this.delExpired();
-              
+                
+                // Check options
+                UTILS.BIN_OPTIONS.checkOptions(block);
+                
+                // Refresh tables
+                UTILS.NET_STAT.refreshTables(block);
+                
 		// Ok
 		return new CResult(true, "Ok", "CBlock", 68);
 
@@ -181,7 +184,8 @@ public class CBlockPayload implements java.io.Serializable
 	{
             long check_index=0;
             
-		for (int a=0; a<=this.packets.size()-1; a++)
+            // Check pow
+            for (int a=0; a<=this.packets.size()-1; a++)
 	        {   
 		    CBroadcastPacket packet=((CBroadcastPacket)this.packets.get(a));
 		    CResult res=packet.check(this);
@@ -189,9 +193,10 @@ public class CBlockPayload implements java.io.Serializable
 		    if (res.passed==false) return res;
 		    check_index++;
 		}
+           
 		
-		// Ok
-		return new CResult(true, "Ok", "CBlock", 68);
+            // Ok
+	    return new CResult(true, "Ok", "CBlock", 68);
 	}
 
 }

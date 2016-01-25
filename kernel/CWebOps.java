@@ -36,12 +36,22 @@ import wallet.network.packets.markets.assets.regular.CNewRegMarketPacket;
 import wallet.network.packets.markets.assets.regular.CNewRegMarketPosPacket;
 import wallet.network.packets.markets.feeds.CNewFeedMarketPacket;
 import wallet.network.packets.markets.feeds.CNewFeedMarketPayload;
+import wallet.network.packets.feeds.bets.CBuyBetPacket;
+import wallet.network.packets.feeds.bets.CNewBetPacket;
 import wallet.network.packets.mes.CMesPacket;
 import wallet.network.packets.misc.CIncreaseMktBidPacket;
 import wallet.network.packets.misc.CRemoveItemPacket;
 import wallet.network.packets.trans.CEscrowedTransSignPacket;
 import wallet.network.packets.trans.CMultisigTransSignPacket;
 import wallet.network.packets.trans.CTransPacket;
+import wallet.network.packets.tweets.CFollowPacket;
+import wallet.network.packets.tweets.CLikePacket;
+import wallet.network.packets.tweets.CNewTweetPacket;
+import wallet.network.packets.tweets.CRemoveTweetPacket;
+import wallet.network.packets.tweets.CResponseRewardPacket;
+import wallet.network.packets.tweets.CTweetMesPacket;
+import wallet.network.packets.tweets.CTweetMesStatusPacket;
+import wallet.network.packets.tweets.CUnfollowPacket;
 
 
 public class CWebOps 
@@ -71,23 +81,14 @@ public class CWebOps
         
         try
         {
+           // Broadcast
+           //if (UTILS.BASIC.tstamp()%60==0) UTILS.CBLOCK.broadcast();
+            
            // Statement
            Statement s=UTILS.DB.getStatement();
            
-           // Pending images
-           ResultSet rs=s.executeQuery("SELECT * FROM imgs_stack");
            
-           // Has data
-           if (UTILS.DB.hasData(rs))
-           {
-              while (rs.next())
-              {
-                  CWebImageLoader img=new CWebImageLoader(rs.getString("url"));
-                  img.start();
-              }
-           }
-           
-           rs=s.executeQuery("SELECT * "
+           ResultSet rs=s.executeQuery("SELECT * "
                                          + "FROM web_ops "
                                         + "WHERE status='ID_PENDING'");
       
@@ -125,7 +126,7 @@ public class CWebOps
                            CTransPacket packet=new CTransPacket("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmzMuWmpif2JdeB1/UA7XQumglLj3o4/qF/CisxzJyXf7JoXXmGvBDJFbCSr8Si09zKtkfoA7jyU=", 
 			                                       "ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmzMuWmpif2JdeB1/UA7XQumglLj3o4/qF/CisxzJyXf7JoXXmGvBDJFbCSr8Si09zKtkfoA7jyU=", 
 			                                       adr, 
-			                                       5, 
+			                                       1, 
 			                                       "MSK",
 			                                       "Welcome to MaskNetwork",
                                                                "",
@@ -153,6 +154,103 @@ public class CWebOps
                    // Broadcast the actual block
                    if (op.equals("ID_SEND_CBLOCK")) 
                        UTILS.CBLOCK.broadcast();
+                   
+                   // New tweet
+                   if (op.equals("ID_NEW_TWEET"))
+                   {
+                       CNewTweetPacket packet=new CNewTweetPacket(rs.getString("fee_adr"),
+                                                                  rs.getString("target_adr"),
+		                                                  rs.getString("par_1"), 
+		                                                  UTILS.BASIC.base64_decode(rs.getString("par_2")), 
+                                                                  rs.getLong("par_3"),
+		                                                  UTILS.BASIC.base64_decode(rs.getString("par_4")),
+                                                                  UTILS.BASIC.base64_decode(rs.getString("par_5")),
+                                                                  UTILS.BASIC.base64_decode(rs.getString("par_6")),
+                                                                  UTILS.BASIC.base64_decode(rs.getString("par_7")),
+                                                                  UTILS.BASIC.base64_decode(rs.getString("par_8")),
+                                                                  UTILS.BASIC.base64_decode(rs.getString("par_9")),
+                                                                  rs.getFloat("par_10"),
+                                                                  rs.getString("par_11"),
+                                                                  rs.getLong("par_12"));
+                       
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                   // New tweet reward
+                   if (op.equals("ID_NEW_TWEET_REWARD"))
+                   {
+                       CResponseRewardPacket packet=new CResponseRewardPacket(rs.getString("fee_adr"),
+                                                                              rs.getString("target_adr"),
+		                                                              rs.getLong("par_1"), 
+                                                                              rs.getDouble("par_2"));
+                       
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                   // New tweet
+                   if (op.equals("ID_NEW_TWEET_COMMENT"))
+                   {
+                       CTweetMesPacket packet=new  CTweetMesPacket(rs.getString("fee_adr"),
+                                                                   rs.getString("target_adr"),
+		                                                   rs.getLong("par_1"),
+                                                                   rs.getLong("par_2"),
+                                                                   rs.getString("par_3"));
+                       
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                   // Update comment status
+                   if (op.equals("ID_UPDATE_TWEET_COMMENT"))
+                   {
+                       CTweetMesStatusPacket packet=new  CTweetMesStatusPacket(rs.getString("fee_adr"),
+                                                                               rs.getString("target_adr"),
+		                                                               rs.getLong("par_1"),
+                                                                               rs.getString("par_2"));
+                       
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                    // Update comment status
+                   if (op.equals("ID_LIKE_TWEET"))
+                   {
+                       CLikePacket packet=new CLikePacket(rs.getString("fee_adr"),
+                                                          rs.getString("target_adr"),
+		                                          rs.getLong("par_1"));
+                       
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                   // Follow
+                   if (op.equals("ID_FOLLOW"))
+                   {
+                       CFollowPacket packet=new CFollowPacket(rs.getString("fee_adr"),
+                                                            rs.getString("target_adr"),
+		                                            rs.getString("par_1"));
+                       
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                   // Unfollow
+                   if (op.equals("ID_UNFOLLOW"))
+                   {
+                       CUnfollowPacket packet=new CUnfollowPacket(rs.getString("fee_adr"),
+                                                                  rs.getString("target_adr"),
+		                                                  rs.getString("par_1"));
+                       
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                   // Remove tweet
+                   if (op.equals("ID_REMOVE_TWEET"))
+                   {
+                       CRemoveTweetPacket packet=new CRemoveTweetPacket(rs.getString("fee_adr"),
+                                                                        rs.getString("target_adr"),
+		                                                        rs.getLong("par_1"));
+                       
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                   
                    
                    // New transaction
                    if (op.equals("ID_TRANSACTION")) 
@@ -186,8 +284,9 @@ public class CWebOps
                                                                 UTILS.BASIC.base64_decode(rs.getString("par_4")),
                                                                 UTILS.BASIC.base64_decode(rs.getString("par_5")), 
                                                                 UTILS.BASIC.base64_decode(rs.getString("par_6")), 
-                                                                UTILS.BASIC.base64_decode(rs.getString("par_7")), 
-		                                                rs.getLong("days"));
+                                                                rs.getLong("days"));
+                       
+                     
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
@@ -439,19 +538,22 @@ public class CWebOps
                    
                    if (op.equals("ID_ISSUE_ASSET"))
                    {
-                        CIssueAssetPacket packet=new CIssueAssetPacket(rs.getString("fee_adr"), 
+                     CIssueAssetPacket packet=new CIssueAssetPacket(rs.getString("fee_adr"), 
                                                                        rs.getString("target_adr"),
-                                                                       rs.getString("par_5"),
+                                                                       rs.getString("par_7"),
                                                                        UTILS.BASIC.base64_decode(rs.getString("par_1")),
                                                                        UTILS.BASIC.base64_decode(rs.getString("par_2")),
                                                                        UTILS.BASIC.base64_decode(rs.getString("par_3")),
                                                                        UTILS.BASIC.base64_decode(rs.getString("par_4")),
-                                                                       rs.getDouble("bid"),
+                                                                       UTILS.BASIC.base64_decode(rs.getString("par_5")),
+                                                                       UTILS.BASIC.base64_decode(rs.getString("par_6")),
                                                                        rs.getLong("days"),
-                                                                       rs.getLong("par_6"),
-                                                                       rs.getString("par_8"),
-                                                                       rs.getDouble("par_7"),
-                                                                       rs.getString("par_9"));    
+                                                                       rs.getLong("par_8"),
+                                                                       rs.getString("par_10"),
+                                                                       rs.getDouble("par_9"),
+                                                                       rs.getString("par_11"),
+                                                                       rs.getDouble("par_12"),
+                                                                       rs.getLong("par_13"));    
                         
                         UTILS.NETWORK.broadcast(packet);
                    }
@@ -465,8 +567,13 @@ public class CWebOps
                                                                UTILS.BASIC.base64_decode(rs.getString("par_2")),
                                                                UTILS.BASIC.base64_decode(rs.getString("par_3")),
                                                                rs.getString("par_5"),
-                                                               rs.getDouble("bid"),
                                                                rs.getLong("days"));
+                      
+                      // Insert data source
+                      UTILS.DB.executeUpdate("INSERT INTO feeds_sources(feed_symbol, "
+                                                                     + "website) "
+                                                + "VALUES('"+rs.getString("par_5")+"', '"
+                                                            +rs.getString("par_4")+"')");
                                  
                       UTILS.NETWORK.broadcast(packet);
                    }  
@@ -474,12 +581,13 @@ public class CWebOps
                    // New feed branch
                    if (op.equals("ID_NEW_FEED_BRANCH"))
                    {
-                      CNewFeedComponentPacket packet=new CNewFeedComponentPacket(rs.getString("fee_adr"), 
-                                                                                 rs.getString("par_3"),
-                                                                                 UTILS.BASIC.base64_decode(rs.getString("par_1")),
-                                                                                 UTILS.BASIC.base64_decode(rs.getString("par_2")),
-                                                                                 rs.getString("par_4"),
-                                                                                 rs.getDouble("par_5"),
+                       CNewFeedComponentPacket packet=new CNewFeedComponentPacket(rs.getString("fee_adr"), 
+                                                                                 rs.getString("par_1"),
+                                                                                 UTILS.BASIC.base64_decode(rs.getString("par_3")),
+                                                                                 UTILS.BASIC.base64_decode(rs.getString("par_4")),
+                                                                                 rs.getString("par_2"),
+                                                                                 rs.getString("par_5"),
+                                                                                 rs.getDouble("par_6"),
                                                                                  rs.getLong("days"));
                                  
                       UTILS.NETWORK.broadcast(packet);
@@ -493,7 +601,7 @@ public class CWebOps
                                                              rs.getString("par_1"));
                        
                        // Add value
-                       payload.addVal(rs.getString("par_2"), rs.getDouble("par_3"));
+                       payload.addVal(rs.getString("par_2"), rs.getDouble("par_3"), rs.getString("par_4"));
                       
                        // Sign
                        payload.doSeal();
@@ -621,6 +729,43 @@ public class CWebOps
                         
                         UTILS.NETWORK.broadcast(packet);
                    }
+                   
+                   // New bet packet 
+                   if (op.equals("ID_NEW_BET"))
+                   {
+                      CNewBetPacket packet=new CNewBetPacket(rs.getString("fee_adr"), 
+                                                             rs.getString("target_adr"),
+                                                             rs.getString("par_11"),
+                                                             rs.getString("par_12"),
+                                                             rs.getString("par_13"),
+                                                             rs.getString("par_14"),
+                                                             rs.getString("par_15"),
+                                                             rs.getString("par_16"),
+                                                             rs.getString("par_1"),
+                                                             rs.getDouble("par_2"),
+                                                             rs.getDouble("par_3"),
+                                                             rs.getString("par_7"),
+                                                             rs.getString("par_8"),
+                                                             rs.getDouble("par_4"),
+                                                             rs.getDouble("par_6"),
+                                                             rs.getLong("par_17"),
+                                                             rs.getLong("par_9"),
+                                                             rs.getLong("par_10"),
+                                                             rs.getString("par_5"));
+                      UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                   // Buy bet
+                   if (op.equals("ID_BUY_BET"))
+                   {
+                       CBuyBetPacket packet=new CBuyBetPacket(rs.getString("fee_adr"), 
+                                                              rs.getString("target_adr"),
+                                                              rs.getLong("par_1"), 
+                                                              rs.getDouble("par_2"));
+                       
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
                 }
            }
            

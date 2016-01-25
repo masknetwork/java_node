@@ -28,15 +28,12 @@ public class CNewFeedPayload extends CPayload
     // Market days
     long mkt_days;
     
-    // Market bid
-    double mkt_bid;
     
     public CNewFeedPayload(String adr,
                            String title, 
                            String description, 
                            String website,
                            String symbol, 
-                           double mkt_bid, 
                            long mkt_days)
     {
        // Constructor
@@ -48,17 +45,11 @@ public class CNewFeedPayload extends CPayload
        // Description
        this.description=description;
        
-       // Pic
-       this.pic=pic;
-       
        // Website
        this.website=website;
         
        // Symbol
        this.symbol=symbol;
-        
-       // Market bid
-       this.mkt_bid=mkt_bid;
         
        // Market days
        this.mkt_days=mkt_days;
@@ -67,11 +58,9 @@ public class CNewFeedPayload extends CPayload
        hash=UTILS.BASIC.hash(this.getHash()+
 			     title+
                              description+  
-                             pic+
                              website+
 		             symbol+
-                             String.valueOf(mkt_bid)+
-			     String.valueOf(mkt_days));
+                             String.valueOf(mkt_days));
        
        // Sign
        this.sign();
@@ -95,11 +84,6 @@ public class CNewFeedPayload extends CPayload
          if (!UTILS.BASIC.titleValid(this.symbol))
              return new CResult(false, "Invalid symbol", "CNewFeedPayload", 67); 
          
-         // Pic valid
-         if (this.pic.length()>0)
-            if (!UTILS.BASIC.isLink(this.pic))
-              return new CResult(false, "Invalid picture", "CNewFeedPayload", 67); 
-          
          // Website valid ?
          if (this.website.length()>0)
             if (!UTILS.BASIC.isLink(this.website))
@@ -109,10 +93,6 @@ public class CNewFeedPayload extends CPayload
          if (this.feedExist(symbol))
              return new CResult(false, "Feed already exist", "CNewFeedPayload", 67); 
          
-         // Market bid
-         if (!UTILS.BASIC.mktBidValid(this.mkt_bid))
-             return new CResult(false, "Invalid market bid", "CNewFeedPayload", 67); 
-         
          // Market Days
          if (!UTILS.BASIC.mktDays(this.mkt_days))
              return new CResult(false, "Invalid market days", "CNewFeedPayload", 67); 
@@ -121,11 +101,9 @@ public class CNewFeedPayload extends CPayload
          String h=UTILS.BASIC.hash(this.getHash()+
 			           title+
                                    description+  
-                                   pic+
                                    website+
 		                   symbol+
-                                   String.valueOf(mkt_bid)+
-			           String.valueOf(mkt_days));
+                                   String.valueOf(mkt_days));
          
          if (!h.equals(this.hash))
              return new CResult(false, "Invalid hash", "CNewFeedPayload", 67); 
@@ -151,28 +129,20 @@ public class CNewFeedPayload extends CPayload
                     
             // Insert feed
             UTILS.DB.executeUpdate("INSERT INTO feeds(adr,"
-                                                   + "title, "
+                                                   + "name, "
                                                    + "description, "
-                                                   + "pic, "
                                                    + "website, "
                                                    + "symbol, "
-                                                   + "mkt_bid, "
-                                                   + "mkt_days, "
                                                    + "expire, "
                                                    + "block) VALUES('"+
                                                    this.target_adr+"', '"+
                                                    UTILS.BASIC.base64_encode(this.title)+"', '"+
                                                    UTILS.BASIC.base64_encode(this.description)+"', '"+
-                                                   UTILS.BASIC.base64_encode(this.pic)+"', '"+
                                                    UTILS.BASIC.base64_encode(this.website)+"', '"+
                                                    this.symbol+"', '"+
-                                                   String.valueOf(this.mkt_bid)+"', '"+
-                                                   String.valueOf(this.mkt_days)+"', '"+
                                                    expire+"', '"+
                                                    this.block+"')");
-            
-            // Rowhash
-            UTILS.ROWHASH.updateLastID("feeds");
+           
         }
         else return res;
         
