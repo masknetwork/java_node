@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.trans;
 
 import wallet.network.*;
@@ -6,7 +9,7 @@ import wallet.network.packets.blocks.*;
 public class CFeePayload extends CTransPayload 
 {
 	
-	public  CFeePayload(String src)
+	public  CFeePayload(String src) throws Exception
         {
 	  super(src, 
 		"default", 
@@ -24,7 +27,7 @@ public class CFeePayload extends CTransPayload
                 0); 
         }
 	  
-    public  CFeePayload(String src, double amount)
+    public  CFeePayload(String src, double amount) throws Exception
     {
          super(src, 
     	       "default", 
@@ -42,7 +45,7 @@ public class CFeePayload extends CTransPayload
                0); 
     }
     
-    public CResult check(CBlockPayload block)
+    public CResult check(CBlockPayload block) throws Exception
     {
     	 // Super
     	CResult res=super.check(block);

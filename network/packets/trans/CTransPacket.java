@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.trans;
 
 import java.text.DecimalFormat;
@@ -23,7 +26,7 @@ public class CTransPacket extends CBroadcastPacket
                             String req_field_3,
                             String req_field_4,
                             String req_field_5,
-                            long cartID)
+                            long cartID) throws Exception
 	{
 		// Super class
 		super("ID_TRANS_PACKET");
@@ -61,7 +64,7 @@ public class CTransPacket extends CBroadcastPacket
 	
 	
 	 // Check 
-	   public CResult check(CBlockPayload block)
+	   public CResult check(CBlockPayload block) throws Exception
 	   {
 	      // Super class
 	   	  CResult res=super.check(block);
@@ -111,23 +114,26 @@ public class CTransPacket extends CBroadcastPacket
 	   	  return new CResult(true, "Ok", "CNewAdPacket", 45);
 	   }
 	   
-	   public CResult commit(CBlockPayload block)
+	   public CResult commit(CBlockPayload block) throws Exception
 	   {
 	   	  // Superclass
-	   	  CResult res=super.commit(block);
-	   	  if (res.passed==false) return res;
+	   	  CResult res=this.check(block);
 	   	  
-	   	  // Deserialize transaction data
-	   	  CTransPayload dec_payload=(CTransPayload) UTILS.SERIAL.deserialize(payload);
+                  if (res.passed)
+                  {
+	   	     // Deserialize transaction data
+	   	     CTransPayload dec_payload=(CTransPayload) UTILS.SERIAL.deserialize(payload);
 
-		  // Fee is 0.01% ?
-                  if (Double.parseDouble(UTILS.FORMAT.format(this.fee.amount))>=Double.parseDouble(UTILS.FORMAT.format(this.fee.amount))) 
-		  {
+		     // Fee is 0.01% ?
+                     if (Double.parseDouble(UTILS.FORMAT.format(this.fee.amount))>=Double.parseDouble(UTILS.FORMAT.format(this.fee.amount))) 
+		     {
 			  res=dec_payload.commit(block);
 			  if (res.passed==false) return res;
-		  }
-		  else return new CResult(false, "Invalid fee amount", "CTransPacket", 39); 
-		  
+		     }
+		     else return new CResult(false, "Invalid fee amount", "CTransPacket", 39); 
+                  }
+                  else return res;
+                  
 		  // Return 
 	   	  return new CResult(true, "Ok", "CTransPacket", 62);
 	   }

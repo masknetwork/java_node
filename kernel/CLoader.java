@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import interfata.misc.CPanel;
@@ -51,7 +54,7 @@ public class CLoader extends Thread
     // Params
     Map<String,String> params = new LinkedHashMap<String, String>();
     
-	public CLoader(String link, String pass) 
+	public CLoader(String link, String pass)  throws Exception
 	{
 		 try 
 		 {
@@ -75,7 +78,7 @@ public class CLoader extends Thread
         
 	}
 	
-	public void addParam(String name, String value)
+	public void addParam(String name, String value) throws Exception
 	{
 		params.put(name, value);
                 
@@ -83,7 +86,7 @@ public class CLoader extends Thread
                 if (!pass.equals("")) this.params_str.concat(name+value);
 	}
 	
-	public CLoader(CPanel parent, String link) 
+	public CLoader(CPanel parent, String link)  throws Exception
 	{
 		 try 
 		 {
@@ -96,7 +99,7 @@ public class CLoader extends Thread
 	     } 
 	}
 	
-	public CLoader(CTicker parent, String link) 
+	public CLoader(CTicker parent, String link)  throws Exception
 	{
 		 try 
 		 {
@@ -149,9 +152,8 @@ public class CLoader extends Thread
 		            while ((line = br.readLine()) != null) data=data+line;
 			 }
 		 } 
-		 catch (IOException ex) 
+		 catch (Exception ex) 
 		 {
-		    UTILS.LOG.log("IOException", ex.getMessage(), "CLoader.java", 44);
 		    if (parent!=null) this.parent.loaderError();
 		 }
 		 

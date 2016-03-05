@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.adr;
 
 import wallet.kernel.*;
@@ -10,7 +13,7 @@ public class CShareAdrPacket extends CBroadcastPacket
 {
 	public CShareAdrPacket(String fee_adr, 
 			        String pub_key, 
-			        String share_adr)
+			        String share_adr) throws Exception
 	{
 		// Super class
 		super("ID_SHARE_ADR_PACKET");
@@ -34,7 +37,7 @@ public class CShareAdrPacket extends CBroadcastPacket
 	}
 	
 	// Check 
-	public CResult check(CBlockPayload block)
+	public CResult check(CBlockPayload block) throws Exception
 	{
 	    // Super class
 	    CResult res=super.check(block);
@@ -72,7 +75,7 @@ public class CShareAdrPacket extends CBroadcastPacket
 	   return new CResult(true, "Ok", "CRemoveEscrowPacket", 45);
 	}
 	   
-	public CResult commit(CBlockPayload block)
+	public CResult commit(CBlockPayload block) throws Exception
 	{
 	    // Superclass
 	    CResult res=super.commit(block);

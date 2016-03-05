@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.trans.details;
 
 import java.sql.ResultSet;
@@ -34,7 +37,7 @@ public class CMiscDetails extends CPayDetails
                         String req_field_3,
                         String req_field_4, 
                         String req_field_5,
-                        String adr) 
+                        String adr)  throws Exception
     {
 	// Secure random
        String k=UTILS.BASIC.randString(25);
@@ -67,7 +70,7 @@ public class CMiscDetails extends CPayDetails
                                   this.req_field_5);	
     }
     
-    public void getData(String adr, String trans_hash)
+    public void getData(String adr, String trans_hash) throws Exception
     {
        // Load address
        CAddress a=UTILS.WALLET.getAddress(adr);
@@ -93,7 +96,7 @@ public class CMiscDetails extends CPayDetails
        
    }
     
-    public CResult check(String adr)
+    public CResult check(String adr) throws Exception
     {
         try
         {

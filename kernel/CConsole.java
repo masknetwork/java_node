@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import java.io.File;
@@ -24,7 +27,7 @@ public class CConsole
 		
 	}
 	
-	public void write(String mes)
+	public void write(String mes) throws Exception
 	{
             // Format message
             Calendar cal = Calendar.getInstance();

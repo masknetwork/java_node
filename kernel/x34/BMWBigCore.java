@@ -1,5 +1,8 @@
 // $Id: BMWBigCore.java 214 2010-06-03 17:25:08Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

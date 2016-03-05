@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.mes;
 
 import java.security.SecureRandom;
@@ -27,7 +30,7 @@ public class CMesPayload extends CPayload
 	public CMesPayload(String sender_adr, 
 			           String receiver_adr, 
 			           String subj, 
-			           String mes) 
+			           String mes)  throws Exception
 	{
             super(sender_adr);
 	         
@@ -69,7 +72,7 @@ public class CMesPayload extends CPayload
         }
 	
 	
-	public CResult check(CBlockPayload block)
+	public CResult check(CBlockPayload block) throws Exception
 	{
             try
     	    {       
@@ -136,7 +139,7 @@ public class CMesPayload extends CPayload
 	   return new CResult(true, "Ok", "CNewAssetPayload", 67);
 	}
 	   
-	public CResult commit(CBlockPayload block)
+	public CResult commit(CBlockPayload block) throws Exception
 	{
 	    // Superclass
 	    super.commit(block);

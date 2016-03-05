@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.ads;
 
 import wallet.kernel.*;
@@ -16,7 +19,7 @@ public class CNewAdPacket extends CBroadcastPacket
 		       double price, 
 		       String title, 
 		       String mes, 
-		       String link)
+		       String link) throws Exception
    {
 	   // Super class
 	   super("ID_NEW_AD_PACKET");
@@ -41,7 +44,7 @@ public class CNewAdPacket extends CBroadcastPacket
    }
    
    // Check 
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
           // Super class
    	  CResult res=super.check(block);
@@ -84,7 +87,7 @@ public class CNewAdPacket extends CBroadcastPacket
    	  return new CResult(true, "Ok", "CNewAdPacket", 45);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
    	  // Superclass
    	  CResult res=super.commit(block);

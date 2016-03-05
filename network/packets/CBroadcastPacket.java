@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets;
 
 import wallet.network.*;
@@ -17,7 +20,7 @@ public class CBroadcastPacket extends CPacket
          // Signature
          public String sign;
 	   
-	public CBroadcastPacket(String tip) 
+	public CBroadcastPacket(String tip)  throws Exception
 	{
 	    // Constructor
 	    super(tip);
@@ -27,7 +30,7 @@ public class CBroadcastPacket extends CPacket
             
 	}
 	
-	public CResult check(CBlockPayload block)
+	public CResult check(CBlockPayload block) throws Exception
 	{
 	    // Parent check
             CResult res_parent=super.check(block);
@@ -56,11 +59,11 @@ public class CBroadcastPacket extends CPacket
 	}
 	
 	
-	public CResult commit(CBlockPayload block)
+	public CResult commit(CBlockPayload block) throws Exception
 	{
 	    // Commit
 	    CResult res=super.commit(block);
-	    if (res.passed==false) return res;
+	    if (!res.passed) return res;
 		
 	    // Commit fee
 	    if (!this.tip.equals("ID_BLOCK"))
@@ -73,7 +76,7 @@ public class CBroadcastPacket extends CPacket
 	    return new CResult(true, "Ok", "CBroadcastPacket", 30);
 	}
 	
-	public void sign()
+	public void sign() throws Exception
 	{
             // Packet hash
             this.hash=UTILS.BASIC.hash(this.tip+
@@ -86,7 +89,7 @@ public class CBroadcastPacket extends CPacket
 	    this.sign=adr.sign(this.hash);
 	}
 	
-	public void sign(String signer)
+	public void sign(String signer) throws Exception
 	{
 		  // Block
 		   this.block=UTILS.BASIC.block(); 
@@ -101,13 +104,13 @@ public class CBroadcastPacket extends CPacket
 		   this.sign=adr.sign(this.hash);
 	}
 	
-	public boolean checkSign()
+	public boolean checkSign() throws Exception
 	{
 	    CECC ecc=new CECC(this.fee.target_adr);
 		return (ecc.checkSig(hash, this.sign));
 	}
 	
-	public boolean checkSign(String signer)
+	public boolean checkSign(String signer) throws Exception
 	{
 		 CECC ecc=new CECC(signer);
 		 return (ecc.checkSig(hash, this.sign));

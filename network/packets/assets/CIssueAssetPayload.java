@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.assets;
 
 import java.sql.ResultSet;
@@ -69,7 +72,7 @@ public class CIssueAssetPayload extends CPayload
                                   double trans_fee,
                                   String can_increase,
                                   double interest,
-                                  long interval)
+                                  long interval) throws Exception
         {
 	    super(adr);
 	   
@@ -140,7 +143,7 @@ public class CIssueAssetPayload extends CPayload
         this.sign();
    }
     
-    public CResult check(CBlockPayload block)
+    public CResult check(CBlockPayload block) throws Exception
     {
        // Super class
        CResult res=super.check(block);
@@ -216,7 +219,7 @@ public class CIssueAssetPayload extends CPayload
                return new CResult(false, "Asset symbol already exist", "CIssueAssetPayload.java", 79);
            
            // Close
-           s.close();
+           rs.close(); s.close();
         }
         catch (SQLException ex)
         {
@@ -253,7 +256,7 @@ public class CIssueAssetPayload extends CPayload
   	return new CResult(true, "Ok", "CNewAssetPayload", 67);
     }
     
-    public CResult commit(CBlockPayload block)
+    public CResult commit(CBlockPayload block) throws Exception
     {
  	   CResult res=this.check(block);
  	   if (res.passed==false) return res;

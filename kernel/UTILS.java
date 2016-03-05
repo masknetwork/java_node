@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import java.text.DecimalFormat;
@@ -54,7 +57,10 @@ public class UTILS
     public static boolean LOG_QUERIES=false;
     
     // Binary options engine
-    public static COptions BIN_OPTIONS;
+    public static CCrons CRONS;
+    
+    // Miner utils
+    public static CCPUMinerUtils MINER_UTILS;
     
     // Formatter
     public static DecimalFormat FORMAT = new DecimalFormat("#.####");

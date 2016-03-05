@@ -1,4 +1,7 @@
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network;
 
 import java.math.BigInteger;
@@ -62,7 +65,7 @@ public class CCurBlock
    public CCPUMiner miner_8;
    
    // Block time
-   public long block_time=60;
+   public long block_time=20;
    
    // Retarget difficulty
    public long retarget=10;
@@ -74,7 +77,7 @@ public class CCurBlock
    public long peers=0;
  
    
-   public CCurBlock() throws SQLException
+   public CCurBlock() throws Exception
    {
        // Load network status
        Statement s=UTILS.DB.getStatement();
@@ -94,22 +97,22 @@ public class CCurBlock
        miner_6=new CCPUMiner();
        miner_7=new CCPUMiner();
        miner_8=new CCPUMiner();
-      
-       // Payload
-       payload=new CBlockPayload(UTILS.NET_STAT.last_block);
-       
-       // New hash
-       this.payload_hash=UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload));
        
        // Set signer
        this.setSigner();
        
+       // Payload
+       payload=new CBlockPayload(this.signer, UTILS.NET_STAT.last_block);
+       
+       // New hash
+       this.payload_hash=UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload));
+       
        // Close
-       s.close();
+       rs.close(); s.close();
    }
  
    
-   public void addPacket(CPacket packet)
+   public void addPacket(CPacket packet) throws Exception
    {
        if (this.nonce==0) 
        {
@@ -124,61 +127,84 @@ public class CCurBlock
        }
    }
    
-   public void setNonce(long nonce)
+   public void setNonce(long nonce) throws Exception
    {
       this.payload.hash();
       this.nonce=nonce;
    }
    
-   public void setSigner() throws SQLException
+   public void setSigner()  throws Exception
    {
-       // Difficulty
-       Statement s=UTILS.DB.getStatement();
+       try
+       {
+          // Difficulty
+          Statement s=UTILS.DB.getStatement();
        
-       // Load
-       ResultSet rs=s.executeQuery("SELECT * "
+          // Load
+          ResultSet rs=s.executeQuery("SELECT * "
                                    + "FROM my_adr "
                                   + "WHERE mine>0");
        
-       // Next
-       if (UTILS.DB.hasData(rs)) 
-       {
-           // Next
-           rs.next();
+          // Next
+          if (UTILS.DB.hasData(rs)) 
+          {
+              // Next
+              rs.next();
            
-           // Set miner
-           this.signer=rs.getString("adr");
-       }
+              // Set miner
+              this.signer=rs.getString("adr");
+              
+              // Signer balance
+              this.signer_balance=Math.round(UTILS.BASIC.getBalance(this.signer, "MSK"));
+              
+              // Payload
+              if (this.payload!=null) this.payload.target_adr=signer;
+          }
        
-       // Close
-       s.close();
+          // Close
+          rs.close(); s.close();
+       }
+       catch (Exception e) 
+       { 
+            UTILS.LOG.log("Exception", e.getMessage(), "CCurBlock.java", 182); 
+       }
    }
    
-   public void broadcast()
+   public void broadcast() throws Exception
    {
-       
        try
        {
-          // Load payload
-          block=new CBlockPacket(this.signer);
+          if (!this.signer.equals(""))
+          {
+             // Load payload
+             block=new CBlockPacket(this.signer, this.signer_balance);
          
-          // Serialize
-          block.payload=UTILS.SERIAL.serialize(payload);
+             // Serialize
+             block.payload=UTILS.SERIAL.serialize(payload);
           
-          // Payload hash
-          block.payload_hash=this.payload_hash;
+             // Payload hash
+             block.payload_hash=this.payload_hash;
           
-          // Tstamp
-          block.tstamp=this.last_tstamp;
+             // Tstamp
+             block.tstamp=this.last_tstamp;
           
-          // Nonce
-          block.nonce=this.nonce;
+             // Nonce
+             block.nonce=this.nonce;
        
-          // Sign
-          block.sign(this.block_hash);
+             // Sign
+             block.sign(this.block_hash);
        
-          // Broadcast
-          UTILS.NETWORK.broadcast(block);  
+             // Broadcast
+             UTILS.NETWORK.broadcast(block);  
+             
+             // New signer
+             this.setSigner();
+          }
+          else 
+          {
+              UTILS.LOG.log("Error : ", "No block signer available", "CCurBlock.java", 199);
+              this.nonce=0;
+          }
        }
        catch (Exception e) 
        { 
@@ -188,7 +214,7 @@ public class CCurBlock
    
    public void newBlock(long block, 
                         String prev_hash,
-                        long last_tstamp) throws SQLException
+                        long last_tstamp) throws Exception
    {
        // New block
        UTILS.NET_STAT.last_block_hash=prev_hash;
@@ -210,36 +236,43 @@ public class CCurBlock
                                    + "FROM blocks "
                                   + "WHERE block>="+(UTILS.NET_STAT.last_block-this.retarget)+" ORDER BY block ASC");
        
-       // Next
-       rs.next();
+       // Tstamp
+       long tstamp=0;
        
-       // Total
-       long tstamp=rs.getLong("tstamp");
+       if (UTILS.DB.hasData(rs))
+       {
+          // Next
+          rs.next();
+       
+          // Total
+          tstamp=rs.getLong("tstamp");
+       }
+       else tstamp=0; 
+       
        
        // Change dificulty ?
-       if (tstamp>last_tstamp-(this.retarget*60))
+       if (tstamp>last_tstamp-(this.retarget*20))
            UTILS.NET_STAT.net_dif=UTILS.NET_STAT.net_dif-UTILS.NET_STAT.net_dif/100;
       
-       else if (tstamp<last_tstamp-(this.retarget*60))
+       else if (tstamp<last_tstamp-(this.retarget*20))
          UTILS.NET_STAT.net_dif=UTILS.NET_STAT.net_dif+UTILS.NET_STAT.net_dif/100;
        
-       System.out.println(UTILS.NET_STAT.net_dif+", "+(last_tstamp-(this.retarget*60)));
        
        // Update net stat
        UTILS.DB.executeUpdate("UPDATE net_stat "
-                                        + "SET last_block='"+UTILS.NET_STAT.last_block + "', "
-                                            + "last_hash='"+UTILS.NET_STAT.last_block_hash+"', "
-                                            + "net_dif='"+UTILS.NET_STAT.net_dif+"'");
+                               + "SET last_block='"+UTILS.NET_STAT.last_block + "', "
+                                   + "last_block_hash='"+UTILS.NET_STAT.last_block_hash+"', "
+                                    + "net_dif='"+UTILS.NET_STAT.net_dif+"'");
        
        // New block
-       this.payload=new CBlockPayload(UTILS.NET_STAT.last_block+1);
+       this.payload=new CBlockPayload(this.signer, UTILS.NET_STAT.last_block+1);
        
       
        // Nonce
        this.nonce=0;
        
        // Close
-       s.close();
+       rs.close(); s.close();
    }
    
    

@@ -1,5 +1,8 @@
 // $Id: JHCore.java 255 2011-06-07 19:50:20Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

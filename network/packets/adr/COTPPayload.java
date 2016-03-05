@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.adr;
 
 import wallet.kernel.*;
@@ -24,7 +27,7 @@ public class COTPPayload extends CPayload
    public COTPPayload(String target_adr, 
 		      String next_hash,
 		      String def_address,
-		      long days)
+		      long days) throws Exception
    {
 	   // Super class
 	   super(target_adr);
@@ -60,7 +63,7 @@ public class COTPPayload extends CPayload
            }
    }
    
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
        try
        {
@@ -100,7 +103,7 @@ public class COTPPayload extends CPayload
        return new CResult(true, "Ok", "COTPPayload", 96);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
        try
        {
@@ -109,7 +112,6 @@ public class COTPPayload extends CPayload
 	    if (res.passed==false) return res;
 	    
 	    // Apply changes if possible
-	    if (UTILS.STATUS.last_tables_block<this.block)
 	    UTILS.BASIC.applyAdrAttr(this.target_adr, 
 	  	   	             "ID_OTP", 
 	  	   	             this.next_hash, 

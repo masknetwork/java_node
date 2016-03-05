@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.tweets;
 
 import java.sql.ResultSet;
@@ -16,7 +19,7 @@ public class CLikePayload extends CPayload
    long tweetID;
    	
    public CLikePayload(String adr, 
-		       long tweetID)
+		       long tweetID) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -32,7 +35,7 @@ public class CLikePayload extends CPayload
  	   this.sign();
    }
    
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
        try
        {
@@ -86,7 +89,7 @@ public class CLikePayload extends CPayload
  	return new CResult(true, "Ok", "CTweetMesStatusPayload", 164);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
        try
        {

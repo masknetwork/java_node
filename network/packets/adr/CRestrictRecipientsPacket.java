@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.adr;
 
 import wallet.kernel.*;
@@ -15,7 +18,7 @@ public class CRestrictRecipientsPacket extends CBroadcastPacket
 		                            String adr_3, 
 		                            String adr_4,
                                             String adr_5,
-		                            int days)
+		                            int days) throws Exception
    {
 	   // Super class
 	   super("ID_RESTRICT_REC_PACKET");
@@ -40,7 +43,7 @@ public class CRestrictRecipientsPacket extends CBroadcastPacket
    }
    
    // Check 
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
       // Super class
       CResult res=super.check(block);
@@ -87,14 +90,14 @@ public class CRestrictRecipientsPacket extends CBroadcastPacket
       return new CResult(true, "Ok", "CRemoveEscrowPacket", 45);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
    	  // Superclass
    	  CResult res=super.commit(block);
    	  if (res.passed==false) return res;
    	  
    	  // Deserialize transaction data
-     CRestrictRecipientsPayload dec_payload=(CRestrictRecipientsPayload) UTILS.SERIAL.deserialize(payload);
+          CRestrictRecipientsPayload dec_payload=(CRestrictRecipientsPayload) UTILS.SERIAL.deserialize(payload);
 
 	  // Fee is 0.0001 / day ?
 	  if (this.fee.amount>=(0.0001*dec_payload.days)) 

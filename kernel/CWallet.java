@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import java.awt.List;
@@ -48,7 +51,7 @@ public class CWallet
    // Wallet
    File f;
    
-   public CWallet()
+   public CWallet() throws Exception
    {
 	     // Check if settings file exists
 		  f=new File(UTILS.WRITEDIR+"wallet.msk");
@@ -122,7 +125,7 @@ public class CWallet
 		  }
      }
    
-   public void checkForNewAdr() throws SQLException
+   public void checkForNewAdr() throws Exception
    {
 	   // Check for new adddresses
 	   for (int a=1; a<=100; a++)
@@ -143,7 +146,7 @@ public class CWallet
 	   }
    }
    
-     public void refresh()
+     public void refresh() throws Exception
      {
     	 this.balance=0;
     	 
@@ -162,7 +165,7 @@ public class CWallet
     	 }
      }
    
-     public void save()
+     public void save() throws Exception
      {
     	 String w="";
     	 
@@ -189,7 +192,7 @@ public class CWallet
     	 }
      }
      
-     public void removeAdr(int no)
+     public void removeAdr(int no) throws Exception
      {
        this.addresses.remove(no);
        save();
@@ -197,7 +200,7 @@ public class CWallet
      
     
      
-      public boolean newAddress(String user, String curve, String description)
+      public boolean newAddress(String user, String curve, String description) throws Exception
       {
          try
          {    
@@ -229,7 +232,7 @@ public class CWallet
                                                    UTILS.BASIC.base64_encode(description)+"')");
         
            // Close
-           s.close();
+           rs.close(); s.close();
          
            // Save wallet
 	   save();
@@ -248,7 +251,7 @@ public class CWallet
     	 return true;
      }
      
-     public boolean add(CAddress adr)
+     public boolean add(CAddress adr) throws Exception
      {
     	 // Generate an address
 		 this.addresses.add(adr);
@@ -265,13 +268,13 @@ public class CWallet
     	 return true;
      }
      
-     public String getFirst()
+     public String getFirst() throws Exception
      {
          CAddress temp=(CAddress) this.addresses.get(0);
          return temp.getPublic();
      }
      
-     public boolean isMine(String adr)
+     public boolean isMine(String adr) throws Exception
      {
     	 for (int a=0; a<=this.addresses.size()-1; a++)
     		 if (((CAddress)this.addresses.get(a)).getPublic().equals(adr))
@@ -280,7 +283,7 @@ public class CWallet
     	 return false;
      }
      
-     public boolean checkPass(String pass)
+     public boolean checkPass(String pass) throws Exception
      {
     	 if (org.apache.commons.codec.digest.DigestUtils.sha512Hex(pass)!=this.pass) 
     		 return false;
@@ -288,7 +291,7 @@ public class CWallet
     		 return true;
      }
      
-     public CAddress getAddress(String adr)
+     public CAddress getAddress(String adr) throws Exception
      {
     	 if (adr.length()<40) adr=UTILS.BASIC.addressFromDomain(adr);
     		 
@@ -302,8 +305,5 @@ public class CWallet
     	 return null;
      }
      
-     public String sign(String adr, String hash)
-     {
-    	 return ("88888");
-     }
+   
 }

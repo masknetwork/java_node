@@ -1,5 +1,8 @@
 // $Id: Fugue224.java 159 2010-05-01 15:41:17Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.peers;
 
 import java.util.ArrayList;
@@ -15,7 +18,7 @@ public class CGetPeersResponsePacket extends CPacket
     // Peers
     public ArrayList peers=new ArrayList(); 
     
-    public CGetPeersResponsePacket()
+    public CGetPeersResponsePacket()  throws Exception
     {
         // Constructor
         super("ID_GET_PEERS_RESPONSE_PACKET");
@@ -45,7 +48,7 @@ public class CGetPeersResponsePacket extends CPacket
            }
         
            // Close
-           s.close();
+           rs.close(); s.close();
         }
         catch (SQLException ex)
         {
@@ -60,7 +63,7 @@ public class CGetPeersResponsePacket extends CPacket
         this.peers.add(peer);
     }
     
-    public CResult check(CBlockPayload block)
+    public CResult check(CBlockPayload block) throws Exception
     {
          // Check data
         for (int a=0; a<=this.peers.size()-1; a++)

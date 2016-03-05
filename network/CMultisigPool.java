@@ -3,6 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network;
 
 /**

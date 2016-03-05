@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.adr;
 
 import java.sql.ResultSet;
@@ -42,7 +45,7 @@ public class CProfilePayload extends CPayload
                           String website, 
                           String pic_back, 
                           String pic, 
-		          long days)
+		          long days) throws Exception
    {
 	   // Superclass
 	   super(target_adr);
@@ -85,7 +88,7 @@ public class CProfilePayload extends CPayload
            this.sign();
    }
    
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
    	  // Super class
    	  CResult res=super.check(block);
@@ -145,7 +148,7 @@ public class CProfilePayload extends CPayload
  	   return new CResult(true, "Ok", "CAddEscrowPayload", 67);
    }
    
-   public CResult commit(CBlockPayload block) 
+   public CResult commit(CBlockPayload block) throws Exception
    {
        CResult res=this.check(block);
        if (res.passed==false) return res;

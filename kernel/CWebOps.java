@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import java.sql.ResultSet;
@@ -24,23 +27,31 @@ import wallet.network.packets.domains.CRentDomainPacket;
 import wallet.network.packets.domains.CSaleDomainPacket;
 import wallet.network.packets.domains.CTransferDomainPacket;
 import wallet.network.packets.domains.CUpdatePriceDomainPacket;
-import wallet.network.packets.feeds.CFeedPacket;
-import wallet.network.packets.feeds.CFeedPayload;
-import wallet.network.packets.feeds.CNewFeedComponentPacket;
-import wallet.network.packets.feeds.CNewFeedPacket;
-import wallet.network.packets.markets.assets.automated.CNewAutoMarketPacket;
-import wallet.network.packets.markets.assets.automated.CNewAutoMarketTradePacket;
-import wallet.network.packets.markets.assets.regular.CCloseRegMarketPosPacket;
-import wallet.network.packets.markets.assets.regular.CNewRegMarketOrderPacket;
-import wallet.network.packets.markets.assets.regular.CNewRegMarketPacket;
-import wallet.network.packets.markets.assets.regular.CNewRegMarketPosPacket;
-import wallet.network.packets.markets.feeds.CNewFeedMarketPacket;
-import wallet.network.packets.markets.feeds.CNewFeedMarketPayload;
-import wallet.network.packets.feeds.bets.CBuyBetPacket;
-import wallet.network.packets.feeds.bets.CNewBetPacket;
+import wallet.network.packets.trade.feeds.CFeedPacket;
+import wallet.network.packets.trade.feeds.CFeedPayload;
+import wallet.network.packets.trade.feeds.CNewFeedComponentPacket;
+import wallet.network.packets.trade.feeds.CNewFeedPacket;
+import wallet.network.packets.assets.auto_mkts.CNewAutoMarketPacket;
+import wallet.network.packets.assets.auto_mkts.CNewAutoMarketTradePacket;
+import wallet.network.packets.assets.reg_mkts.CCloseRegMarketPosPacket;
+import wallet.network.packets.assets.reg_mkts.CNewRegMarketTradePacket;
+import wallet.network.packets.assets.reg_mkts.CNewRegMarketPacket;
+import wallet.network.packets.assets.reg_mkts.CNewRegMarketPosPacket;
+import wallet.network.packets.trade.speculative.CNewFeedMarketPacket;
+import wallet.network.packets.trade.speculative.CNewFeedMarketPayload;
+import wallet.network.packets.trade.bets.CBuyBetPacket;
+import wallet.network.packets.trade.bets.CNewBetPacket;
+import wallet.network.packets.trade.pegged_assets.CIssuePeggedAssetPacket;
+import wallet.network.packets.trade.pegged_assets.CNewPeggedAssetOrderPacket;
+import wallet.network.packets.trade.speculative.CClosePosPacket;
+import wallet.network.packets.trade.speculative.CNewSpecMarketPosPacket;
+import wallet.network.packets.trade.speculative.CUpdatePosPacket;
 import wallet.network.packets.mes.CMesPacket;
 import wallet.network.packets.misc.CIncreaseMktBidPacket;
 import wallet.network.packets.misc.CRemoveItemPacket;
+import wallet.network.packets.shop.escrowers.CNewEscrowerPacket;
+import wallet.network.packets.trade.exchangers.CNewExchangerPacket;
+import wallet.network.packets.trade.exchangers.CNewExchangerPayload;
 import wallet.network.packets.trans.CEscrowedTransSignPacket;
 import wallet.network.packets.trans.CMultisigTransSignPacket;
 import wallet.network.packets.trans.CTransPacket;
@@ -290,6 +301,32 @@ public class CWebOps
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
+                   if (op.equals("ID_NEW_EXCHANGE"))
+                   {
+                       CNewExchangerPacket packet=new CNewExchangerPacket(rs.getString("fee_adr"),
+                                                                          rs.getString("target_adr"),
+		                                                          rs.getString("par_1"), 
+                                                                          rs.getString("par_2"), 
+                                                                          rs.getString("par_3"), 
+                                                                          rs.getString("par_4"), 
+                                                                          rs.getString("par_5"), 
+                                                                          rs.getString("par_6"), 
+                                                                          rs.getString("par_7"), 
+                                                                          rs.getString("par_8"), 
+                                                                          rs.getString("par_9"), 
+                                                                          rs.getDouble("par_10"), 
+                                                                          rs.getString("par_11"), 
+                                                                          rs.getString("par_12"), 
+                                                                          rs.getDouble("par_13"), 
+                                                                          rs.getString("par_14"), 
+                                                                          rs.getString("par_15"), 
+                                                                          rs.getString("par_16"), 
+                                                                          rs.getString("par_17"), 
+		                                                          rs.getLong("days"));
+                       
+                        UTILS.NETWORK.broadcast(packet);
+                   }
+                   
                    if (op.equals("ID_REQ_DATA")) 
                    {
                         CReqDataPacket packet=new CReqDataPacket(rs.getString("fee_adr"),
@@ -403,7 +440,9 @@ public class CWebOps
                                                                 rs.getString("par_4"),
                                                                 rs.getString("par_5"),
                                                                 rs.getInt("par_6"),
-                                                                rs.getLong("days"));
+                                                                rs.getLong("days"),
+                                                                rs.getString("packet_sign"),
+                                                                rs.getString("payload_sign"));
                        UTILS.NETWORK.broadcast(packet);
                     }
                     
@@ -427,6 +466,8 @@ public class CWebOps
                                          rs.getString("par_1"),
                                          rs.getString("par_2"),
                                          rs.getString("par_3"));
+                       
+                       UTILS.CBLOCK.setSigner();
                    }
                    
                    if (op.equals("ID_SHUTDOWN"))
@@ -558,6 +599,48 @@ public class CWebOps
                         UTILS.NETWORK.broadcast(packet);
                    }
                    
+                   // Issue pegged asset
+                   if (op.equals("ID_ISSUE_PEGGED_ASSET"))
+                   {
+                       
+                       CIssuePeggedAssetPacket packet=new CIssuePeggedAssetPacket(rs.getString("fee_adr"), 
+                                                                                  rs.getString("target_adr"),
+                                                                                  rs.getString("par_1"), 
+                                                                                  rs.getString("par_2"), 
+				                                                  rs.getString("par_3"), 
+                                                                                  rs.getString("par_4"), 
+                                                                                  rs.getString("par_5"), 
+                                                                                  rs.getString("par_6"), 
+				                                                  rs.getString("par_7"), 
+				                                                  rs.getLong("par_8"), 
+				                                                  rs.getDouble("par_9"), 
+				                                                  rs.getString("par_10"), 
+			                                                          rs.getInt("par_11"), 
+				                                                  rs.getLong("par_12"), 
+				                                                  rs.getDouble("par_13"), 
+				                                                  rs.getString("par_14"),
+				                                                  rs.getDouble("par_15"),
+				                                                  rs.getString("par_16"),
+				                                                  rs.getString("par_17"),
+                                                                                  rs.getString("par_18"),
+                                                                                  rs.getString("par_19"),
+                                                                                  rs.getLong("days"));
+                       
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                   // Trade pegged asset
+                   if (op.equals("ID_TRADE_PEGGED_ASSET"))
+                   {
+                      CNewPeggedAssetOrderPacket packet=new CNewPeggedAssetOrderPacket(rs.getString("fee_adr"), 
+                                                                                       rs.getString("target_adr"),
+                                                                                       rs.getLong("par_1"), 
+                                                                                       rs.getString("par_2"), 
+				                                                       rs.getDouble("par_3"));
+                      
+                      UTILS.NETWORK.broadcast(packet);
+                   }
+                   
                    // New feed
                    if (op.equals("ID_NEW_FEED"))
                    {
@@ -568,12 +651,6 @@ public class CWebOps
                                                                UTILS.BASIC.base64_decode(rs.getString("par_3")),
                                                                rs.getString("par_5"),
                                                                rs.getLong("days"));
-                      
-                      // Insert data source
-                      UTILS.DB.executeUpdate("INSERT INTO feeds_sources(feed_symbol, "
-                                                                     + "website) "
-                                                + "VALUES('"+rs.getString("par_5")+"', '"
-                                                            +rs.getString("par_4")+"')");
                                  
                       UTILS.NETWORK.broadcast(packet);
                    }  
@@ -621,17 +698,13 @@ public class CWebOps
                    if (op.equals("ID_NEW_REGULAR_ASSET_MARKET"))
                    {
                        CNewRegMarketPacket packet=new CNewRegMarketPacket(rs.getString("fee_adr"), 
-                                                                          rs.getString("target_adr"),
-                                                                          rs.getString("par_1"),
-                                                                          rs.getString("par_2"), 
-                                                                          rs.getString("par_3"),
-                                                                          UTILS.BASIC.base64_decode(rs.getString("par_4")),
-                                                                          UTILS.BASIC.base64_decode(rs.getString("par_5")),
-                                                                          rs.getString("par_6"),
-                                                                          rs.getDouble("par_7"),
-                                                                          rs.getInt("par_8"),
-                                                                          rs.getDouble("bid"), 
-                                                                          rs.getLong("days"));
+                                                                            rs.getString("target_adr"),
+                                                                            rs.getString("par_1"),
+                                                                            rs.getString("par_2"), 
+                                                                            rs.getInt("par_5"),
+                                                                            rs.getString("par_3"), 
+                                                                            rs.getString("par_4"),
+                                                                            rs.getLong("days"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -663,19 +736,19 @@ public class CWebOps
                    {
                        CNewRegMarketPosPacket packet=new CNewRegMarketPosPacket(rs.getString("fee_adr"), 
                                                                                 rs.getString("target_adr"),
-                                                                                rs.getString("par_4"), 
-                                                                                rs.getString("par_3"),
-                                                                                rs.getDouble("par_1"),
-                                                                                rs.getDouble("par_2"),
+                                                                                rs.getLong("par_1"), 
+                                                                                rs.getString("par_2"),
+                                                                                rs.getDouble("par_4"),
+                                                                                rs.getDouble("par_3"),
                                                                                 rs.getLong("days"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
                    // New regular asset market
-                   if (op.equals("ID_NEW_REGULAR_MKT_ORDER"))
+                   if (op.equals("ID_NEW_REGULAR_MKT_TRADE"))
                    {
-                       CNewRegMarketOrderPacket packet=new CNewRegMarketOrderPacket(rs.getString("fee_adr"), 
+                       CNewRegMarketTradePacket packet=new CNewRegMarketTradePacket(rs.getString("fee_adr"), 
                                                                                     rs.getString("target_adr"),
                                                                                     rs.getString("par_1"), 
                                                                                     rs.getDouble("par_2"));
@@ -688,33 +761,89 @@ public class CWebOps
                    {
                        CCloseRegMarketPosPacket packet=new CCloseRegMarketPosPacket(rs.getString("fee_adr"), 
                                                                                     rs.getString("target_adr"),
-                                                                                    rs.getString("par_1"));
+                                                                                    rs.getLong("par_1"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
                    // New feed market
-                   if (op.equals("ID_NEW_REGULAR_FEED_MARKET"))
+                   if (op.equals("ID_NEW_SPEC_MARKET"))
                    {
                        CNewFeedMarketPacket packet=new CNewFeedMarketPacket(rs.getString("fee_adr"), 
-                                                                            rs.getString("target_adr"),
-                                                                            rs.getString("par_1"),
-                                                                            rs.getString("par_2"),
-			                                                    rs.getString("par_3"),
-			                                                    rs.getString("par_4"),
-			                                                    rs.getString("par_5"),
-			                                                    rs.getLong("par_6"), 
-			                                                    rs.getString("par_7"), 
-			                                                    UTILS.BASIC.base64_decode(rs.getString("par_8")), 
-			                                                    UTILS.BASIC.base64_decode(rs.getString("par_9")),
-			                                                    rs.getString("par_10"),
-			                                                    rs.getDouble("par_11"),
-			                                                    rs.getInt("par_12"),
-                                                                            rs.getLong("par_13"),
-                                                                            rs.getLong("par_14"),
-			                                                    rs.getDouble("bid"),
-			                                                    rs.getLong("days"));
+                                                                             rs.getString("target_adr"),
+			                                                     rs.getString("par_1"), 
+			                                                     rs.getString("par_2"), 
+				                                             rs.getString("par_3"), 
+				                                             rs.getString("par_4"), 
+			 	                                             rs.getString("par_5"), 
+				                                             rs.getString("par_6"), 
+				                                             rs.getString("par_7"), 
+				                                             rs.getLong("par_8"),
+				                                             rs.getLong("par_9"), 
+			 	                                             rs.getLong("par_10"),
+				                                             rs.getLong("par_11"),
+			                                                     rs.getDouble("par_12"),
+				                                             rs.getString("par_13"),
+			                                                     rs.getInt("par_14"),
+			                                                     rs.getString("par_15"),
+				                                             rs.getDouble("par_16"),
+			                                                     rs.getDouble("par_17"),
+				                                             rs.getLong("par_18"),
+			                                                     UTILS.BASIC.base64_decode(rs.getString("par_19")),
+				                                             UTILS.BASIC.base64_decode(rs.getString("par_20")),
+				                                             rs.getDouble("par_21"),
+				                                             rs.getLong("days"));
                        
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                   // New speculative position
+                   if (op.equals("ID_NEW_SPEC_POS"))
+                   {
+                       CNewSpecMarketPosPacket packet=new CNewSpecMarketPosPacket(rs.getString("fee_adr"), 
+                                                                                  rs.getString("target_adr"),
+		                                                                  rs.getLong("par_1"), 
+				                                                  rs.getString("par_2"), 
+				                                                  rs.getString("par_3"), 
+				                                                  rs.getDouble("par_4"), 
+				                                                  rs.getDouble("par_5"), 
+				                                                  rs.getDouble("par_6"), 
+				                                                  rs.getLong("par_7"),
+				                                                  rs.getDouble("par_8"));
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                   // Close spec position
+                   if (op.equals("ID_CLOSE_SPEC_POS"))
+                   {
+                       CClosePosPacket packet=new CClosePosPacket(rs.getString("fee_adr"), 
+                                                                  rs.getString("target_adr"),
+		                                                  rs.getLong("par_1"),
+                                                                  rs.getLong("par_2"));
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                   // Close spec position
+                   if (op.equals("ID_CHANGE_SPEC_POS"))
+                   {
+                       CUpdatePosPacket packet=new CUpdatePosPacket(rs.getString("fee_adr"), 
+                                                                    rs.getString("target_adr"),
+		                                                    rs.getLong("par_1"),
+                                                                    rs.getDouble("par_2"),
+                                                                    rs.getDouble("par_3"));
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                   // New Escrower
+                   if (op.equals("ID_NEW_ESCROWER"))
+                   {
+                       CNewEscrowerPacket packet=new CNewEscrowerPacket(rs.getString("fee_adr"), 
+                                                                        rs.getString("target_adr"),
+		                                                        rs.getString("par_1"),
+                                                                        rs.getString("par_2"),
+                                                                        rs.getString("par_3"),
+                                                                        rs.getDouble("par_4"),
+                                                                        rs.getLong("days"));
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
@@ -770,7 +899,7 @@ public class CWebOps
            }
            
            // Close
-           s.close();
+           rs.close(); s.close();
            
            // Update web ops
            UTILS.DB.executeUpdate("UPDATE web_ops SET status='ID_EXECUTED'");

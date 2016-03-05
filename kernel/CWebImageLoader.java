@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import java.awt.Image;
@@ -89,17 +92,17 @@ public class CWebImageLoader extends Thread
 	    catch (IOException e) 
 	    { 
 		UTILS.LOG.log("IOException", e.getMessage(), "CWebImageLoader.java", 66); 
-                UTILS.DB.executeUpdate("DELETE FROM imgs_stack WHERE url='"+this.url+"'");
+                
 	    }
 	    catch (InterruptedException ex) 
 	    { 
 		UTILS.LOG.log("InterruptedException", ex.getMessage(), "CWebImageLoader.java", 57); 
-                UTILS.DB.executeUpdate("DELETE FROM imgs_stack WHERE url='"+this.url+"'");
+              
 	    }
 	    catch (Exception e) 
 	    { 
 	       UTILS.LOG.log("Exception", e.getMessage(), "CWebImageLoader.java", 67); 
-               UTILS.DB.executeUpdate("DELETE FROM imgs_stack WHERE url='"+this.url+"'");
+              
 	    }
 		   
 	}

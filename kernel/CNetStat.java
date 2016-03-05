@@ -1,14 +1,16 @@
-package wallet.kernel;
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
 
-import com.sun.xml.internal.fastinfoset.util.StringArray;
+package wallet.kernel;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
-public class CNetStat 
+public class CNetStat
 {
     // Tables
-    StringArray tables=new StringArray();
+    public ArrayList<String> tables=new ArrayList<String>();
     
     // Last block
     public long last_block;
@@ -82,8 +84,11 @@ public class CNetStat
     // Tweets Links
     public String tweets_likes;
     
+    // Blocks per day
+    public long blocks_per_day=4320;
     
-    public CNetStat()
+    
+    public CNetStat() throws Exception
     {
         try
         {
@@ -121,7 +126,7 @@ public class CNetStat
            this.last_block=rs.getLong("last_block");
            
            // Last hash
-           this.last_block_hash=rs.getString("last_hash");
+           this.last_block_hash=rs.getString("last_block_hash");
            
            // Difficulty
            this.net_dif=rs.getLong("net_dif");
@@ -142,73 +147,82 @@ public class CNetStat
            this.assets=rs.getString("assets");
     
            // Assets owners
-           this.assets_owners=rs.getString("blocks");
+           this.assets_owners=rs.getString("assets_owners");
     
            // Blocks
            this.blocks=rs.getString("blocks");
     
            // Domains
-           this.domains=rs.getString("blocks");
+           this.domains=rs.getString("domains");
     
            // Escrowed
-           this.escrowed=rs.getString("blocks");
+           this.escrowed=rs.getString("escrowed");
     
            // Feeds
-           this.feeds=rs.getString("blocks");
+           this.feeds=rs.getString("feeds");
     
            // Bets
-           this.feeds_bets=rs.getString("blocks");
+           this.feeds_bets=rs.getString("feeds_bets");
     
            // Bets pos
-           this.feeds_bets_pos=rs.getString("blocks");
+           this.feeds_bets_pos=rs.getString("feeds_bets_pos");
     
            // Branches
-           this.feeds_branches=rs.getString("blocks");
+           this.feeds_branches=rs.getString("feeds_branches");
     
            // Multisig
-           this.multisig=rs.getString("blocks");
+           this.multisig=rs.getString("multisig");
     
            // Profiles
-           this.profiles=rs.getString("blocks");
+           this.profiles=rs.getString("profiles");
     
            // Req Data
-           this.req_data=rs.getString("blocks");
+           this.req_data=rs.getString("req_data");
     
            // Tweets
-           this.tweets=rs.getString("blocks");
+           this.tweets=rs.getString("tweets");
     
            // Tweets Comments
-           this.tweets_comments=rs.getString("blocks");
+           this.tweets_comments=rs.getString("tweets_comments");
     
            // Tweets Follow
-           this.tweets_follow=rs.getString("blocks");
+           this.tweets_follow=rs.getString("tweets_follow");
     
            // Tweets Links
-           this.tweets_likes=rs.getString("blocks");
+           this.tweets_likes=rs.getString("tweets_likes");
        }
         catch (SQLException ex)
         {
-               UTILS.LOG.log("SQLException", ex.getMessage(), "CRentDomainPayload.java", 84);
+               UTILS.LOG.log("SQLException", ex.getMessage(), "CNetStat.java", 84);
         }
        
     }
     
-    public void addQuery(String query)
+    public void addQuery(String query) throws Exception
     {
-       for (int a=0; a<=this.tables.getSize()-1; a++)
+        String table="";
+        
+       for (int a=0; a<=this.tables.size()-1; a++)
        {
+           // Table
+           table=this.tables.get(a);
+           
            // Inserts
-           if (query.indexOf("INSERT INTO "+this.tables.get(a))==0) this.add(query);
+           if (query.indexOf("INSERT INTO "+table+" ")==0 || 
+               query.indexOf("INSERT INTO "+table+"(")==0) 
+           this.add(query);
            
            // Updates
-           if (query.indexOf("UPDATE "+this.tables.get(a))==0) this.add(query);
+           if (query.indexOf("UPDATE "+table+" ")==0) 
+           this.add(query);
            
            // Deletes
-           if (query.indexOf("DELETE FROM "+this.tables.get(a))==0) this.add(query);
+           if (query.indexOf("DELETE FROM "+table+" ")==0) 
+           this.add(query);
        }
     }
     
-    public void add(String query)
+    public void add(String query) throws Exception
     {
         // Query hash
         String query_hash=UTILS.BASIC.hash(UTILS.BASIC.base64_encode(query));
@@ -227,7 +241,7 @@ public class CNetStat
         this.sql_log_status=hash;
     }
     
-    public void refreshTables(long block)
+    public void refreshTables(long block) throws Exception
     {
         // Init
         UTILS.DB.executeUpdate("SET group_concat_max_len = 1000000000000000");

@@ -1,5 +1,8 @@
 // $Id: Groestl384.java 198 2010-05-27 16:45:04Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

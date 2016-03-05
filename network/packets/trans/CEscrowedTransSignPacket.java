@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.trans;
 
 import java.sql.ResultSet;
@@ -14,7 +17,7 @@ public class CEscrowedTransSignPacket  extends CBroadcastPacket
     public CEscrowedTransSignPacket(String fee_adr,
                                     String trans_hash, 
                                     String signer, 
-                                    String type)
+                                    String type) throws Exception
     {
 	  super("ID_ESCROWED_TRANS_SIGN");
 	  
@@ -32,7 +35,7 @@ public class CEscrowedTransSignPacket  extends CBroadcastPacket
   }
   
   // Check 
-  public CResult check(CBlockPayload block)
+  public CResult check(CBlockPayload block) throws Exception
   {
      // Super class
      CResult res=super.check(block);
@@ -65,7 +68,7 @@ public class CEscrowedTransSignPacket  extends CBroadcastPacket
      return new CResult(true, "Ok", "CMesPacketPacket", 45);
   }
   
-  public CResult commit(CBlockPayload block)
+  public CResult commit(CBlockPayload block) throws Exception
   {
      // Superclass
      CResult res=super.commit(block);

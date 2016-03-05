@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.misc;
 
 import java.sql.ResultSet;
@@ -26,7 +29,7 @@ public class CIncreaseMktBidPayload  extends CPayload
     public CIncreaseMktBidPayload(String adr, 
                                   double mkt_bid,
                                   String table,
-                                  String rowhash)
+                                  String rowhash) throws Exception
     {
         // Constructor
         super(adr);
@@ -53,7 +56,7 @@ public class CIncreaseMktBidPayload  extends CPayload
 	this.sign();
     }
     
-    public CResult check(CBlockPayload block)
+    public CResult check(CBlockPayload block) throws Exception
     {
         try
         {
@@ -89,7 +92,7 @@ public class CIncreaseMktBidPayload  extends CPayload
                                          + "AND expires>0");
             if (!UTILS.DB.hasData(rs))
 	    {
-	        s.close();
+	        rs.close(); s.close();
                 return new CResult(false, "Invalid rowhash", "CIncreaseMktBidPayload.java", 61);
 	    }
             
@@ -100,7 +103,7 @@ public class CIncreaseMktBidPayload  extends CPayload
             if (rs.getDouble("mkt_bid")>this.mkt_bid)
 	       return new CResult(false, "Invalid market bid", "CIncreaseMktBidPayload.java", 61);
             
-	    s.close();
+	    rs.close(); s.close();
         }
         catch (SQLException ex)
         {
@@ -112,7 +115,7 @@ public class CIncreaseMktBidPayload  extends CPayload
 	return new CResult(true, "Ok", "CRemoveItemPayload", 67);
     }
 	
-	public CResult commit(CBlockPayload block)
+	public CResult commit(CBlockPayload block) throws Exception
 	{
             CResult res=this.check(block);
 	    if (res.passed==false) return res;

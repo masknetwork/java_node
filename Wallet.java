@@ -7,16 +7,14 @@ import java.util.Date;
 import java.util.Random;
 import wallet.kernel.*;
 import wallet.network.*;
-import wallet.network.packets.adr.CReqInterestPacket;
 import wallet.network.packets.assets.CIssueAssetPacket;
 import wallet.network.packets.blocks.CBlockPayload;
 import wallet.network.packets.domains.CBuyDomainPacket;
 import wallet.network.packets.domains.CRenewDomainPacket;
 import wallet.network.packets.domains.CTransferDomainPacket;
 import wallet.network.packets.domains.CUpdatePriceDomainPacket;
+import wallet.network.packets.sync.CBlockchain;
 import wallet.network.packets.trans.CTransPacket;
-import wallet.network.packets.feeds.*;
-import wallet.network.packets.markets.assets.automated.*;
 import wallet.network.packets.tweets.CLikePacket;
 import wallet.network.packets.tweets.CNewTweetPacket;
 
@@ -50,7 +48,8 @@ public class Wallet
         CUtils utils=new CUtils();
         UTILS.BASIC=utils;
         
-       
+       // Miner utils
+       UTILS.MINER_UTILS=new CCPUMinerUtils();
         
         // Bootstrap sequence
         CBootstrap boot=new CBootstrap();
@@ -75,8 +74,8 @@ public class Wallet
         UTILS.SERIAL=new CSerializer();
         
          // Net stat
-        UTILS.NET_STAT=new CNetStat();
-        UTILS.NET_STAT.refreshTables(0);
+         UTILS.NET_STAT=new CNetStat();
+         UTILS.NET_STAT.refreshTables(0);
         
         // Current block
         CCurBlock block=new CCurBlock();
@@ -91,9 +90,9 @@ public class Wallet
         CFeedsSources src=new CFeedsSources();
         
         // Binary Options Engine
-        UTILS.BIN_OPTIONS=new COptions();
+        UTILS.CRONS=new CCrons();
         
-        
+        //UTILS.DB.reset();
       }
       catch (Exception e) 
       { 

@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import java.sql.ResultSet;
@@ -6,7 +9,7 @@ import java.sql.Statement;
 
 public class CBootstrap 
 {
-     public CBootstrap() 
+     public CBootstrap()  throws Exception
      {
         // Check tables
         this.checkTables();
@@ -22,7 +25,7 @@ public class CBootstrap
         UTILS.DB.executeUpdate("DELETE FROM trans_pool");
      }  
      
-     public void createTable(String tab)
+     public void createTable(String tab) throws Exception
      {
          UTILS.CONSOLE.write("Creating table "+tab+"...");
          
@@ -34,8 +37,8 @@ public class CBootstrap
 				                     + "balance DOUBLE(20,8) DEFAULT 0, "
 				                     + "block BIGINT DEFAULT 0, "
 				                     + "rowhash VARCHAR(100) DEFAULT '', "
-                                                     + "total_received FLOAT(25, 8) DEFAULT 0, "
-                                                     + "total_spent FLOAT(25, 8) DEFAULT 0, "
+                                                     + "total_received DOUBLE(25, 8) DEFAULT 0, "
+                                                     + "total_spent DOUBLE(25, 8) DEFAULT 0, "
                                                      + "trans_no VARCHAR(100) DEFAULT 0, "
                                                      + "tweets VARCHAR(100) DEFAULT 0, "
                                                      + "following VARCHAR(100) DEFAULT 0, "
@@ -80,7 +83,7 @@ public class CBootstrap
 				    		     + "title VARCHAR(250) DEFAULT '', "
 				    		     + "message VARCHAR(1000) DEFAULT '',"
                                                      + "link VARCHAR(500) DEFAULT '',"
-                                                     + "mkt_bid FLOAT(9,4) DEFAULT 0,"
+                                                     + "mkt_bid DOUBLE(9,4) DEFAULT 0,"
                                                      + "expires BIGINT DEFAULT 0,"
                                                      + "block BIGINT DEFAULT 0,"
 				    		     + "rowhash VARCHAR(100) DEFAULT '')");
@@ -119,8 +122,9 @@ public class CBootstrap
                                                      + "tstamp BIGINT DEFAULT 0, "
                                                      + "nonce BIGINT DEFAULT 0, "
                                                      + "size BIGINT DEFAULT 0, "
+                                                     + "net_dif BIGINT DEFAULT 0, "
                                                      + "payload_hash VARCHAR(250) DEFAULT '', "
-                                                     + "signer_balance DOUBLE(20, 8) DEFAULT 0)");
+                                                     + "signer_balance BIGINT DEFAULT 0)");
 				    
 	    UTILS.DB.executeUpdate("CREATE INDEX blocks_hash ON blocks(block)");
 	    UTILS.DB.executeUpdate("CREATE INDEX blocks_block ON blocks(signer)");
@@ -171,7 +175,7 @@ public class CBootstrap
          {
 	    UTILS.DB.executeUpdate("CREATE TABLE err_log(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
 			 	 		       + "type VARCHAR(250) DEFAULT '', "
-			 	 	 	       + "mes VARCHAR(1000) DEFAULT '', "
+			 	 	 	       + "mes VARCHAR(5000) DEFAULT '', "
 			 	 	 	       + "file VARCHAR(100) DEFAULT '', "
                                                        + "line BIGINT DEFAULT 0, "
 			 	 	 	       + "tstamp BIGINT DEFAULT 0)");
@@ -201,6 +205,40 @@ public class CBootstrap
             UTILS.DB.executeUpdate("CREATE INDEX escrowed_rowhash ON escrowed(rowhash)");
 	}
          
+         // ---------------------------------- Exchangers--------------------------------------
+	 if (tab.equals("exchangers"))
+         {
+	    UTILS.DB.executeUpdate("CREATE TABLE exchangers(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+			 	 		         + "adr VARCHAR(250) DEFAULT '', "
+			 	 	 	         + "title VARCHAR(250) DEFAULT '', "
+			 	 	 	         + "description VARCHAR(2500) DEFAULT '', "
+                                                         + "webpage VARCHAR(1000) DEFAULT '', "
+                                                         + "type VARCHAR(20) DEFAULT '', "
+                                                         + "asset VARCHAR(10) DEFAULT '', "
+                                                         + "cur VARCHAR(10) DEFAULT '', "
+                                                         + "pay_method VARCHAR(100) DEFAULT '', "
+                                                         + "pay_details VARCHAR(100) DEFAULT '', "
+                                                         + "price_type VARCHAR(100) DEFAULT '', "
+                                                         + "price DOUBLE DEFAULT 0, "
+                                                         + "price_feed VARCHAR(10) DEFAULT '', "
+                                                         + "price_branch VARCHAR(10) DEFAULT '', "
+                                                         + "price_margin DOUBLE(10,2) DEFAULT 0, "
+                                                         + "country VARCHAR(10) DEFAULT '', "
+                                                         + "town_type VARCHAR(20) DEFAULT '', "
+                                                         + "town VARCHAR(250) DEFAULT '', "
+                                                         + "escrowers VARCHAR(2500) DEFAULT '', "
+                                                         + "block BIGINT DEFAULT 0, "
+                                                         + "expire BIGINT DEFAULT 0, "
+                                                         + "rowhash VARCHAR(100) DEFAULT '')");
+				    
+	    UTILS.DB.executeUpdate("CREATE INDEX exchangers_adr ON exchangers(adr)");
+            UTILS.DB.executeUpdate("CREATE INDEX exchangers_asset ON exchangers(asset)");
+            UTILS.DB.executeUpdate("CREATE INDEX exchangers_feed ON exchangers(price_feed)");
+            UTILS.DB.executeUpdate("CREATE INDEX exchangers_branch ON exchangers(price_branch)");
+            UTILS.DB.executeUpdate("CREATE INDEX exchangers_block ON exchangers(block)");
+            UTILS.DB.executeUpdate("CREATE INDEX exchangers_rowhash ON exchangers(rowhash)");
+	}
+         
          // ---------------------------------- Footprints--------------------------------------
 	 if (tab.equals("footprints"))
          {
@@ -221,7 +259,7 @@ public class CBootstrap
                                                        + "payload_hash VARCHAR(100) DEFAULT '', "
                                                        + "packet_type VARCHAR(100) DEFAULT '', "
                                                        + "fee_src VARCHAR(250) DEFAULT '', "
-                                                       + "fee_amount FLOAT(20, 8) DEFAULT 0, "
+                                                       + "fee_amount DOUBLE(20, 8) DEFAULT 0, "
                                                        + "fee_hash VARCHAR(250) DEFAULT '')");
 				    
 	    UTILS.DB.executeUpdate("CREATE INDEX foot_packet_hash ON footprints(packet_hash)");
@@ -292,7 +330,7 @@ public class CBootstrap
                                                        + "sign_4 VARCHAR(500) DEFAULT '', "
                                                        + "signer_5 VARCHAR(250) DEFAULT '', "
                                                        + "sign_5 VARCHAR(500) DEFAULT '', "
-                                                       + "amount FLOAT(20, 8) DEFAULT 0, "
+                                                       + "amount DOUBLE(20, 8) DEFAULT 0, "
                                                        + "cur VARCHAR(10) DEFAULT 'MSK', "
                                                        + "required INT DEFAULT 1, "
                                                        + "block BIGINT DEFAULT 0, "
@@ -312,7 +350,7 @@ public class CBootstrap
 				    		     + "last_interest BIGINT DEFAULT 0,"
 				    		     + "description VARCHAR(100) DEFAULT 'No description provided',"
                                                      + "tstamp BIGINT DEFAULT 0 DEFAULT 0,"
-                                                     + "mine BIGINT DEFAULT 0,"
+                                                     + "mine BIGINT DEFAULT 1,"
 				    		     + "last_mine BIGINT DEFAULT 0)");
 				    
 	    UTILS.DB.executeUpdate("CREATE INDEX my_adr_adr ON my_adr(adr)");
@@ -322,20 +360,38 @@ public class CBootstrap
          // ---------------------------------- Net stat --------------------------------------
 	 if (tab.equals("net_stat"))
          {
-	    UTILS.DB.executeUpdate("CREATE TABLE net_stat(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-				    		     + "last_block BIGINT DEFAULT 0, "
-				    		     + "last_hash VARCHAR(250) DEFAULT '',"
-				    		     + "net_dif VARCHAR(100) DEFAULT '',"
-				    		     + "last_tstamp BIGINT DEFAULT 0)");
+             UTILS.DB.executeUpdate("CREATE TABLE net_stat(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+				    		       + "last_block BIGINT DEFAULT 0, "
+				    		       + "last_block_hash VARCHAR(250) DEFAULT '',"
+                                                       + "net_dif BIGINT DEFAULT 20750808751919,"
+                                                       + "sql_log_status VARCHAR(100) DEFAULT '',"
+                                                       + "adr VARCHAR(100) DEFAULT '',"
+                                                       + "adr_options VARCHAR(100) DEFAULT '',"
+                                                       + "ads VARCHAR(100) DEFAULT '',"
+                                                       + "assets VARCHAR(100) DEFAULT '',"
+                                                       + "assets_owners VARCHAR(100) DEFAULT '',"
+                                                       + "blocks VARCHAR(100) DEFAULT '',"
+                                                       + "domains VARCHAR(100) DEFAULT '',"
+                                                       + "escrowed VARCHAR(100) DEFAULT '',"
+                                                       + "feeds VARCHAR(100) DEFAULT '',"
+                                                       + "feeds_bets VARCHAR(100) DEFAULT '',"
+                                                       + "feeds_bets_pos VARCHAR(100) DEFAULT '',"
+                                                       + "feeds_branches VARCHAR(100) DEFAULT '',"
+                                                       + "multisig VARCHAR(100) DEFAULT '',"
+                                                       + "profiles VARCHAR(100) DEFAULT '',"
+                                                       + "req_data VARCHAR(100) DEFAULT '',"
+                                                       + "tweets VARCHAR(100) DEFAULT '',"
+                                                       + "tweets_comments VARCHAR(100) DEFAULT '',"
+                                                       + "tweets_follow VARCHAR(100) DEFAULT '',"
+                                                       + "tweets_likes VARCHAR(100) DEFAULT '',"
+                                                       + "last_tstamp BIGINT DEFAULT 0)");
             
             UTILS.DB.executeUpdate("INSERT INTO net_stat(last_block, "
-                                                      + "last_hash, "
-                                                      + "net_dif, "
-                                                      + "last_tstamp) "
+                                                      + "last_block_hash, "
+                                                      + "net_dif) "
                                             + "VALUES('0', "
                                                     + "'c1d709b7eac7d14f040b95aea35895ce7c2f0cd059d7a157674dbffd598d7872', "
-                                                    + "net_dif='10000000000000', "
-                                                    + "last_tstamp='1447522627')");
+                                                    + "'20750808751919')");
 	}
         
         // ----------------------------------- My Trans --------------------------------------
@@ -346,10 +402,12 @@ public class CBootstrap
                                                        + "adr VARCHAR(250) DEFAULT '', "
                                                        + "adr_assoc VARCHAR(250) DEFAULT '', "
 	 	 	                               + "amount DOUBLE(20, 8) DEFAULT 0, "
+                                                       + "invested DOUBLE(20, 8) DEFAULT 0, "
 	 	 	 			       + "cur VARCHAR(10) DEFAULT '', "
 	 	 	 			       + "expl VARCHAR(250) DEFAULT '', "
 	 	 	 			       + "escrower VARCHAR(250) DEFAULT '', "
 	 	 	 			       + "hash VARCHAR(100) DEFAULT '', "
+                                                       + "tID BIGINT DEFAULT 0, "
                                                        + "block BIGINT DEFAULT 0, "
                                                        + "tstamp BIGINT DEFAULT 0, "
 	 	 	 			       + "status VARCHAR(20) DEFAULT '', "
@@ -406,18 +464,92 @@ public class CBootstrap
 	    UTILS.DB.executeUpdate("CREATE INDEX ipn_adr ON ipn(adr)");
 	}
          
-          // ----------------------------------- Packets --------------------------------------
-         if (tab.equals("packets"))
+         // ------------------------------------- Assets Markets ------------------------------------
+	 if (tab.equals("assets_mkts"))
 	 {
-	    UTILS.DB.executeUpdate("CREATE TABLE packets(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-	 					       + "tip VARCHAR(100), "
-	 					       + "tstamp BIGINT DEFAULT 0, "
-	 					       + "hash VARCHAR(500), "
-                                                       + "fromIP VARCHAR(500), "
-	 					       + "sig VARCHAR(500))");
+	    UTILS.DB.executeUpdate("CREATE TABLE assets_mkts(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+	 	 				          + "adr VARCHAR(250) DEFAULT '', "
+	 	 				          + "asset VARCHAR(10) DEFAULT '', "
+	 	 				          + "cur VARCHAR(10) DEFAULT '', "
+	 	 				          + "name VARCHAR(500) DEFAULT '', "
+	 	 				          + "description VARCHAR(2500) DEFAULT '', "
+	 	 				          + "decimals BIGINT DEFAULT 0, "
+	 	 				          + "block BIGINT DEFAULT 0, "
+	 	 				          + "expire BIGINT DEFAULT 0, "
+                                                          + "last_price DOUBLE(20,8) DEFAULT 0, "
+                                                          + "ask DOUBLE(20,8) DEFAULT 0, "
+                                                          + "bid DOUBLE(20,8) DEFAULT 0, "
+	 	 				          + "rowhash VARCHAR(100) DEFAULT '', "
+	 	 				          + "mktID BIGINT DEFAULT 0)");
+	 	 	   
+	    UTILS.DB.executeUpdate("CREATE INDEX assets_mkts_block ON assets_mkts(block)");
+            UTILS.DB.executeUpdate("CREATE INDEX assets_mkts_rowhash ON assets_mkts(rowhash)");
+	}
+         
+         // ------------------------------------- Assets Markets Positions ------------------------------------
+	 if (tab.equals("assets_mkts_pos"))
+	 {
+	    UTILS.DB.executeUpdate("CREATE TABLE assets_mkts_pos(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+	 	 				              + "adr VARCHAR(250) DEFAULT '', "
+	 	 				              + "mktID BIGINT DEFAULT 0, "
+	 	 				              + "tip VARCHAR(10) DEFAULT '', "
+	 	 				              + "qty DOUBLE(20, 8) DEFAULT 0, "
+	 	 				              + "price DOUBLE(20, 8) DEFAULT 0, "
+	 	 				              + "block BIGINT DEFAULT 0, "
+                                                              + "orderID BIGINT DEFAULT 0, "
+	 	 				              + "rowhash VARCHAR(100) DEFAULT '', "
+	 	 				              + "expire BIGINT DEFAULT 0)");
+	 	 	   
+	    UTILS.DB.executeUpdate("CREATE INDEX assets_mkts_pos_adr ON assets_mkts_pos(adr)");
+            UTILS.DB.executeUpdate("CREATE INDEX assets_mkts_pos_block ON assets_mkts_pos(block)");
+	}
+         
+         
+          // ----------------------------------- Assets Markets Trades --------------------------------------
+         if (tab.equals("assets_mkts_trades"))
+	 {
+	    UTILS.DB.executeUpdate("CREATE TABLE assets_mkts_trades(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+	 					                 + "mktID BIGINT DEFAULT 0, "
+                                                                 + "orderID BIGINT DEFAULT 0, "
+	 					                 + "buyer VARCHAR(250) DEFAULT '', "
+	 					                 + "seller VARCHAR(250) DEFAULT '', "
+                                                                 + "qty DOUBLE(20, 8) DEFAULT 0, "
+	 					                 + "price DOUBLE(20, 8) DEFAULT 0, "
+                                                                 + "block BIGINT DEFAULT 0)");
 	    
-            UTILS.DB.executeUpdate("CREATE INDEX packets_hash ON packets(hash)");
-            UTILS.DB.executeUpdate("CREATE INDEX packets_tip ON packets(tip)");
+            UTILS.DB.executeUpdate("CREATE INDEX assets_mkts_trades_mktID ON assets_mkts_trades(mktID)");
+            UTILS.DB.executeUpdate("CREATE INDEX assets_mkts_trades_orderID ON assets_mkts_trades(orderID)");
+            UTILS.DB.executeUpdate("CREATE INDEX assets_mkts_trades_block ON assets_mkts_trades(block)");
+	}
+        
+         
+         // ----------------------------------- Escrowers --------------------------------------
+         if (tab.equals("escrowers"))
+	 {
+	    UTILS.DB.executeUpdate("CREATE TABLE escrowers(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+	 					        + "adr VARCHAR(250) DEFAULT '', "
+                                                        + "title VARCHAR(250) DEFAULT '', "
+	 					        + "description VARCHAR(2500) DEFAULT '', "
+                                                        + "web_page VARCHAR(2500) DEFAULT '', "
+	 					        + "fee DOUBLE(10,2) DEFAULT 0, "
+                                                        + "expire BIGINT DEFAULT 0, "
+	 					        + "block BIGINT DEFAULT 0, "
+                                                        + "rowhash VARCHAR(250) DEFAULT '')");
+	    
+            UTILS.DB.executeUpdate("CREATE INDEX escrowers_adr ON escrowers(adr)");
+            UTILS.DB.executeUpdate("CREATE INDEX escrowers_block ON escrowers(block)");
+	}
+         
+         // ----------------------------------- SQL Log --------------------------------------
+         if (tab.equals("sql_log"))
+	 {
+	    UTILS.DB.executeUpdate("CREATE TABLE sql_log(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+	 					       + "query VARCHAR(2500) DEFAULT '', "
+	 					       + "block BIGINT DEFAULT 0, "
+	 					       + "hash VARCHAR(100))");
+	    
+            UTILS.DB.executeUpdate("CREATE INDEX sql_log_block ON sql_log(block)");
+            UTILS.DB.executeUpdate("CREATE INDEX sql_log_hash ON sql_log(hash)");
 	}
          
          // ----------------------------------- Pending addresses --------------------------------------
@@ -430,6 +562,18 @@ public class CBootstrap
                                                        + "parsed BIGINT DEFAULT 0)");
 	    
             UTILS.DB.executeUpdate("CREATE INDEX pending_hash ON pending_adr(share_adr)");
+	}
+         
+         // ----------------------------------- Packets --------------------------------------
+         if (tab.equals("packets"))
+	 {
+	    UTILS.DB.executeUpdate("CREATE TABLE packets(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+	 					       + "tip VARCHAR(100) DEFAULT '', "
+	 					       + "fromIP  VARCHAR(100) DEFAULT '', "
+	 					       + "tstamp  BIGINT DEFAULT 0, "
+                                                       + "hash VARCHAR(100) DEFAULT '')");
+	    
+            UTILS.DB.executeUpdate("CREATE INDEX packets_hash ON packets(hash)");
 	}
          
          // ---------------------------------- Peers ---------------------------------------
@@ -525,10 +669,12 @@ public class CBootstrap
 	{
 	    UTILS.DB.executeUpdate("CREATE TABLE trans(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
 	                                            + "src VARCHAR(250) DEFAULT '', "
-	 	 	 			    + "amount DOUBLE(10,4) DEFAULT 0, "
+	 	 	 			    + "amount DOUBLE(20,8) DEFAULT 0, "
+                                                    + "invested DOUBLE(20,8) DEFAULT 0, "
 	 	 	 			    + "cur VARCHAR(10) DEFAULT '', "
 	 	 	 			    + "escrower VARCHAR(250) DEFAULT '', "
 	 	 	 			    + "hash VARCHAR(100) DEFAULT '', "
+                                                    + "tID BIGINT DEFAULT 0, "
 	 	 	 			    + "block BIGINT DEFAULT 0, "
                                                     + "status VARCHAR(20) DEFAULT '', "
 	 	 	 			    + "tstamp BIGINT DEFAULT 0)");
@@ -577,8 +723,8 @@ public class CBootstrap
                                                         + "resp_2 VARCHAR(1000) DEFAULT '', "
 			 	 			+ "amount DOUBLE, "
 			 	 			+ "cur VARCHAR(100), "
-			 	 			+ "website_1 VARCHAR(250), "
-			 	 			+ "website_2 VARCHAR(250), "
+			 	 			+ "packet_sign VARCHAR(250), "
+			 	 			+ "payload_sign VARCHAR(250), "
 			 	 			+ "website_3 VARCHAR(250), "
 			 	 			+ "website_4 VARCHAR(250), "
 			 	 			+ "pic_1 VARCHAR(250), "
@@ -624,9 +770,25 @@ public class CBootstrap
                                                              +"max_memory BIGINT DEFAULT '0', "
                                                              +"procs BIGINT DEFAULT '0', "
                                                              +"threads_no BIGINT DEFAULT '0', "
-                                                             +"msk_price FLOAT(9,4) DEFAULT 0)");
+                                                             +"uptime BIGINT DEFAULT '0', "
+                                                             +"version VARCHAR(20) DEFAULT '0.0.1', "
+                                                             +"msk_price DOUBLE(9,4) DEFAULT 0)");
              
              UTILS.DB.executeUpdate("INSERT INTO web_sys_data(status, msk_price) VALUES('ID_OFFLINE', '1')");
+         }
+         
+          // ------------------------------------- Sync ------------------------------------------------
+         if (tab.equals("sync"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE sync(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                       +"status VARCHAR(50) DEFAULT '', "
+                                                       +"peer VARCHAR(20) DEFAULT '', "
+                                                       +"type VARCHAR(50) DEFAULT '', "
+                                                       +"start BIGINT DEFAULT '0', "
+                                                       +"end BIGINT DEFAULT '0', "
+                                                       +"tstamp BIGINT DEFAULT '0')");
+             
+            
          }
          
          // ------------------------------------- Tweets ------------------------------------------------
@@ -645,6 +807,9 @@ public class CBootstrap
                                                         +"video VARCHAR(250) DEFAULT '', "
                                                         +"rowhash VARCHAR(100) DEFAULT '', "
                                                         +"block BIGINT DEFAULT '0', "
+                                                        +"budget DOUBLE(20,4) DEFAULT '0', "
+                                                        +"budget_cur VARCHAR(10) DEFAULT '', "
+                                                        +"budget_expires BIGINT DEFAULT '0', "
                                                         +"status VARCHAR(50) DEFAULT 'ID_APROVE', "
                                                         +"retweet VARCHAR(2) DEFAULT 'N', "
                                                         +"retweet_tweet_ID BIGINT DEFAULT '0', "
@@ -669,8 +834,9 @@ public class CBootstrap
                                                                 +"rowhash VARCHAR(100) DEFAULT '', "
                                                                 +"block BIGINT DEFAULT '0', "
                                                                 +"status VARCHAR(25) DEFAULT '', "
-                                                                +"rowID BIGINT DEFAULT '', "
-                                                                +"comID BIGINT DEFAULT '', "
+                                                                +"tipped DOUBLE(20, 8) DEFAULT 0, "
+                                                                +"rowID BIGINT DEFAULT 0, "
+                                                                +"comID BIGINT DEFAULT 0, "
                                                                 +"adr VARCHAR(250) DEFAULT '')");
              
               UTILS.DB.executeUpdate("CREATE INDEX tweets_comments_tweetID ON tweets_comments(tweetID)");
@@ -789,16 +955,18 @@ public class CBootstrap
                                                              +"expire BIGINT DEFAULT 0, "
                                                              +"qty BIGINT DEFAULT 0, "
                                                              +"trans_fee_adr VARCHAR(250), "
-                                                             +"trans_fee FLOAT(9,2), "
+                                                             +"trans_fee DOUBLE(9,2), "
                                                              +"can_increase VARCHAR(2) DEFAULT 'Y', "
                                                              +"interest DOUBLE(9,2) DEFAULT 0, "
                                                              +"interest_interval BIGINT DEFAULT 0, "
+                                                             +"linked_mktID BIGINT DEFAULT 0, "
                                                              +"rowhash VARCHAR(100) DEFAULT '', "
                                                              +"block BIGINT DEFAULT 0)");
              
              UTILS.DB.executeUpdate("CREATE INDEX assets_adr ON assets(adr)");
              UTILS.DB.executeUpdate("CREATE INDEX assets_symbol ON assets(symbol)");
              UTILS.DB.executeUpdate("CREATE INDEX assets_block ON assets(block)");
+             UTILS.DB.executeUpdate("CREATE INDEX assets_linked_mktID ON assets(linked_mktID)");
          }
          
          // ------------------------------------- Profiles ------------------------------------------------
@@ -807,7 +975,8 @@ public class CBootstrap
               UTILS.DB.executeUpdate("CREATE TABLE assets_owners(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
                                                                +"owner VARCHAR(250) DEFAULT '', "
                                                                +"symbol VARCHAR(10) DEFAULT '', "
-                                                               +"qty FLOAT(20,8) DEFAULT 0, "
+                                                               +"qty DOUBLE(20,8) DEFAULT 0, "
+                                                               +"invested DOUBLE(20,8) DEFAULT 0, "
                                                                +"last_interest BIGINT DEFAULT 0, "
                                                                +"rowhash VARCHAR(100) DEFAULT '', "
                                                                +"block BIGINT DEFAULT 0)");
@@ -832,7 +1001,7 @@ public class CBootstrap
                                                        +"rowhash VARCHAR(100) DEFAULT '', "
                                                        +"block BIGINT DEFAULT 0)");
              
-             UTILS.DB.executeUpdate("CREATE INDEX feeds_adr ON feeds(owner)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_adr ON feeds(adr)");
              UTILS.DB.executeUpdate("CREATE INDEX feeds_symbol ON feeds(symbol)");
              UTILS.DB.executeUpdate("CREATE INDEX feeds_rowhash ON feeds(rowhash)");
              UTILS.DB.executeUpdate("CREATE INDEX feeds_block ON feeds(block)");
@@ -847,9 +1016,9 @@ public class CBootstrap
                                                                  +"name VARCHAR(250) DEFAULT '', "
                                                                  +"description VARCHAR(500) DEFAULT '', "
                                                                  +"rl_symbol VARCHAR(20) DEFAULT '', "
-                                                                 +"fee FLOAT(9, 4) DEFAULT 0.0001, "
+                                                                 +"fee DOUBLE(9, 4) DEFAULT 0.0001, "
                                                                  +"expire BIGINT DEFAULT 0, "
-                                                                 +"val FLOAT(20,8) DEFAULT 0, "
+                                                                 +"val DOUBLE(20,8) DEFAULT 0, "
                                                                  +"mkt_status VARCHAR(50) DEFAULT '', "
                                                                  +"rowhash VARCHAR(100) DEFAULT '', "
                                                                  +"block BIGINT DEFAULT 0)");
@@ -864,7 +1033,11 @@ public class CBootstrap
          if (tab.equals("feeds_sources"))
          {
               UTILS.DB.executeUpdate("CREATE TABLE feeds_sources(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                                 +"feed_symbol VARCHAR(100) DEFAULT ''");
+                                                                 +"feed_symbol VARCHAR(100) DEFAULT '', "
+                                                                 + "url VARCHAR(500) DEFAULT '', "
+                                                                 + "adr VARCHAR(250) DEFAULT '', "
+                                                                 + "ping_interval BIGINT DEFAULT 30, "
+                                                                 + "next_run BIGINT DEFAULT 0)");
              
              UTILS.DB.executeUpdate("CREATE INDEX feeds_sources ON feeds_sources(feed_symbol)");
          }
@@ -874,8 +1047,8 @@ public class CBootstrap
          {
              UTILS.DB.executeUpdate("CREATE TABLE feeds_data(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
                                                             +"feed VARCHAR(10) DEFAULT '', "
-                                                            +"feed_branch VARCHAR(10) DEFAULT '', "
-                                                            +"val FLOAT(20, 8) DEFAULT 0, "
+                                                            +"feed_branch VARCHAR(20) DEFAULT '', "
+                                                            +"val DOUBLE(20, 8) DEFAULT 0, "
                                                             +"mkt_status VARCHAR(20) DEFAULT 'ID_OPEN', "
                                                             +"tstamp BIGINT DEFAULT 0, "
                                                             +"block BIGINT DEFAULT 0)");
@@ -889,9 +1062,9 @@ public class CBootstrap
          if (tab.equals("feeds_pos_data"))
          {
              UTILS.DB.executeUpdate("CREATE TABLE feeds_pos_data(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                                +"pos_type VARCHAR(10) DEFAULT '', "
+                                                                +"pos_type VARCHAR(30) DEFAULT '', "
                                                                 +"posID BIGINT DEFAULT 0, "
-                                                                +"pos_symbol VARCHAR(10) DEFAULR '', "
+                                                                +"pos_symbol VARCHAR(10) DEFAULT '', "
                                                                 +"val DOUBLE(20,8) DEFAULT 0, "
                                                                 +"block BIGINT DEFAULT 0)");
              
@@ -900,22 +1073,33 @@ public class CBootstrap
              UTILS.DB.executeUpdate("CREATE INDEX feeds_pos_data_block ON feeds_pos_data(block)");
          }
          
+         // ------------------------------------- Feeds Sources Res ------------------------------------------------
+         if (tab.equals("feeds_sources_res"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE feeds_sources_res(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                  +"feed VARCHAR(10) DEFAULT '', "
+                                                                  +"result VARCHAR(10) DEFAULT '', "
+                                                                  +"err_mes VARCHAR(1000) DEFAULT '', "
+                                                                  +"tstamp BIGINT DEFAULT 0)");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_sources_res_feed ON feeds_sources_res(feed)");
+            
+         }
+         
          // ------------------------------------- Feeds Bets ------------------------------------------------
          if (tab.equals("feeds_bets"))
          {
              UTILS.DB.executeUpdate("CREATE TABLE feeds_bets(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                            +"uid BIGINT DEFAULT 0, "
+                                                            +"mktID BIGINT DEFAULT 0, "
                                                             +"adr VARCHAR(250) DEFAULT '', "
-                                                            +"feed_symbol_1 VARCHAR(10) DEFAULT '', "
-                                                            +"branch_symbol_1 VARCHAR(10) DEFAULT '', "
-                                                            +"price_1 DOUBLE(20,8) DEFAULT 0, "
-                                                            +"feed_symbol_2 VARCHAR(10) DEFAULT '', "
-                                                            +"branch_symbol_2 VARCHAR(10) DEFAULT '', "
-                                                            +"price_2 DOUBLE(20,8) DEFAULT 0, "
-                                                            +"feed_symbol_3 VARCHAR(10) DEFAULT '', "
-                                                            +"branch_symbol_3 VARCHAR(10) DEFAULT '', "
-                                                            +"price_3 DOUBLE(20,8) DEFAULT 0, "
-                                                            +"tip VARCHAR(10) DEFAULT 'ID_TOUCH', "
+                                                            +"feed_1 VARCHAR(10) DEFAULT '', "
+                                                            +"branch_1 VARCHAR(10) DEFAULT '', "
+                                                            +"feed_2 VARCHAR(10) DEFAULT '', "
+                                                            +"branch_2 VARCHAR(10) DEFAULT '', "
+                                                            +"feed_3 VARCHAR(10) DEFAULT '', "
+                                                            +"branch_3 VARCHAR(10) DEFAULT '', "
+                                                            +"last_price DOUBLE(20,8) DEFAULT 0, "
+                                                            +"tip VARCHAR(30) DEFAULT 'ID_TOUCH', "
                                                             +"val_1 DOUBLE(20, 8) DEFAULT 0, "
                                                             +"val_2 DOUBLE(20, 8) DEFAULT 0, "
                                                             +"title VARCHAR(150) DEFAULT '', "
@@ -926,15 +1110,129 @@ public class CBootstrap
                                                             +"end_block BIGINT DEFAULT 0, "
                                                             +"accept_block BIGINT DEFAULT 0, "
                                                             +"cur VARCHAR(10) DEFAULT '', "
+                                                            +"bets BIGINT DEFAULT 0, "
+                                                            +"invested DOUBLE(20,8) DEFAULT 0, "
                                                             +"status VARCHAR(10) DEFAULT 'ID_PENDING', "
                                                             +"rowhash VARCHAR(100) DEFAULT '', "
                                                             +"block BIGINT DEFAULT 0)");
              
-             UTILS.DB.executeUpdate("CREATE INDEX feeds_bets_uid ON feeds_bets(uid)");
-             UTILS.DB.executeUpdate("CREATE INDEX feeds_bets_feed_symbol ON feeds_bets(feed_symbol)");
-             UTILS.DB.executeUpdate("CREATE INDEX feeds_bets_feed_component ON feeds_bets(feed_component)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_bets_uid ON feeds_bets(mktID)");
              UTILS.DB.executeUpdate("CREATE INDEX feeds_bets_block ON feeds_bets(block)");
          }
+         
+          // ------------------------------------- Feeds Bets ------------------------------------------------
+         if (tab.equals("feeds_spec_mkts"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE feeds_spec_mkts(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                +"adr VARCHAR(250) DEFAULT '', "
+                                                                +"feed_1 VARCHAR(10) DEFAULT '', "
+                                                                +"branch_1 VARCHAR(10) DEFAULT '', "
+                                                                +"feed_2 VARCHAR(10) DEFAULT '', "
+                                                                +"branch_2 VARCHAR(10) DEFAULT '', "
+                                                                +"feed_3 VARCHAR(10) DEFAULT '', "
+                                                                +"branch_3 VARCHAR(10) DEFAULT '', "
+                                                                +"last_price DOUBLE(20,8) DEFAULT 0, "
+                                                                +"cur VARCHAR(10) DEFAULT '', "
+                                                                +"min_hold BIGINT DEFAULT 0, "
+                                                                +"max_hold BIGINT DEFAULT 0, "
+                                                                +"min_leverage BIGINT DEFAULT 0, "
+                                                                +"max_leverage BIGINT DEFAULT 0, "
+                                                                +"spread DOUBLE(20,8) DEFAULT 0, "
+                                                                +"real_symbol VARCHAR(10) DEFAULT '', "
+                                                                +"decimals BIGINT DEFAULT 0, "
+                                                                +"pos_type VARCHAR(50) DEFAULT '', "
+                                                                +"long_interest DOUBLE(10,2) DEFAULT 0, "
+                                                                +"short_interest DOUBLE(10,2) DEFAULT 0, "
+                                                                +"interest_interval BIGINT DEFAULT 0, "
+                                                                +"title VARCHAR(250) DEFAULT '', "
+                                                                +"description VARCHAR(2500) DEFAULT '', "
+                                                                +"max_margin DOUBLE(20,2) DEFAULT 0, "
+                                                                +"expire BIGINT DEFAULT 0, "
+                                                                +"block BIGINT DEFAULT 0, "
+                                                                +"status VARCHAR(20) DEFAULT 'ID_CLOSED', "
+                                                                +"rowhash VARCHAR(100) DEFAULT '', "
+                                                                +"mktID BIGINT DEFAULT 0)");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_spec_mkts_mktID ON feeds_spec_mkts(mktID)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_spec_mkts_block ON feeds_spec_mkts(block)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_spec_mkts_rowhash ON feeds_spec_mkts(rowhash)");
+         }
+         
+         // ------------------------------------- Feeds Spec Mkts Pos ------------------------------------------------
+         if (tab.equals("feeds_spec_mkts_pos"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE feeds_spec_mkts_pos(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                    +"mktID BIGINT DEFAULT 0, "
+                                                                    +"posID BIGINT DEFAULT 0, "
+                                                                    +"adr VARCHAR(250) DEFAULT '', "
+                                                                    +"open DOUBLE(20, 8) DEFAULT 0, "
+                                                                    +"sl DOUBLE(20, 8) DEFAULT 0, "
+                                                                    +"tp DOUBLE(20, 8) DEFAULT 0, "
+                                                                    +"leverage BIGINT DEFAULT 0, "
+                                                                    +"qty DOUBLE(20, 4) DEFAULT 0, "
+                                                                    +"status VARCHAR(20) DEFAULT '', "
+                                                                    +"open_line VARCHAR(20) DEFAULT '', "
+                                                                    +"tip VARCHAR(10) DEFAULT '', "
+                                                                    +"pl DOUBLE(20,8) DEFAULT 0, "
+                                                                    +"spread DOUBLE(20,8) DEFAULT 0, "
+                                                                    +"margin DOUBLE(20,8) DEFAULT 0, "
+                                                                    +"close_reason VARCHAR(20) DEFAULT '', "
+                                                                    +"closed_pl DOUBLE(20,8) DEFAULT 0, "
+                                                                    +"closed_margin DOUBLE(20,8) DEFAULT 0, "
+                                                                    +"block BIGINT DEFAULT 0, "
+                                                                    +"last_block BIGINT DEFAULT 0, "
+                                                                    +"rowhash VARCHAR(100) DEFAULT '')");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_spec_mkts_pos_mktID ON feeds_bets_pos(bet_uid)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_spec_mkts_pos_posID ON feeds_bets_pos(adr)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_spec_mkts_pos_block ON feeds_bets_pos(block)");
+         
+         }
+         
+         // Feeds assets markets
+         if (tab.equals("feeds_assets_mkts"))
+         {
+              UTILS.DB.executeUpdate("CREATE TABLE feeds_assets_mkts(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                   +"mktID BIGINT DEFAULT 0, "
+                                                                   +"feed_1 VARCHAR(10) DEFAULT '', "
+                                                                   +"branch_1 VARCHAR(10) DEFAULT '', "
+                                                                   +"feed_2 VARCHAR(10) DEFAULT '', "
+                                                                   +"branch_2 VARCHAR(10) DEFAULT '', "
+                                                                   +"feed_3 VARCHAR(10) DEFAULT '', "
+                                                                   +"branch_3 VARCHAR(10) DEFAULT '', "
+                                                                   +"last_price DOUBLe(20,8) DEFAULT 0, "
+                                                                   +"decimals INT DEFAULT 0, "
+                                                                   +"rl_symbol VARCHAR(10) DEFAULT '', "
+                                                                   +"spread DOUBLE(20,8) DEFAULT 0, "
+                                                                   +"cur VARCHAR(20) DEFAULT '', "
+                                                                   +"adr VARCHAR(250) DEFAULT '', "
+                                                                   +"status VARCHAR(25) DEFAULT '', "
+                                                                   +"block BIGINT DEFAULT 0, "
+                                                                   +"expire BIGINT DEFAULT 0, "
+                                                                   +"rowhash VARCHAR(100) DEFAULT '', "
+                                                                   +"asset_symbol VARCHAR(20) DEFAULT '')");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_assets_mkts_mktID ON feeds_assets_mkts(mktID)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_assets_mkts_block ON feeds_assets_mkts(block)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_assets_mkts_rowhash ON feeds_assets_mkts(rowhash)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_assets_mkts_asset_symbol ON feeds_assets_mkts(asset_symbol)");
+         }
+         
+         // Feeds assets transactions
+         if (tab.equals("feeds_assets_mkts_trans"))
+         {
+              UTILS.DB.executeUpdate("CREATE TABLE feeds_assets_mkts_trans(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                          +"mktID BIGINT DEFAULT 0, "
+                                                                          +"tip VARCHAR(20) DEFAULT '', "
+                                                                          +"adr VARCHAR(250) DEFAULT '', "
+                                                                          +"qty DOUBLE(20, 8) DEFAULT 0, "
+                                                                          +"block BIGINT DEFAULT 0, "
+                                                                          +"price DOUBLE(20,8) DEFAULT 0)");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_assets_mkts_trans_mktID ON feeds_assets_mkts_trans(mktID)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_assets_mkts_trans_block ON feeds_assets_mkts_trans(block)");
+         }
+         
          
          // ------------------------------------- Feeds Bets ------------------------------------------------
          if (tab.equals("feeds_bets_pos"))
@@ -956,7 +1254,7 @@ public class CBootstrap
         UTILS.CONSOLE.write("Done.");
      }
      
-     public boolean tableExist(String tab)
+     public boolean tableExist(String tab) throws Exception
      {
 	ResultSet rs;
         
@@ -980,12 +1278,12 @@ public class CBootstrap
 	   // Return
 	   if (UTILS.DB.hasData(rs)==false) 
            {
-               if (s!=null) s.close();
+               if (s!=null) rs.close(); s.close();
 	       return false;
            }
 	   else
            {
-               if (s!=null) s.close();
+               if (s!=null) rs.close(); s.close();
                return true;
            }
         }
@@ -997,7 +1295,7 @@ public class CBootstrap
         return false;
     }
      
-     public void checkTables()
+     public void checkTables() throws Exception
      {
 	if (this.tableExist("adr")==false)
             this.createTable("adr");
@@ -1110,20 +1408,69 @@ public class CBootstrap
          if (this.tableExist("assets")==false)
             this.createTable("assets");
          
+         if (this.tableExist("assets_mkts")==false)
+            this.createTable("assets_mkts");
+         
+         if (this.tableExist("assets_mkts_pos")==false)
+            this.createTable("assets_mkts_pos");
+         
+         if (this.tableExist("assets_mkts_trades")==false)
+            this.createTable("assets_mkts_trades");
+         
          if (this.tableExist("assets_owners")==false)
             this.createTable("assets_owners");
          
+         if (this.tableExist("feeds")==false)
+            this.createTable("feeds");
+         
+          if (this.tableExist("feeds_sources_res")==false)
+            this.createTable("feeds_sources_res");
+         
+          if (this.tableExist("feeds_branches")==false)
+            this.createTable("feeds_branches");
+
          if (this.tableExist("feeds_data")==false)
             this.createTable("feeds_data");
          
          if (this.tableExist("feeds_bets")==false)
             this.createTable("feeds_bets");
          
+         if (this.tableExist("feeds_bets_pos")==false)
+            this.createTable("feeds_bets_pos");
+         
          if (this.tableExist("feeds_pos_data")==false)
             this.createTable("feeds_pos_data");
+         
+         if (this.tableExist("feeds_sources")==false)
+            this.createTable("feeds_sources");
+         
+         if (this.tableExist("feeds_spec_mkts")==false)
+            this.createTable("feeds_spec_mkts");
+         
+         if (this.tableExist("feeds_spec_mkts_pos")==false)
+            this.createTable("feeds_spec_mkts_pos");
+         
+         if (this.tableExist("sql_log")==false)
+            this.createTable("sql_log");
+         
+         if (this.tableExist("feeds_assets_mkts_trans")==false)
+            this.createTable("feeds_assets_mkts_trans");
+         
+         if (this.tableExist("feeds_assets_mkts")==false)
+            this.createTable("feeds_assets_mkts");
+         
+         if (this.tableExist("escrowers")==false)
+            this.createTable("escrowers");
+         
+         if (this.tableExist("exchangers")==false)
+            this.createTable("exchangers");
+         
+         if (this.tableExist("sync")==false)
+            this.createTable("sync");
+         
     }
    
-    public void insertAdr(String adr, double balance)
+    public void insertAdr(String adr, double balance) throws Exception
     {
 		UTILS.DB.executeUpdate("INSERT INTO adr(adr, "
                                                       + "balance, "
@@ -1137,9 +1484,9 @@ public class CBootstrap
                                                    + "'0')");
     }
      
-    public void fillTest()
+    public void fillTest() throws Exception
     {
-        this.insertAdr("default", 990000000);
+        this.insertAdr("default", 99000000);
 	this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmzMuWmpif2JdeB1/UA7XQumglLj3o4/qF/CisxzJyXf7JoXXmGvBDJFbCSr8Si09zKtkfoA7jyU=", 1000000);
 		   
     }

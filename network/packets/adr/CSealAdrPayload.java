@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.adr;
 
 import wallet.kernel.*;
@@ -14,7 +17,7 @@ public class CSealAdrPayload extends CPayload
         // Days
         public long days;
 	
-    public CSealAdrPayload(String adr, long days)
+    public CSealAdrPayload(String adr, long days) throws Exception
     {
 	  super(adr);
 		
@@ -33,7 +36,7 @@ public class CSealAdrPayload extends CPayload
 	   this.sign();
    }
 	     
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
 	 		// Super class
 	         CResult res=super.check(block);
@@ -56,7 +59,7 @@ public class CSealAdrPayload extends CPayload
 	}
    
 	 	
-	public CResult commit(CBlockPayload block)
+	public CResult commit(CBlockPayload block) throws Exception
 	{		
 	 		CResult res=this.check(block);
 	 		if (res.passed==false) return res;

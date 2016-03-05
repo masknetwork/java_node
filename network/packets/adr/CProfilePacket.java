@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.adr;
 
 import wallet.kernel.*;
@@ -16,7 +19,7 @@ public class CProfilePacket extends CBroadcastPacket
                          String website, 
                          String pic_back, 
                          String pic, 
-		         long days)
+		         long days) throws Exception
    {
 	   // Super class
 	   super("ID_PROFILE_PACKET");
@@ -41,7 +44,7 @@ public class CProfilePacket extends CBroadcastPacket
 	   this.sign();
    }
    
-     public CResult check(CBlockPayload block) 
+     public CResult check(CBlockPayload block) throws Exception
      {
 	// Super class
 	CResult res=super.check(block);
@@ -89,7 +92,7 @@ public class CProfilePacket extends CBroadcastPacket
 	return new CResult(true, "Ok", "CProfilePacket", 47);
     }
 	     
-    public CResult commit(CBlockPayload block)
+    public CResult commit(CBlockPayload block) throws Exception
     {
 	// Superclass
 	CResult res=super.commit(block);

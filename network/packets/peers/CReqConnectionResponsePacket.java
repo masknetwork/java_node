@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.peers;
 
 import wallet.kernel.*;
@@ -16,7 +19,7 @@ public class CReqConnectionResponsePacket extends CPacket
 	String ver;
         
 	
-    public CReqConnectionResponsePacket(boolean aproved, CPeer peer)
+    public CReqConnectionResponsePacket(boolean aproved, CPeer peer) throws Exception
     {
 	   super("ID_REQ_CON_RESPONSE_PACKET");
 	   
@@ -36,7 +39,7 @@ public class CReqConnectionResponsePacket extends CPacket
 			              UTILS.STATUS.engine_status);
     }
     
-    public CResult checkWithPeer(CPeer peer)
+    public CResult checkWithPeer(CPeer peer) throws Exception
     {
     	 // Aproved
     	 if (this.aproved==true) 

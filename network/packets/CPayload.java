@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets;
 
 import java.io.File;
@@ -35,7 +38,7 @@ public class CPayload  implements java.io.Serializable
         public long block=0;
         
 	// Constructor
-        public CPayload()
+        public CPayload() throws Exception
 	{
            // Time
            this.tstamp=UTILS.BASIC.mtstamp();
@@ -48,7 +51,7 @@ public class CPayload  implements java.io.Serializable
 	}
     
         //  Hash
-        public String getHash()
+        public String getHash() throws Exception
         {	
             String data=this.target_adr+
                         String.valueOf(this.tstamp)+
@@ -60,7 +63,7 @@ public class CPayload  implements java.io.Serializable
         }
     
         // Constructor
-        public CPayload(String adr)
+        public CPayload(String adr) throws Exception
         {
     	    // Time
             this.tstamp=UTILS.BASIC.mtstamp();
@@ -76,7 +79,7 @@ public class CPayload  implements java.io.Serializable
         }
     
         // Check
-        public CResult check(CBlockPayload block)
+        public CResult check(CBlockPayload block) throws Exception
         {
            // Hash
            if (!UTILS.BASIC.isSHA256(this.hash)) 
@@ -94,7 +97,7 @@ public class CPayload  implements java.io.Serializable
  	   return new CResult(true, "Ok", "CPayload", 183);
         }
     
-        public void sign()
+        public void sign() throws Exception
         {
             if (!this.target_adr.equals(""))
             {
@@ -103,7 +106,7 @@ public class CPayload  implements java.io.Serializable
             }
         }
     
-        public boolean checkSig()
+        public boolean checkSig() throws Exception
         {
     	   CECC ecc=new CECC(this.target_adr);
     	
@@ -113,12 +116,12 @@ public class CPayload  implements java.io.Serializable
     		return false;
         }
     
-        public CResult commit(CBlockPayload block)
+        public CResult commit(CBlockPayload block) throws Exception
         {
            return new CResult(true, "Ok", "CPayload", 240);
         }
         
-        public void footprint(String packet_hash)
+        public void footprint(String packet_hash) throws Exception
         {
         
         }

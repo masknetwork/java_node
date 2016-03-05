@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import javax.crypto.BadPaddingException;
@@ -49,7 +52,7 @@ public class CAES
 		
 	}
 	
-	public String encrypt(String plainText, String password) 
+	public String encrypt(String plainText, String password) throws Exception
 	{  
 		try
 		{
@@ -114,7 +117,7 @@ public class CAES
 		return "";
     }
 	
-	public byte[] encryptData(byte[] plainText, String password) 
+	public byte[] encryptData(byte[] plainText, String password) throws Exception
 	{  
 		try
 		{
@@ -179,7 +182,7 @@ public class CAES
 		return "".getBytes();
     }
  
-    public String decrypt(String encryptedText, String password) 
+    public String decrypt(String encryptedText, String password)  throws Exception
     {
     	 byte[] decryptedTextBytes = null;
     	 
@@ -245,7 +248,7 @@ public class CAES
         return new String(decryptedTextBytes);
     }
     
-    public byte[] decryptData(byte[] encryptedText, String password) 
+    public byte[] decryptData(byte[] encryptedText, String password) throws Exception 
     {
     	 byte[] decryptedTextBytes = null;
     	 

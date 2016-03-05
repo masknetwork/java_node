@@ -1,5 +1,8 @@
 // $Id: DigestEngine.java 229 2010-06-16 20:22:27Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

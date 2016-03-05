@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets;
 
 import java.util.*;
@@ -24,14 +27,14 @@ public class CPacket implements java.io.Serializable
    String next_packet_hash;
    
    
-   public CPacket(String tip)
+   public CPacket(String tip)  throws Exception
    {
 	   // Tip
 	   this.tip=tip;
            
     }
    
-   public String hash()
+   public String hash()  throws Exception
    {
 	// Hash
 	return UTILS.BASIC.hash(this.tip+
@@ -39,19 +42,19 @@ public class CPacket implements java.io.Serializable
         
    }
    
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {  
         // Ok
 	return new CResult(true, "Ok", "CPacket", 72);
    }
    
-   public CResult checkWithPeer(CPeer peer)
+   public CResult checkWithPeer(CPeer peer)  throws Exception
    {  
         // Ok
 	return new CResult(true, "Ok", "CPacket", 72);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
 	{
 	   return new CResult(true, "Ok", "CPacket", 98);
 	}

@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.tweets;
 
 import java.sql.ResultSet;
@@ -15,7 +18,7 @@ public class CRemoveTweetPayload extends CPayload
    // Tweet ID
    long tweetID;
    
-   public CRemoveTweetPayload(String adr, long tweetID)
+   public CRemoveTweetPayload(String adr, long tweetID) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -31,7 +34,7 @@ public class CRemoveTweetPayload extends CPayload
  	   this.sign();
    }
    
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
        try
        {
@@ -63,7 +66,7 @@ public class CRemoveTweetPayload extends CPayload
    		return new CResult(false, "Invalid signature", "CRemoveTweetPayload", 157);
             
             // Close
-            s.close();
+            rs.close(); s.close();
        
         }
         catch (SQLException ex) 
@@ -80,7 +83,7 @@ public class CRemoveTweetPayload extends CPayload
  	return new CResult(true, "Ok", "CRemoveTweetPayload", 164);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
        try
        {

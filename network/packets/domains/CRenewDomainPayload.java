@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.domains;
 
 import java.sql.ResultSet;
@@ -17,7 +20,7 @@ public class CRenewDomainPayload extends CPayload
     // Days
     long days;
     
-    public CRenewDomainPayload(String adr, String domain, long days)
+    public CRenewDomainPayload(String adr, String domain, long days)  throws Exception
     {
         // Constructor
 	super(adr);
@@ -37,7 +40,7 @@ public class CRenewDomainPayload extends CPayload
         this.sign();
     }
     
-    public CResult check(CBlockPayload block)
+    public CResult check(CBlockPayload block) throws Exception
 	{
             try
             {
@@ -70,7 +73,7 @@ public class CRenewDomainPayload extends CPayload
       	         return new CResult(false, "Invalid hash", "CRentDomainPayload.java", 61);
               
               // Close
-              s.close();
+              rs.close(); s.close();
             }
             catch (SQLException ex)
             {
@@ -81,7 +84,7 @@ public class CRenewDomainPayload extends CPayload
 	    return new CResult(true, "Ok", "CRentDomainPayload", 67);
 	}
 	
-	public CResult commit(CBlockPayload block)
+	public CResult commit(CBlockPayload block) throws Exception
 	{
             // Superclass
 	    super.commit(block);

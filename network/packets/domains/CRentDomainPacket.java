@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.domains;
 
 import wallet.kernel.*;
@@ -11,7 +14,7 @@ public class CRentDomainPacket extends CBroadcastPacket
    public CRentDomainPacket(String fee_adr, 
                             String adr, 
                             String domain, 
-                            long days) 
+                            long days)  throws Exception
    {
        // Constructs the broadcast packet
        super("ID_RENT_DOMAIN_PACKET");
@@ -30,7 +33,7 @@ public class CRentDomainPacket extends CBroadcastPacket
    }
 	
 	// Check 
-	public CResult check(CBlockPayload block)
+	public CResult check(CBlockPayload block) throws Exception
 	{
 	   // Super class
 	   CResult res=super.check(block);
@@ -73,7 +76,7 @@ public class CRentDomainPacket extends CBroadcastPacket
 	   return new CResult(true, "Ok", "CRentDomainPacket", 74);
 	}
 	   
-	public CResult commit(CBlockPayload block)
+	public CResult commit(CBlockPayload block) throws Exception
 	{
 	    // Superclass
 	    CResult res=super.commit(block);

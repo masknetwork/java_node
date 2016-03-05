@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.mes;
 
 import wallet.kernel.*;
@@ -13,7 +16,7 @@ public class CMesPacket extends CBroadcastPacket
 		    String sender_adr, 
 		    String receiver_adr, 
 		    String subject, 
-		    String mes)
+		    String mes) throws Exception
   {
       super("ID_SEND_MES");
       
@@ -41,7 +44,7 @@ public class CMesPacket extends CBroadcastPacket
   }
   
   // Check 
-  public CResult check(CBlockPayload block)
+  public CResult check(CBlockPayload block) throws Exception
   {
       try
       {
@@ -81,7 +84,7 @@ public class CMesPacket extends CBroadcastPacket
       return new CResult(true, "Ok", "CMesPacketPacket", 45);
   }
   
-  public CResult commit(CBlockPayload block)
+  public CResult commit(CBlockPayload block) throws Exception
   {
       try
       {

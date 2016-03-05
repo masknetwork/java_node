@@ -1,5 +1,8 @@
 // $Id: CubeHashCore.java 232 2010-06-17 14:19:24Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

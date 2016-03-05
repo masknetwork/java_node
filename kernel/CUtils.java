@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import java.io.ByteArrayOutputStream;
@@ -20,6 +23,7 @@ import org.apache.commons.codec.binary.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import wallet.network.CResult;
+import wallet.network.packets.blocks.CBlockPayload;
 
 public class CUtils 
 {
@@ -44,27 +48,35 @@ public class CUtils
          }
          
 	// checks if address is valid
-	public boolean adressValid(String adr)
+	public boolean adressValid(String adr) throws Exception
 	{
-		if (adr.length()!=108 && 
-		    adr.length()!=124 && 
-		    adr.length()!=160 && 
-		    adr.length()!=212 &&
-		    !adr.equals("default")) return false;
-		                 
-		for (int a=0; a<=adr.length()-1; a++)
-		{
-			int c=adr.codePointAt(a);
-			if (c!=47 && c!=61) 
-			  if (adr.codePointAt(a)<43 || adr.codePointAt(a)>122)
-				  return false;
-		}
-		
-		return true;
+            // Address name ?
+            if (adr.length()<30)
+               if (this.domainExist(adr))
+                  return true;
+            
+            // Length valid
+            if (adr.length()!=108 && 
+		adr.length()!=124 && 
+		adr.length()!=160 && 
+		adr.length()!=212 &&
+		!adr.equals("default")) return false;
+	    
+            // Characters
+	    for (int a=0; a<=adr.length()-1; a++)
+	    {
+		int c=adr.codePointAt(a);
+		if (c!=47 && c!=61) 
+                   if (adr.codePointAt(a)<43 || adr.codePointAt(a)>122)
+		      return false;
+	    }
+            
+            // Return
+	    return true;
 	}
 	
 	
-	public boolean addressExist(String adr)
+	public boolean addressExist(String adr) throws Exception
 	{
             try
             {
@@ -82,7 +94,7 @@ public class CUtils
 		if (UTILS.DB.hasData(rs)==false) 
                 {
                    // Close
-		   if (s!=null) s.close();
+		   if (s!=null) rs.close(); s.close();
                    
                    // Return
                    return false;
@@ -90,7 +102,7 @@ public class CUtils
 		else
                 {
                    // Close
-                   if (s!=null) s.close();
+                   if (s!=null) rs.close(); s.close();
                     
                    // Return 
 	  	   return true;
@@ -104,37 +116,37 @@ public class CUtils
             return false;
 	}
 	
-	public long tstamp()
+	public long tstamp() throws Exception
 	{
 		return System.currentTimeMillis()/1000;
 	}
 	
-	public long mtstamp()
+	public long mtstamp() throws Exception
 	{
 		return System.currentTimeMillis();
 	}
 	
-	public String hash(String hash)
+	public String hash(String hash) throws Exception
 	{
             return  org.apache.commons.codec.digest.DigestUtils.sha256Hex(hash);
 	}
 	
-	public String hash(byte[] data)
+	public String hash(byte[] data) throws Exception
 	{
 		return  org.apache.commons.codec.digest.DigestUtils.sha256Hex(data);
 	}
         
-        public byte[] hexhash(String data)
+        public byte[] hexhash(String data) throws Exception
 	{
 		return  org.apache.commons.codec.digest.DigestUtils.sha256(data);
 	}
 	
-	public String hash512(String hash)
+	public String hash512(String hash) throws Exception
 	{
 		return  org.apache.commons.codec.digest.DigestUtils.sha512Hex(hash); 
 	}
 	
-	public String getFreeAdr()
+	public String getFreeAdr() throws Exception
 	{
 		for (int a=0; a<=UTILS.WALLET.addresses.size()-1; a++)
 		{
@@ -153,7 +165,7 @@ public class CUtils
                               String atr, 
                               String par_1, 
                               String par_2, 
-                              String par_3)
+                              String par_3) throws Exception
 	{
 		UTILS.DB.executeUpdate("DELETE FROM adr_options "
 				                   + "WHERE adr='"+adr+"' "
@@ -164,7 +176,7 @@ public class CUtils
 	}
 	
 	// Check if address has options
-	public boolean hasOption(String adr, String tip, String par_1, String par_2, String par_3)
+	public boolean hasOption(String adr, String tip, String par_1, String par_2, String par_3) throws Exception
 	{
             try
             {
@@ -181,7 +193,7 @@ public class CUtils
 	       if (UTILS.DB.hasData(rs)==true) 
                {
                    // Close
-                   if (s!=null) s.close();
+                   if (s!=null) rs.close(); s.close();
                    
                    // Return
                    return true;
@@ -206,7 +218,7 @@ public class CUtils
                                  String par_5,
                                  String par_6,
                                  long days, 
-                                 long block)
+                                 long block) throws Exception
 	{
                 long expire=0;
                 
@@ -223,7 +235,11 @@ public class CUtils
 			   UTILS.DB.executeUpdate("INSERT INTO ADR (adr, balance, block, last_interest) "
 	                    + "VALUES('"+adr+"', '0', '"+UTILS.BASIC.block()+"', '"+UTILS.BASIC.tstamp()+"')");
 		   
-                   if (s!=null) s.close();
+                   if (s!=null) 
+                   {
+                       rs_adr.close();
+                       s.close();
+                   } 
                    
 		   // Search for option
 		   ResultSet rs;
@@ -251,7 +267,7 @@ public class CUtils
 			  		          + "AND op_type='"+atr+"'");
                           
                           // Close
-                          if (s!=null) s.close();
+                          if (s!=null) rs.close(); s.close();
 		   }
 		   else
 		   {
@@ -290,12 +306,12 @@ public class CUtils
 		
 	}
 	
-	public boolean isTransID(String transID)
+	public boolean isTransID(String transID) throws Exception
 	{
 		return true;
 	}
 	
-	public boolean isSHA512(String txt)
+	public boolean isSHA512(String txt) throws Exception
 	{
 		// Check length
 		if (txt.length()!=128) return false;
@@ -304,7 +320,7 @@ public class CUtils
 		return true;
 	}
 	
-	public boolean isSHA256(String txt)
+	public boolean isSHA256(String txt) throws Exception
 	{
 		// Check content
 		
@@ -315,7 +331,7 @@ public class CUtils
 	}
 	
 	// Compress a bytearray
-	public static byte[] compress(byte[] data) 
+	public static byte[] compress(byte[] data)  throws Exception
 	{ 
 		try
 		{
@@ -363,7 +379,7 @@ public class CUtils
 	}
 	
 	// Decompress a bytearray
-	public static byte[] decompress(byte[] data) 
+	public static byte[] decompress(byte[] data)  throws Exception
 	{ 
 		try
 		{
@@ -401,7 +417,7 @@ public class CUtils
 		return new byte[1];
 	}
 	
-	public int getImgSize(String adr)
+	public int getImgSize(String adr) throws Exception
 	{
 		try
 	      {
@@ -415,7 +431,7 @@ public class CUtils
 		return 0;
 	}
 	
-	public String getTime(long dif)
+	public String getTime(long dif) throws Exception
 	{
 		// Seconds
 		if (dif<60) return (String.valueOf(dif)+" seconds");
@@ -447,7 +463,7 @@ public class CUtils
 		return "";
 	}
 	
-	public String splitText(int width, int letter_width, String txt)
+	public String splitText(int width, int letter_width, String txt) throws Exception
 	{
 		int last_word=0;
 		int line_size=0;
@@ -476,7 +492,7 @@ public class CUtils
 		return sText;
 	}
 	
-	public String format_price(double price)
+	public String format_price(double price) throws Exception
 	{
 		String[] v=String.valueOf(price).split("\\.");
 		if (v[1].length()==0) return v[0]+".0000"; 
@@ -487,7 +503,7 @@ public class CUtils
 		return String.valueOf(price);
 	}
 	
-	public String format_price_2_digits(double price)
+	public String format_price_2_digits(double price) throws Exception
 	{
 		String[] v=String.valueOf(price).split("\\.");
 		if (v[1].length()==0) return v[0]+".00"; 
@@ -496,7 +512,7 @@ public class CUtils
 		return String.valueOf(price);
 	}
 	
-	public boolean isPrice(String price)
+	public boolean isPrice(String price) throws Exception
 	{
 		boolean point=false;
 		
@@ -524,7 +540,7 @@ public class CUtils
 		return true;
 	}
 	
-	public boolean isInteger(String price)
+	public boolean isInteger(String price) throws Exception
 	{
 		for (int a=0; a<=price.length()-1; a++)
 		  if (price.charAt(a)!='0' && 
@@ -542,30 +558,30 @@ public class CUtils
 		return true;
 	}
 	
-	public String dateFromTstamp(long tstamp)
+	public String dateFromTstamp(long tstamp) throws Exception
 	{
 		 Date time=new Date(tstamp*1000);
 		 SimpleDateFormat dt = new SimpleDateFormat("MMM, dd, yyyy");
 		 return dt.format(time);
 	}
 	
-	public boolean isEmail(String email)
+	public boolean isEmail(String email) throws Exception
 	{
 		return true;
 	}
 	
-	public String base64_encode(String s)
+	public String base64_encode(String s) throws Exception
 	{
            if (s.equals("")) return "";
            return new String(org.apache.commons.codec.binary.Base64.encodeBase64(s.getBytes()));
 	}
 	
-	public String base64_encode(byte[] s)
+	public String base64_encode(byte[] s) throws Exception
 	{
            return new String(org.apache.commons.codec.binary.Base64.encodeBase64(s));
 	}
 	
-	public String base64_decode(String s)
+	public String base64_decode(String s) throws Exception
 	{
 		try
 		{
@@ -578,7 +594,7 @@ public class CUtils
 		}
 	}
 	
-	public byte[] base64_decode_data(String s)
+	public byte[] base64_decode_data(String s) throws Exception
 	{
 		try
 		{
@@ -592,9 +608,9 @@ public class CUtils
 		return null;
 	}
 	
-        public void clearTrans(String hash, String tip)
+        public void clearTrans(String hash, String tip) throws Exception
         {
-            try
+             try
             {
                 // Statement
                 Statement s=UTILS.DB.getStatement();
@@ -615,7 +631,8 @@ public class CUtils
                        this.doAssetTrans(rs_trans.getString("src"), 
                                          rs_trans.getDouble("amount"), 
                                          rs_trans.getString("cur"),
-                                         hash);
+                                         hash, 
+                                         rs_trans.getDouble("invested"));
                       else
                         this.doTrans(rs_trans.getString("src"), 
                                    rs_trans.getDouble("amount"), 
@@ -642,7 +659,7 @@ public class CUtils
                 }
                 
                 // Close
-                s.close();
+                rs_trans.close(); s.close();
             }
             catch (SQLException ex) 
        	    {  
@@ -651,7 +668,7 @@ public class CUtils
         }
         
         
-        public boolean transExist(String table, String hash, String cur, double amount)
+        public boolean transExist(String table, String hash, String cur, double amount) throws Exception
         {
             try
             {
@@ -679,6 +696,43 @@ public class CUtils
             return true;
         }
         
+        public void newTransfer(String src, 
+                                String dest, 
+                                double amount, 
+                                boolean send_trans,
+                                String cur, 
+                                String expl, 
+                                String escrower, 
+                                String hash, 
+                                long block,
+                                CBlockPayload block_payload, 
+                                double invested) throws Exception
+        {
+            this.newTrans(src, 
+                          dest, 
+                          -amount, 
+                          send_trans,
+                          cur, 
+                          expl, 
+                          escrower, 
+                          hash, 
+                          block,
+                          block_payload,
+                          invested);  
+            
+            this.newTrans(dest, 
+                          src, 
+                          amount, 
+                          send_trans,
+                          cur, 
+                          expl, 
+                          escrower, 
+                          hash, 
+                          block,
+                          block_payload,
+                          invested);  
+        }
+        
         public void newTrans(String adr, 
                              String adr_assoc, 
                              double amount, 
@@ -687,7 +741,9 @@ public class CUtils
                              String expl, 
                              String escrower, 
                              String hash, 
-                             long block)
+                             long block,
+                             CBlockPayload block_payload,
+                             double invested) throws Exception
         {
             // ResultSet
             ResultSet rs;
@@ -704,62 +760,56 @@ public class CUtils
             // Market fee address
             String mkt_fee_adr="";
             
+            
             try
             {
-            // Statement
-            Statement s=UTILS.DB.getStatement();
+                // Address valid
+                if (!UTILS.BASIC.adressValid(adr)) throw new Exception("Invalid address");
+                
+                // Statement
+                Statement s=UTILS.DB.getStatement();
+                    
+                // Trans ID
+                long tID=UTILS.BASIC.getID();
+                
+                // Add trans to trans pool
+                if (amount<0)
+	           UTILS.NETWORK.TRANS_POOL.addTrans(adr, 
+		    		                     amount, 
+		    		                     cur, 
+		    		                     hash, 
+		    		                     block);
             
-            String query="SELECT * "
-                              + "FROM trans "
-                             + "WHERE src='"+adr+"' "
-                               + "AND hash='"+hash+"' "
-                               + "AND amount="+UTILS.FORMAT.format(amount)+" "
-                               + "AND cur='"+cur+"'";
-            
-            rs=s.executeQuery(query); 
-            //UTILS.CONSOLE.write(query);
-            
-            if (UTILS.DB.hasData(rs)) return;
-            
-            // Add trans to trans pool
-            if (amount<0)
-	       UTILS.NETWORK.TRANS_POOL.addTrans(adr, 
-		    		                 amount, 
-		    		                 cur, 
-		    		                 hash, 
-		    		                 block);
-            
-            // Credit transaction ?
-            if (amount>0)
-            {
-                if (!cur.equals("MSK"))
+                // Credit transaction ?
+                if (amount>0)
                 {
-                  // Loads asset data
-                  rs=s.executeQuery("SELECT * FROM assets WHERE symbol='"+cur+"'");
+                    if (!cur.equals("MSK"))
+                    {
+                       // Loads asset data
+                       rs=s.executeQuery("SELECT * FROM assets WHERE symbol='"+cur+"'");
                   
-                  // Next
-                  rs.next();
+                       // Next
+                       rs.next();
                   
-                  if (rs.getDouble("trans_fee")>0)
-                  {
-                     // Fee
-                     asset_fee=Math.abs(rs.getDouble("trans_fee")*amount/100);
+                       if (rs.getDouble("trans_fee")>0)
+                       {
+                          // Fee
+                          asset_fee=Math.abs(rs.getDouble("trans_fee")*amount/100);
                   
-                     // Fee address
-                     asset_fee_adr=rs.getString("trans_fee_adr");
+                          // Fee address
+                          asset_fee_adr=rs.getString("trans_fee_adr");
                              
-                     // Min fee
-                     if (asset_fee<0.0001) asset_fee=0.0001;
-                  }
+                          // Min fee
+                          if (asset_fee<0.0001) asset_fee=0.0001;
+                       }
+                    }
                 }
-            }
              
-             // Mine ?
-	     if (UTILS.WALLET.isMine(adr))
-	     {
+                // Mine ?
+	        if (UTILS.WALLET.isMine(adr))
+	        {
                     // Insert into my transactions 
-                    if (!transExist("my_trans", hash, cur, amount))
-	    	    UTILS.DB.executeUpdate("INSERT INTO my_trans(userID, " +
+                    UTILS.DB.executeUpdate("INSERT INTO my_trans(userID, " +
                                                                 "adr, " +
                                                                 "adr_assoc, " +
             		                                        "amount, " +
@@ -767,16 +817,10 @@ public class CUtils
                                                                 "expl, " +
    		                                                "escrower, "+
                                                                 "hash, " +
+                                                                "tID, " +
    		                                                "block, " +
    		                                                "tstamp, "+
-   		                                                "status, "
-                                                                + "mes, "
-                                                                + "field_1, "
-                                                                + "field_2, "
-                                                                + "field_3, "
-                                                                + "field_4, "
-                                                                + "field_5, "
-                                                                + "cartID) "
+   		                                                "status) "
    		                                      + "VALUES('"+
                                                                  this.getAdrUserID(adr)+"', '"+
    		                                                 adr+"', '"+
@@ -786,14 +830,14 @@ public class CUtils
                                                                  expl+"', '"+
    		                                                 escrower+"', '" +
    		                                                 hash+"', '"+
+                                                                 tID+"', '"+
    		                                                 block+"', '" +
    		                                                 UTILS.BASIC.tstamp()+"', '" +
-   		                                                 "ID_UNCONFIRMED', '', '', '', '', '', '', '0')");
+   		                                                 "ID_UNCONFIRMED')");
                     
                     // Debit asset fee
-                    if (!transExist("my_trans", hash, cur, -asset_fee) && 
-                        !cur.equals("MSK") &&
-                        asset_fee>0)
+                    if (!cur.equals("MSK") && asset_fee>0)
+                    {
 	    	    UTILS.DB.executeUpdate("INSERT INTO my_trans(userID, " +
                                                                 "adr, " +
             		                                        "amount, " +
@@ -801,6 +845,7 @@ public class CUtils
                                                                 "expl, " +
    		                                                "escrower, "+
                                                                 "hash, " +
+                                                                "tID, " +
    		                                                "block, " +
    		                                                "tstamp, "+
    		                                                "status) "
@@ -812,14 +857,12 @@ public class CUtils
                                                                  expl+"', '"+
    		                                                 escrower+"', '" +
    		                                                 hash+"', '"+
+                                                                 tID+"', '"+
    		                                                 block+"', '" +
    		                                                 UTILS.BASIC.tstamp()+"', '" +
    		                                                 "ID_UNCONFIRMED')");
                     
-                    // Credit Asset fee
-                    if (!transExist("my_trans", hash, cur, asset_fee) && 
-                        !cur.equals("MSK") &&
-                        asset_fee>0)
+                    
                      UTILS.DB.executeUpdate("INSERT INTO my_trans(userID,"+
                                                                 "adr, " +
             		                                        "amount, " +
@@ -827,6 +870,7 @@ public class CUtils
                                                                 "expl, " +
    		                                                "escrower, "+
                                                                 "hash, " +
+                                                                "tID, " +
    		                                                "block, " +
    		                                                "tstamp, "+
    		                                                "status) "
@@ -838,9 +882,11 @@ public class CUtils
                                                                  expl+"', '"+
    		                                                 escrower+"', '" +
    		                                                 hash+"', '"+
+                                                                 tID+"', '"+
    		                                                 block+"', '" +
    		                                                 UTILS.BASIC.tstamp()+"', '" +
    		                                                 "ID_UNCONFIRMED')");
+                    }
                     
                     UTILS.DB.executeUpdate("UPDATE web_users "
                                                + "SET unread_trans=unread_trans+1 "
@@ -850,12 +896,12 @@ public class CUtils
 	    }
                
             // Insert transaction 
-            if (!transExist("trans", hash, cur, amount))
-	    UTILS.DB.executeUpdate("INSERT INTO trans(src, " +
+            UTILS.DB.executeUpdate("INSERT INTO trans(src, " +
             		                              "amount, " +
    		                                      "cur, " +
    		                                      "escrower, "+
                                                       "hash, " +
+                                                      "tID, " +
    		                                      "block, " +
    		                                      "tstamp, "+
    		                                      "status) "
@@ -865,19 +911,21 @@ public class CUtils
    		                                       cur+"', '"+
    		                                       escrower+"', '" +
    		                                       hash+"', '"+
+                                                       tID+"', '"+
    		                                       block+"', '" +
    		                                       UTILS.BASIC.tstamp()+"', '" +
    		                                       "ID_UNCONFIRMED')");
             
             // Insert transaction 
-            if (!transExist("trans", hash, cur, asset_fee) && 
-                !cur.equals("MSK") && 
+            if (!cur.equals("MSK") && 
                 asset_fee>0)
+            {
 	    UTILS.DB.executeUpdate("INSERT INTO trans(src, " +
             		                              "amount, " +
    		                                      "cur, " +
    		                                      "escrower, "+
                                                       "hash, " +
+                                                      "tID, " +
    		                                      "block, " +
    		                                      "tstamp, "+
    		                                      "status) "
@@ -887,18 +935,18 @@ public class CUtils
    		                                       cur+"', '"+
    		                                       escrower+"', '" +
    		                                       hash+"', '"+
+                                                       tID+"', '"+
    		                                       block+"', '" +
    		                                       UTILS.BASIC.tstamp()+"', '" +
    		                                       "ID_UNCONFIRMED')");
             
-            if (!transExist("trans", hash, cur, asset_fee) && 
-                !cur.equals("MSK") && 
-                asset_fee>0)
+           
                  UTILS.DB.executeUpdate("INSERT INTO trans(src, " +
             		                              "amount, " +
    		                                      "cur, " +
    		                                      "escrower, "+
                                                       "hash, " +
+                                                      "tID, " +
    		                                      "block, " +
    		                                      "tstamp, "+
    		                                      "status) "
@@ -907,9 +955,11 @@ public class CUtils
    		                                       cur+"', '"+
    		                                       escrower+"', '" +
    		                                       hash+"', '"+
+                                                       tID+"', '"+
    		                                       block+"', '" +
    		                                       UTILS.BASIC.tstamp()+"', '" +
    		                                       "ID_UNCONFIRMED')");
+            }
             
             // Close
             s.close();
@@ -923,7 +973,7 @@ public class CUtils
         }
         
         // Get address owner
-        public long getAdrUserID(String adr)
+        public long getAdrUserID(String adr) throws Exception
         {
             try
             {
@@ -951,18 +1001,34 @@ public class CUtils
         public CResult doAssetTrans(String adr, 
                                     double amount, 
                                     String cur,
-                                    String hash)
+                                    String hash,
+                                    double inv) throws Exception
         {
-            double balance;
-            double new_balance;
+            double balance=0;
+            double new_balance=0;
+            double invested=0;
                     
             try
             {
                      // Statement
                      Statement s=UTILS.DB.getStatement();
+                     
+                     // Load asset data
+                     ResultSet rs=s.executeQuery("SELECT * "
+                                                 + "FROM assets "
+                                                + "WHERE symbol='"+cur+"'");
+                     
+                     // Next
+                     rs.next();
+                     
+                     // Get asset type
+                     long linked_mktID=rs.getLong("linked_mktID");
 		     
                      // Load source
-                     ResultSet rs=s.executeQuery("SELECT * FROM assets_owners WHERE owner='"+adr+"'");
+                     rs=s.executeQuery("SELECT * "
+                                                 + "FROM assets_owners "
+                                                + "WHERE owner='"+adr+"' "
+                                                 + " AND symbol='"+cur+"'");
 		         
                      // Address exist ?
                      if (!UTILS.DB.hasData(rs))
@@ -971,13 +1037,14 @@ public class CUtils
                         UTILS.DB.executeUpdate("INSERT INTO assets_owners(owner, "
                                                                        + "symbol, "
                                                                        + "qty, "
+                                                                       + "invested, "
                                                                        + "last_interest) VALUES('"
                                                                        +adr+"', '"
-                                                                       +cur+"', '0', '"
+                                                                       +cur+"', '0', '0', '"
                                                                        +UTILS.NET_STAT.last_block+"')");
                          
                         // New balance
-                        new_balance=Double.parseDouble(UTILS.FORMAT.format(amount));
+                        new_balance=amount;
                      }
                      else
                      {
@@ -989,31 +1056,62 @@ public class CUtils
 		     
                         // New balance
                         new_balance=balance+amount;
-                     
-                        // Format
-                        new_balance=Double.parseDouble(UTILS.FORMAT.format(new_balance));
+                        
+                        
+                        // Market pegged asset ?
+                        if (linked_mktID>0)
+                        {
+                           if (amount<0)
+                           {
+                              // Percent
+                              double p=amount*100/balance;
+                        
+                              // Invested
+                              invested=p*rs.getDouble("invested")/100;
+                           }
+                           else if (inv==0) 
+                           {
+                               // Load asset market data
+                                rs=s.executeQuery("SELECT * "
+                                               + "FROM feeds_assets_mkts "
+                                              + "WHERE asset_symbol='"+cur+"'");
+                             
+                                // Next 
+                                rs.next();
+                             
+                                // Last price
+                                double last_price=rs.getDouble("last_price");
+                             
+                                // Invested
+                                invested=last_price*amount;
+                           }
+                           else invested=inv;
+                        }
                      }
                      
 		     // Source balance update
 		     UTILS.DB.executeUpdate("UPDATE assets_owners "
 		   		                + "SET qty="+new_balance+", "
+                                                    + "invested=invested+"+invested+", "
 		   		                    + "block='"+UTILS.BASIC.block()+
-                                                "' WHERE owner='"+adr+"'");
+                                                "' WHERE owner='"+adr+"' "
+                                                  + "AND symbol='"+cur+"'");
                      
                      
                      // Close
-                     s.close();
+                     if (!s.isClosed()) s.close();
+            
             }
             catch (SQLException ex)
             {
-                UTILS.LOG.log("SQLException", ex.getMessage(), "CUtils.java", 663);
+                UTILS.LOG.log("SQLException", ex.getMessage(), "CUtils.java", 1085);
             }
             
             // Return
             return new CResult(true, "Ok", "CUtils.java", 130);
         }
         
-        public CResult doTrans(String adr, double amount, String hash)
+        public CResult doTrans(String adr, double amount, String hash) throws Exception
         {
             double balance;
             double new_balance;
@@ -1044,7 +1142,7 @@ public class CUtils
                                                                   + "'0', "
                                                                   + "'0', "
                                                                   + "'', "
-                                                                  + "'0')");
+                                                                  + "'"+UTILS.NET_STAT.last_block+"')");
                         // New balance
                         new_balance=Double.parseDouble(UTILS.FORMAT.format(amount));
                      }
@@ -1065,34 +1163,35 @@ public class CUtils
                      
 		     // Source balance update
 		     UTILS.DB.executeUpdate("UPDATE adr "
-		   		                + "SET balance="+new_balance+", "
+		   		                + "SET balance="+UTILS.FORMAT_8.format(new_balance)+", "
 		   		                    + "block='"+UTILS.BASIC.block()+
                                                 "' WHERE adr='"+adr+"'");
                         
                      if (amount>0)
                         UTILS.DB.executeUpdate("UPDATE adr "
-                                                   + "SET total_received=total_received+"+amount+", "
+                                                   + "SET total_received=total_received+"+UTILS.FORMAT_8.format(amount)+", "
                                                        + "trans_no=trans_no+1 "
                                                  + "WHERE adr='"+adr+"'");
                      else
                         UTILS.DB.executeUpdate("UPDATE adr "
-                                                   + "SET total_received=total_spent+"+Math.abs(amount)+", "
+                                                   + "SET total_spent=total_spent+"+UTILS.FORMAT_8.format(Math.abs(amount))+", "
                                                        + "trans_no=trans_no+1 "
                                                  + "WHERE adr='"+adr+"'");
+                     
                     
                      // Close
-                     s.close();
+                     rs.close(); s.close();
             }
             catch (SQLException ex)
             {
-                UTILS.LOG.log("SQLException", ex.getMessage(), "CUtils.java", 663);
+                UTILS.LOG.log("SQLException", ex.getMessage(), "CUtils.java", 1164);
             }
             
             // Return
             return new CResult(true, "Ok", "CUtils.java", 130);
         }
         
-	public boolean isLink(String link)
+	public boolean isLink(String link) throws Exception
 	{
 		if (link.matches("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]"))
                     return true;
@@ -1100,7 +1199,7 @@ public class CUtils
                     return false;
 	}
 	
-	public String getLinkCode(String link)
+	public String getLinkCode(String link) throws Exception
 	{
 		int c=0;
 		String code="";
@@ -1125,7 +1224,7 @@ public class CUtils
 		return code;
 	}
 	
-	public long block()
+	public long block() throws Exception
 	{
 	    if (UTILS.CBLOCK!=null) 
                 return UTILS.NET_STAT.last_block+1;
@@ -1133,17 +1232,17 @@ public class CUtils
                 return 0;
 	}
 	
-	public long daysFromBlock(long block)
+	public long daysFromBlock(long block) throws Exception
 	{
 		return Math.round((block-this.block())/1440);
 	}
 	
-	public long blocskFromDays(long days)
+	public long blocskFromDays(long days) throws Exception
 	{
 		return Math.round(1440*days);
 	}
 	
-	public String addressFromDomain(String adr)
+	public String addressFromDomain(String adr) throws Exception
 	{
 		if (adr.length()>30) return adr;
 		
@@ -1153,7 +1252,7 @@ public class CUtils
 		   ResultSet rs=s.executeQuery("SELECT * FROM domains WHERE domain='"+adr+"'");
 		   if (UTILS.DB.hasData(rs)==false) 
 		   {
-                       if (s!=null) s.close();
+                       if (s!=null) rs.close(); s.close();
 			   return "";
 		   }
 		   else
@@ -1165,7 +1264,7 @@ public class CUtils
                        String a=rs.getString("adr");
                        
                        // Close
-                       if (s!=null) s.close();
+                       if (s!=null) rs.close(); s.close();
                        
                        // Return
                        return a;
@@ -1179,7 +1278,7 @@ public class CUtils
 		return "";
 	}
 	
-	public byte[] randKey(int no)
+	public byte[] randKey(int no) throws Exception
 	{
 		// Generates a key
 	    SecureRandom random = new SecureRandom();
@@ -1190,7 +1289,7 @@ public class CUtils
 		return key;
 	}
         
-        public String randString(int no)
+        public String randString(int no) throws Exception
 	{
 		// Generates a key
 	    SecureRandom random = new SecureRandom();
@@ -1201,7 +1300,7 @@ public class CUtils
 	    return this.hash(key).substring(0, no);
 	}
 	
-	public boolean domainExist(String domain)
+	public boolean domainExist(String domain) throws Exception
 	{
             try
             {
@@ -1213,7 +1312,7 @@ public class CUtils
 		if (UTILS.DB.hasData(rs)) 
                 {
                     // Close
-                    if (s!=null) s.close();
+                    if (s!=null) rs.close(); s.close();
                     
                     // Return
 		    return true;
@@ -1221,7 +1320,7 @@ public class CUtils
 		else
                 {
                     // Close
-                    if (s!=null) s.close();
+                    if (s!=null) rs.close(); s.close();
                     
                     // Return
 		    return false;
@@ -1235,7 +1334,7 @@ public class CUtils
             return false;
 	}
 	
-	public String adrFromDomain(String domain)
+	public String adrFromDomain(String domain) throws Exception
 	{
 	    try
 	    {
@@ -1250,7 +1349,7 @@ public class CUtils
                     rs.next();
                     
                     // Close
-                    if (s!=null) s.close();
+                    if (s!=null) rs.close(); s.close();
                     
                     // Address
                     String adr=rs.getString("adr");
@@ -1261,7 +1360,7 @@ public class CUtils
                 else
                 {
                     // Close
-                    if (s!=null) s.close();
+                    if (s!=null) rs.close(); s.close();
                     
                     // Return
                     return "";
@@ -1275,7 +1374,7 @@ public class CUtils
         return "";
 	}
 	
-	public String domainFromAdr(String adr)
+	public String domainFromAdr(String adr) throws Exception
 	{
 		try
 		{
@@ -1288,12 +1387,12 @@ public class CUtils
            {
               rs.next();
               String domain=rs.getString("domain");
-              if (s!=null) s.close();
+              if (s!=null) rs.close(); s.close();
               return domain;
            }
            else
            {
-               if (s!=null) s.close();
+               if (s!=null) rs.close(); s.close();
               return "";
            }
 		}
@@ -1305,14 +1404,14 @@ public class CUtils
         return "";
 	}
 	
-	public long daysAheadFromBlock(long block)
+	public long daysAheadFromBlock(long block) throws Exception
 	{
 		long aBlock=UTILS.BASIC.block();
 		long dif=Math.round(((block-aBlock)*100)/144000);
 		return dif;
 	}
 	
-	public boolean hasAttr(String adr, String atr)
+	public boolean hasAttr(String adr, String atr) throws Exception
 	{
             try
             {
@@ -1326,7 +1425,7 @@ public class CUtils
                 if (UTILS.DB.hasData(rs_opt)==true)
                 {
                     // Close
-                    s.close();
+                    rs_opt.close(); s.close();
                     
                     // Return
                     return true;
@@ -1334,7 +1433,7 @@ public class CUtils
                 else
                 {
                     // Close
-                    s.close();
+                    rs_opt.close(); s.close();
                     
                     // Return
                     return false;
@@ -1349,7 +1448,7 @@ public class CUtils
             return false;
         }
 	
-	public void stackTrace()
+	public void stackTrace() throws Exception
 	{
 	   StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
            UTILS.CONSOLE.write(stackTraceElements[0].toString());
@@ -1359,7 +1458,7 @@ public class CUtils
            UTILS.CONSOLE.write(stackTraceElements[4].toString());
 	}
 	
-	public long attrExpires(String adr, String atr)
+	public long attrExpires(String adr, String atr) throws Exception
 	{
 	   try
 	   {
@@ -1379,7 +1478,7 @@ public class CUtils
                      long expires=rs.getLong("expires");
                      
                      // Close
-                     if (s!=null) s.close();
+                     if (s!=null) rs.close(); s.close();
                      
                      // Return
                      return expires;
@@ -1387,7 +1486,7 @@ public class CUtils
                  else
                  {
                      // Close
-                     if (s!=null) s.close();
+                     if (s!=null) rs.close(); s.close();
                      
                      // Return
                      return 0;
@@ -1401,7 +1500,7 @@ public class CUtils
 		return 0;
 	}
 	
-	public String getAttrPar(String adr, String op_type, String par)
+	public String getAttrPar(String adr, String op_type, String par) throws Exception
 	{
 	    try
 	    {
@@ -1421,7 +1520,7 @@ public class CUtils
                      String pa=rs.getString(par);
                      
                      // Close
-                     if (s!=null) s.close();
+                     if (s!=null) rs.close(); s.close();
                     
                      // Return
                      return pa;
@@ -1429,7 +1528,7 @@ public class CUtils
                  else
                  {
                      // Close
-                     if (s!=null) s.close();
+                     if (s!=null) rs.close(); s.close();
                      
                      // Return
                      return "";
@@ -1443,7 +1542,7 @@ public class CUtils
 		return "";
 	}
 	
-	public double getBalance(String adr, String cur)
+	public double getBalance(String adr, String cur) throws Exception
 	{
 	   try
 	   {
@@ -1474,7 +1573,7 @@ public class CUtils
                       balance=rs.getDouble("qty");
                    
                    // Close
-                   if (s!=null) s.close();
+                   if (s!=null) rs.close(); s.close();
                    
                    // Return
                    return balance;
@@ -1482,7 +1581,7 @@ public class CUtils
                 else
                 {
                     // Close
-                    if (s!=null) s.close();
+                    if (s!=null) rs.close(); s.close();
                     
                     // Return
                     return 0;
@@ -1496,7 +1595,7 @@ public class CUtils
 	   return 0;
 	}
 	
-        public boolean isLong(String n)
+        public boolean isLong(String n) throws Exception
         {
             if (n.length()>20) return false;
 
@@ -1506,13 +1605,13 @@ public class CUtils
                return false;
         }
         
-	public String formatExpireBlock(long block)
+	public String formatExpireBlock(long block) throws Exception
 	{
 		long dif=(block-this.block())*100;
 		return(this.getTime(dif));
 	}
 	
-	public String getTableHash(String table)
+	public String getTableHash(String table) throws Exception
 	{
 		String hash="";
 		
@@ -1526,7 +1625,7 @@ public class CUtils
 			   while (rs.next()) hash=hash+rs.getString("rowhash");
                            
                            // Close
-                           if (s!=null) s.close();
+                           if (s!=null) rs.close(); s.close();
 		   }
 		   catch (SQLException ex) 
 		   {
@@ -1536,7 +1635,7 @@ public class CUtils
 		 return UTILS.BASIC.hash(hash);
 	}
 	
-	public String getAppDataDirectory() 
+	public String getAppDataDirectory()  throws Exception
 	{
 
 	    String appDataDirectory;
@@ -1594,7 +1693,7 @@ public class CUtils
 	    return appDataDirectory;
 	}
         
-        public boolean IPValid(String ip)
+        public boolean IPValid(String ip) throws Exception
         {
             String PATTERN = "^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$";
             Pattern pattern = Pattern.compile(PATTERN);
@@ -1602,7 +1701,7 @@ public class CUtils
             return matcher.matches();
         }
         
-        public boolean domainValid(String domain)
+        public boolean domainValid(String domain) throws Exception
         {
              if (!domain.matches("[A-Za-z0-9\\.-]+"))
                 return false;
@@ -1610,7 +1709,7 @@ public class CUtils
                 return true;
         }
         
-        public boolean mkt_days_valid(long days)
+        public boolean mkt_days_valid(long days) throws Exception
         {
              if (days<1)
                 return false;
@@ -1618,7 +1717,7 @@ public class CUtils
                 return true;
         }
         
-        public boolean titleValid(String title)
+        public boolean titleValid(String title) throws Exception
         {
             // Check length
             if (title.length()<3 || title.length()>60)
@@ -1627,7 +1726,7 @@ public class CUtils
                 return true;
         }
         
-        public boolean descriptionValid(String desc)
+        public boolean descriptionValid(String desc) throws Exception
         {
            // Description length
             if (desc.length()<5 || desc.length()>250)
@@ -1636,7 +1735,7 @@ public class CUtils
                 return true;
         }
         
-        public boolean symbolValid(String symbol)
+        public boolean symbolValid(String symbol) throws Exception
         {
            // Description length
             if (symbol.length()!=6)
@@ -1649,7 +1748,7 @@ public class CUtils
                 return true;
         }
         
-        public boolean UIDValid(String uid)
+        public boolean UIDValid(String uid) throws Exception
         {
            // Description length
             if (uid.length()!=10)
@@ -1662,7 +1761,7 @@ public class CUtils
                 return true;
         }
         
-        public boolean assetExist(String symbol)
+        public boolean assetExist(String symbol) throws Exception
         {
             if (!this.symbolValid(symbol))
                return false;
@@ -1674,12 +1773,12 @@ public class CUtils
                
                if (!UTILS.DB.hasData(rs))
                {
-                   s.close();
+                   rs.close(); s.close();
                    return false;
                }
                else
                {
-                   s.close();
+                   rs.close(); s.close();
                    return true;
                }
             }
@@ -1691,7 +1790,7 @@ public class CUtils
             return false;
         }
         
-        public boolean mktBidValid(double mkt_bid)
+        public boolean mktBidValid(double mkt_bid) throws Exception
         {
              if (mkt_bid<0.0001)
                 return false;
@@ -1699,7 +1798,7 @@ public class CUtils
                 return true;
         }
         
-        public boolean mktDaysValid(long mkt_days)
+        public boolean mktDaysValid(long mkt_days) throws Exception
         {
              if (mkt_days<1)
                 return false;
@@ -1707,7 +1806,7 @@ public class CUtils
                 return true;
         }
         
-        public boolean mktDays(long mkt_days)
+        public boolean mktDays(long mkt_days) throws Exception
         {
              if (mkt_days<1)
                 return false;
@@ -1715,7 +1814,7 @@ public class CUtils
                 return true;
         }
         
-        public boolean feedExist(String feed)
+        public boolean feedExist(String feed) throws Exception
         {
            if (!this.symbolValid(feed))
               return false;
@@ -1729,11 +1828,11 @@ public class CUtils
               ResultSet rs=s.executeQuery("SELECT * FROM feeds WHERE symbol='"+feed+"'");
               if (UTILS.DB.hasData(rs))
               {
-                 s.close();
+                 rs.close(); s.close();
                  return true;
               }
               
-              s.close();
+              rs.close(); s.close();
               return false;
            }
            catch (SQLException ex) 
@@ -1745,12 +1844,12 @@ public class CUtils
         }
         
       
-        public boolean countryExist(String cou)
+        public boolean countryExist(String cou) throws Exception
         {
            return true;  
         }
         
-        public boolean marketSymbolUsed(String symbol)
+        public boolean marketSymbolUsed(String symbol) throws Exception
         {
           try
           {
@@ -1763,7 +1862,7 @@ public class CUtils
                                          + "WHERE bet_symbol='"+symbol+"'");
               if (UTILS.DB.hasData(rs))
               {
-                s.close();
+                rs.close(); s.close();
                 return true;
               }
               
@@ -1773,7 +1872,7 @@ public class CUtils
                                + "WHERE mkt_symbol='"+symbol+"'");
               if (UTILS.DB.hasData(rs))
               {
-                s.close();
+                rs.close(); s.close();
                 return true;
               }
               
@@ -1783,11 +1882,11 @@ public class CUtils
                                + "WHERE mkt_symbol='"+symbol+"'");
               if (UTILS.DB.hasData(rs))
               {
-                s.close();
+                rs.close(); s.close();
                 return true;
               }
             
-              s.close();
+              rs.close(); s.close();
            }
            catch (SQLException ex) 
        	   {  
@@ -1797,7 +1896,7 @@ public class CUtils
           return false;
         }
         
-         public double getFeedVal(String feed, String branch)
+         public double getFeedVal(String feed, String branch) throws Exception
          {
              try
              {
@@ -1806,7 +1905,7 @@ public class CUtils
               
                 // Load feed data
                 ResultSet rs=s.executeQuery("SELECT * "
-                                            + "FROM feeds_components "
+                                            + "FROM feeds_branches "
                                            + "WHERE feed_symbol='"+feed+"' "
                                              + "AND symbol='"+branch+"'");
                 
@@ -1817,6 +1916,7 @@ public class CUtils
                 double val=rs.getDouble("val");
                 
                 // Close
+                rs.close(); 
                 s.close();
                 
                 // Return
@@ -1830,12 +1930,12 @@ public class CUtils
              return 0;
          }
          
-         public String formatDif(String dif)
+         public String formatDif(String dif) throws Exception
          {
              return (dif.substring(0, 3)+"-"+String.valueOf(dif.length()));
          }
          
-         public long getUserID(String user) throws SQLException
+         public long getUserID(String user) throws Exception
          {
              // Statement
              Statement s=UTILS.DB.getStatement();
@@ -1852,13 +1952,13 @@ public class CUtils
                 long userID=rs.getLong("ID");
                 
                 // Close
-                s.close();
+                rs.close(); s.close();
                 
                 // Return
                 return userID;
          }
          
-         public String clean(String str)
+         public String clean(String str) throws Exception
          {
              String clean=str.replace("<", "");
              clean=clean.replace(">", "");
@@ -1866,7 +1966,7 @@ public class CUtils
              return clean;
          }
          
-         public boolean feedValid(String feed, String branch)
+         public boolean feedValid(String feed, String branch) throws Exception
          {
             try
             {
@@ -1887,14 +1987,14 @@ public class CUtils
            
                if (!UTILS.DB.hasData(rs)) 
                {
-                  s.close();
+                  rs.close(); s.close();
                   return false;
                }
            
                // Feed branch valid
                if (!UTILS.BASIC.symbolValid(branch)) 
                {
-                  s.close();
+                  rs.close(); s.close();
                   return false;
                }
            
@@ -1906,11 +2006,11 @@ public class CUtils
            
               if (!UTILS.DB.hasData(rs)) 
               {
-                 s.close();
+                 rs.close(); s.close();
                  return false;
               }
            
-              s.close();
+              rs.close(); s.close();
         }
         catch (SQLException ex) 
        	{  
@@ -1921,5 +2021,30 @@ public class CUtils
         return true;
     }
          
-         
+    public double round(double val, int digits) throws Exception
+    {
+        long i=Math.round(val*(Math.pow(10, digits)));
+        double r=i/(Math.pow(10, digits));
+        return r;
+    }
+    
+    public double getBalance(String adr, String cur, CBlockPayload block) throws Exception
+    {
+        if (block==null)
+            return UTILS.NETWORK.TRANS_POOL.getBalance(adr, cur);
+        else
+            return this.getBalance(adr, cur);
+    }
+    
+    public long getExpireBlock(long days) throws Exception
+    {
+        return UTILS.NET_STAT.last_block+(UTILS.NET_STAT.blocks_per_day*days);
+    }
+    
+    public long getID() throws Exception
+    {
+        return Math.round(Math.random()*10000000000L);
+    }
+    
+    
 }

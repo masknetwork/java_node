@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network;
 
 import java.sql.ResultSet;
@@ -34,7 +37,7 @@ public class CNetwork extends Thread
     public static CMultisigPool MULTISIG_POOL=null;
 	
 
-    public CNetwork() 
+    public CNetwork()  throws Exception
     {
         // Initialized
 	UTILS.CONSOLE.write("Network initialized....");
@@ -47,21 +50,28 @@ public class CNetwork extends Thread
        
     }
 	
-	  public void init()
+	  public void init() throws Exception
 	  {
 		  
 	  }
 	  
 	  public void run()
 	  {
+              try
+              {
 	      // Start the server
               this.peers.serverStart(UTILS.SETTINGS.port); 	
               
               // Boot
               this.bootstrap();
+              }
+              catch (Exception ex) 
+       	      {  
+       		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
+              }
 	  }
 	  
-	  public void bootstrap()
+	  public void bootstrap() throws Exception
 	  {
 	      // Load bootstrap nodes
 	      for (int a=1; a<=100; a++)
@@ -77,7 +87,7 @@ public class CNetwork extends Thread
 	      }	  
 	  }
 	  
-	  public boolean isConPacket(String tip)
+	  public boolean isConPacket(String tip) throws Exception
           {
             if (tip.equals("ID_PING_PACKET") || 
                 tip.equals("ID_PONG_PACKET") || 
@@ -88,7 +98,7 @@ public class CNetwork extends Thread
               return false;
           }
           
-          public void seen(String adr)
+          public void seen(String adr) throws Exception
           {
               // Updates last seen
 	      UTILS.DB.executeUpdate("UPDATE peers "
@@ -96,7 +106,7 @@ public class CNetwork extends Thread
                                     + "WHERE peer='"+adr+"'");
           }
           
-	  public void processRequest(CPacket packet, CPeer sender)
+	  public void processRequest(CPacket packet, CPeer sender) throws Exception
 	  {
 	     try
 	     {
@@ -170,7 +180,7 @@ public class CNetwork extends Thread
 		  }
 	  }
 	  
-	  public void broadcast(CPacket packet)
+	  public void broadcast(CPacket packet) throws Exception
 	  {
               //UTILS.CONSOLE.write("Broadcasting packet ("+packet.tip+")...");
                
@@ -189,7 +199,7 @@ public class CNetwork extends Thread
               }
 	  }
 	  
-	  public boolean packetExist(CPacket packet, CPeer sender)
+	  public boolean packetExist(CPacket packet, CPeer sender) throws Exception
 	  {
               try
               {
@@ -201,7 +211,7 @@ public class CNetwork extends Thread
 		      if (UTILS.DB.hasData(rs))
                       {
                           // Close
-                          if (s!=null) s.close();
+                          if (s!=null) rs.close(); s.close();
                           
                           // Return
 		    	  return true;
@@ -212,7 +222,7 @@ public class CNetwork extends Thread
                            this.logPacket(packet, sender);
                    
                           // Close
-                          if (s!=null) s.close();
+                          if (s!=null) rs.close(); s.close();
                           
                           // Return
 		    	  return false;
@@ -228,7 +238,7 @@ public class CNetwork extends Thread
               }
 	  }
 	  
-	  public void logPacket(CPacket packet, CPeer peer)
+	  public void logPacket(CPacket packet, CPeer peer) throws Exception
 	   {
                String adr;
                
@@ -247,7 +257,7 @@ public class CNetwork extends Thread
 		  		                 + "'"+packet.hash+"')");
 	   }
 	  
-	  public void sendToPeer(String peer, CPacket packet)
+	  public void sendToPeer(String peer, CPacket packet) throws Exception
 	  {
 		  for (int a=0; a<=peers.peers.size()-1; a++)
 		  {

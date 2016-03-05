@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.tweets;
 
 import java.sql.ResultSet;
@@ -63,8 +66,7 @@ public class CNewTweetPayload extends CPayload
                            String video,
                            double budget,
                            String budget_cur,
-                           long budget_expire
-                           )
+                           long budget_expire) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -127,7 +129,7 @@ public class CNewTweetPayload extends CPayload
  	   this.sign();
    }
    
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
        try
        {
@@ -209,7 +211,7 @@ public class CNewTweetPayload extends CPayload
                    
                    // Exire
                    if (this.budget_expire>5)
-                       return new CResult(false, "Maxximum 5 days expire date", "CNewTweetPayload", 77);
+                       return new CResult(false, "Maximum 5 days expire date", "CNewTweetPayload", 77);
                    
                    // Take funds
                    UTILS.BASIC.newTrans(this.target_adr, 
@@ -220,7 +222,9 @@ public class CNewTweetPayload extends CPayload
                                         "You have offered incentives for a tweet", 
                                         "", 
                                         this.hash, 
-                                        this.block);
+                                        this.block,
+                                        block,
+                                        0);
                 }
             }
             
@@ -259,7 +263,7 @@ public class CNewTweetPayload extends CPayload
  	  return new CResult(true, "Ok", "CNewTweetPayload", 164);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
        try
        {

@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.adr;
 
 import wallet.kernel.*;
@@ -40,7 +43,8 @@ public class CAddSignPayload extends CPayload
                            String signer_4, 
                            String signer_5,
                            int min,
-                           long days)
+                           long days,
+                           String signature) throws Exception
     {
     	// Constructor
     	super(target_adr);
@@ -83,7 +87,10 @@ public class CAddSignPayload extends CPayload
                                  days);
  	   
  	   // Signature
-           this.sign();
+           if (signature.equals("")) 
+               this.sign();
+           else
+               this.sign=signature;
         }
         catch (Exception ex) 
         { 
@@ -91,7 +98,7 @@ public class CAddSignPayload extends CPayload
         }
     }
     
-    public CResult check(CBlockPayload block)
+    public CResult check(CBlockPayload block) throws Exception
     {
         try
         {
@@ -163,14 +170,10 @@ public class CAddSignPayload extends CPayload
   	return new CResult(true, "Ok", "CAddSignPayload", 160);
     }
     
-    public CResult commit(CBlockPayload block)
+    public CResult commit(CBlockPayload block) throws Exception
     {
         try
         {
-           // Check payload
-           CResult res=this.check(block);
-           if (!res.passed) return res;
-           
            // Superclass
            super.commit(block);
                  

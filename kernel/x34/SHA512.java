@@ -1,5 +1,8 @@
 // $Id: SHA512.java 156 2010-04-26 17:55:11Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

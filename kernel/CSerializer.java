@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import java.io.ByteArrayInputStream;
@@ -18,44 +21,25 @@ public class CSerializer {
 		
 	}
 	
-	public byte[] serialize(Object obj)
+	public byte[] serialize(Object obj) throws Exception
 	{
-		try
-		{
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
                         GZIPOutputStream gzipOut = new GZIPOutputStream(out);
 		        ObjectOutputStream os = new ObjectOutputStream(gzipOut);
 		        os.writeObject(obj);
                         gzipOut.close();
 		        return out.toByteArray();
-		}
-		catch (IOException ex) 
-                { 
-                    UTILS.LOG.log("IOException", ex.getMessage(), "CSerializer.java", 27); 
-                }
 		
-		return new byte[100];
+		
 	}
 	
-	public  Object deserialize(byte[] data) 
-    {
-		try
-		{
-	           ByteArrayInputStream in = new ByteArrayInputStream(data);
+	public  Object deserialize(byte[] data)  throws Exception
+        {
+		ByteArrayInputStream in = new ByteArrayInputStream(data);
                    GZIPInputStream gzipIn = new GZIPInputStream(in);
 	           ObjectInputStream is = new ObjectInputStream(gzipIn);
                    return is.readObject();
-		}
-		catch (IOException ex) 
-                { 
-                      UTILS.LOG.log("IOException", ex.getMessage(), "CSerializer.java", 40); 
-                }
-		catch (ClassNotFoundException ex) 
-                { 
-                    UTILS.LOG.log("ClassNotFoundException", ex.getMessage(), "CSerializer.java", 41); 
-                }
 		
-		return new Object();
 	}
 
 }

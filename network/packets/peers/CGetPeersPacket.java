@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.peers;
 
 import wallet.kernel.UTILS;
@@ -7,7 +10,7 @@ import wallet.network.packets.*;
 
 public class CGetPeersPacket extends CPacket
 {
-    public CGetPeersPacket()
+    public CGetPeersPacket() throws Exception
     {
         super("ID_GET_PEERS_PACKET");
         
@@ -15,7 +18,7 @@ public class CGetPeersPacket extends CPacket
         this.hash=UTILS.BASIC.hash(UTILS.BASIC.mtstamp()+this.tip);
     }
     
-     public CResult checkWithPeer(CPeer peer)
+     public CResult checkWithPeer(CPeer peer) throws Exception
     {
          // Create response
          CGetPeersResponsePacket packet=new CGetPeersResponsePacket();

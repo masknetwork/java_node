@@ -1,3 +1,9 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import java.math.BigInteger;
@@ -75,7 +81,7 @@ public class CAddress
 	}
 
 	
-	public CAddress(String public_key, String private_key, String description, float balance) 
+	public CAddress(String public_key, String private_key, String description, float balance)  throws Exception
 	{
 		try
 		{
@@ -113,7 +119,7 @@ public class CAddress
 	public boolean importAddress(String user, 
                                      String public_key, 
                                      String private_key, 
-                                     String tag) throws SQLException
+                                     String tag)  throws Exception
 	{
 		try
 		{
@@ -162,12 +168,13 @@ public class CAddress
 		this.domain=UTILS.BASIC.domainFromAdr(this.getPublic());
 		
 		UTILS.WALLET.add(this);
+                UTILS.CBLOCK.setSigner();
 		
 		return true;
 	}
 	
 	
-	public void refreshOptions()
+	public void refreshOptions() throws Exception
 	{
 		this.options=new CAdrOptions(this.getPublic(), false);
 		this.domain=UTILS.BASIC.domainFromAdr(this.getPublic());
@@ -175,7 +182,7 @@ public class CAddress
 		
 	}
 
-	public void generate(String curve)
+	public void generate(String curve) throws Exception
 	{
 		try
 		{
@@ -211,7 +218,7 @@ public class CAddress
         return Base64.encodeBase64String(this.private_key);
     }
 	
-	public String encrypt(String data)
+	public String encrypt(String data) throws Exception
 	{
 		try
 		{
@@ -230,7 +237,7 @@ public class CAddress
 		return "";
 	}
 	
-	public String decrypt(String data)
+	public String decrypt(String data) throws Exception
 	{
 		try
 		{
@@ -250,7 +257,7 @@ public class CAddress
 		return "";
 	}
 	
-	public String sign(String data)
+	public String sign(String data) throws Exception
 	{
 		try
 		{

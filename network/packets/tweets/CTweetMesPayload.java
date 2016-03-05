@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.tweets;
 
 import java.sql.ResultSet;
@@ -27,7 +30,7 @@ public class CTweetMesPayload extends CPayload
    public CTweetMesPayload(String adr, 
 		           long tweetID,
                            long comID,
-		           String mes)
+		           String mes) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -56,7 +59,7 @@ public class CTweetMesPayload extends CPayload
  	   this.sign();
    }
    
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
        try
        {
@@ -68,7 +71,7 @@ public class CTweetMesPayload extends CPayload
              this.mes=UTILS.BASIC.base64_decode(this.mes);
    	
    	     // Check Message
-  	     if (this.mes.length()<10 || this.mes.length()>1000)
+  	     if (this.mes.length()<5 || this.mes.length()>1000)
                return new CResult(false, "Invalid message.", "CTweetMesPayload", 77);
 	  
             // Statement
@@ -142,7 +145,7 @@ public class CTweetMesPayload extends CPayload
  	return new CResult(true, "Ok", "CTweetMesPayload", 164);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
        CResult res=this.check(block);
        if (res.passed==false) return res;

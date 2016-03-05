@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.assets;
 
 import wallet.kernel.*;
@@ -23,7 +26,7 @@ public class CIssueAssetPacket extends CBroadcastPacket
                             double trans_fee,
                             String can_issue,
                             double interest,
-                            long interval)
+                            long interval) throws Exception
    {
 	   super("ID_NEW_ASSET_PACKET");
 
@@ -55,7 +58,7 @@ public class CIssueAssetPacket extends CBroadcastPacket
    }
    
    // Check 
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
           // Super class
    	  CResult res=super.check(block);
@@ -76,7 +79,7 @@ public class CIssueAssetPacket extends CBroadcastPacket
    	  return new CResult(true, "Ok", "CNewAssetPacket", 74);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
    	  // Superclass
    	  CResult res=super.commit(block);

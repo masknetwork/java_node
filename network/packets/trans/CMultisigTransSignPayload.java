@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.trans;
 
 import java.sql.ResultSet;
@@ -19,7 +22,7 @@ public class CMultisigTransSignPayload extends CPayload
     String signature;
 	
     public CMultisigTransSignPayload(String trans_hash, 
-                                     String signer) 
+                                     String signer)  throws Exception
     {
         super(signer);
 			
@@ -39,7 +42,7 @@ public class CMultisigTransSignPayload extends CPayload
         this.sign();
     }
 	
-    public CResult check(CBlockPayload block)
+    public CResult check(CBlockPayload block) throws Exception
     {
         try
     	{ 
@@ -118,7 +121,7 @@ public class CMultisigTransSignPayload extends CPayload
 	return new CResult(true, "Ok", "CNewAssetPayload", 67); 
     }
 
-    public CResult commit(CBlockPayload block)
+    public CResult commit(CBlockPayload block) throws Exception
     {
         try
     	{ 
@@ -246,7 +249,9 @@ public class CMultisigTransSignPayload extends CPayload
                                      "Transaction has been fully signed", 
                                      "", 
                                      this.hash, 
-                                     this.block);
+                                     this.block,
+                                     block,
+                                     0);
             
                  // Clear transactions
                  UTILS.BASIC.clearTrans(this.hash, "ID_ALL");

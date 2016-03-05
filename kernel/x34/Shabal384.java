@@ -1,5 +1,8 @@
 // $Id: Shabal384.java 213 2010-06-03 02:48:09Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

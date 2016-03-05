@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.adr;
 
 import wallet.kernel.*;
@@ -18,7 +21,7 @@ public class CShareAdrPayload extends CPayload
 	// Target address
 	String share_adr;
 	
-   public CShareAdrPayload(String pub_key, String priv_key, String share_adr)
+   public CShareAdrPayload(String pub_key, String priv_key, String share_adr) throws Exception
    {
 	   // Superclass
   	   super(pub_key);
@@ -43,7 +46,7 @@ public class CShareAdrPayload extends CPayload
    	   this.sign();
    }
    
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
    	  // Super class
    	  CResult res=super.check(block);
@@ -69,7 +72,7 @@ public class CShareAdrPayload extends CPayload
  	  return new CResult(true, "Ok", "CShareAdrPayload", 46);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
        CResult res=this.check(block);
        if (res.passed==false) return res;

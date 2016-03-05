@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.domains;
 
 import java.sql.ResultSet;
@@ -17,7 +20,7 @@ public class CTransferDomainPayload extends CPayload
 	// Transfer to adr
 	String to_adr;
 	
-   public CTransferDomainPayload(String adr, String domain, String to_adr)
+   public CTransferDomainPayload(String adr, String domain, String to_adr) throws Exception
    {
 	super(adr);
 		
@@ -36,7 +39,7 @@ public class CTransferDomainPayload extends CPayload
 	this.sign();
    }
    
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
         try
         {
@@ -67,11 +70,11 @@ public class CTransferDomainPayload extends CPayload
                                                + "AND adr='"+this.target_adr+"'");
             if (!UTILS.DB.hasData(rs))
 	    {
-	        s.close();
+	        rs.close(); s.close();
                 return new CResult(false, "Invalid domain owner", "CTransferDomainPayload.java", 61);
 	    }
 			
-	    s.close();
+	    rs.close(); s.close();
         }
         catch (SQLException ex)
         {
@@ -82,7 +85,7 @@ public class CTransferDomainPayload extends CPayload
 	   return new CResult(true, "Ok", "CTransferDomainPayload", 67);
 	}
 	
-	public CResult commit(CBlockPayload block)
+	public CResult commit(CBlockPayload block) throws Exception
 	{
             CResult res=this.check(block);
 	    if (res.passed==false) return res;

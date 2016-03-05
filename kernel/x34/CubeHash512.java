@@ -1,5 +1,8 @@
 // $Id: CubeHash512.java 183 2010-05-08 21:34:53Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

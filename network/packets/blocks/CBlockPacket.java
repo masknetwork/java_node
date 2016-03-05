@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.blocks;
 
 import java.io.File;
@@ -39,13 +42,19 @@ public class CBlockPacket extends CPacket
         // Nonce
         public long nonce;
         
-	public CBlockPacket(String signer)
+        // Dificulty
+        public long net_dif;
+        
+	public CBlockPacket(String signer, long signer_balance) throws Exception
         {
 	   // Constructor
 	   super("ID_BLOCK");
-            
+           
            // Signer
            this.signer=signer;
+              
+           // Load signer balance
+           this.signer_balance=signer_balance;
            
            // Block
            this.block=UTILS.NET_STAT.last_block+1;
@@ -58,10 +67,13 @@ public class CBlockPacket extends CPacket
            
            // Block
            this.block=UTILS.NET_STAT.last_block+1;
+           
+           // Dificulty
+           this.net_dif=UTILS.NET_STAT.net_dif;
         }
 	
         // Sign
-	public void sign(String hash)
+	public void sign(String hash) throws Exception
         { 
             // Hash
             this.hash=hash;
@@ -73,7 +85,7 @@ public class CBlockPacket extends CPacket
         
         
 	// Check 
-	public CResult check()
+	public CResult check() throws Exception
 	{
             // Check type
 	     if (!this.tip.equals("ID_BLOCK")) 
@@ -82,20 +94,23 @@ public class CBlockPacket extends CPacket
 	     // Deserialize transaction data
 	     CBlockPayload block_payload=(CBlockPayload) UTILS.SERIAL.deserialize(payload);
 	     
-             String h=UTILS.BASIC.hash(this.prev_hash+
-                                      "ID_BLOCK"+
-                                      this.block+
-                                      this.payload_hash+
-                                      this.signer+
-                                      this.signer_balance+
-                                      this.tstamp+
-                                      String.valueOf(this.nonce)); 
-            
-             // Hash
-             if (!UTILS.CBLOCK.miner_1.checkHash(h))
-                 return new CResult(false, "Invalid hash", "CBlockPacket", 39);
+             // Block number
+             //if (this.block<=UTILS.NET_STAT.last_block)
+             //   return new CResult(false, "Invalid block number", "CBlockPacket", 39);
              
-	      // Super class
+             // Hash
+             if (!UTILS.MINER_UTILS.checkHash(this.prev_hash, 
+                                              this.block, 
+                                              this.payload_hash, 
+                                              this.signer, 
+                                              this.signer_balance, 
+                                              this.tstamp, 
+                                              this.nonce,
+                                              this.hash,
+                                              this.net_dif))
+             return new CResult(false, "Invalid hash", "CBlockPacket", 39);
+             
+             // Super class
 	      CResult res=super.check(block_payload);
 	      if (res.passed==false) 
 	      {
@@ -116,11 +131,19 @@ public class CBlockPacket extends CPacket
 	      return new CResult(true, "Ok", "CBlockPacket", 42);
 	}
 	   
-	public CResult commit() throws SQLException
+	public CResult commit()  throws Exception
 	{
 		// Deserialize transaction data
 	   	CBlockPayload block_payload=(CBlockPayload) UTILS.SERIAL.deserialize(payload);
 	   	
+	   	// Superclass
+	   	CResult res=super.commit(block_payload);
+	   	if (res.passed==false) return res;
+                
+	   	// Commit payload
+	   	res=block_payload.commit();
+	   	if (res.passed==false) return res;
+                
                  // Insert the block
                 UTILS.DB.executeUpdate("INSERT INTO blocks(hash, "
                                                         + "block, "
@@ -129,6 +152,7 @@ public class CBlockPacket extends CPacket
                                                         + "packets, "
                                                         + "tstamp, "
                                                         + "nonce, "
+                                                        + "net_dif, "
                                                         + "signer_balance, "
                                                         + "payload_hash, "
                                                         + "size) "
@@ -139,19 +163,12 @@ public class CBlockPacket extends CPacket
                                                      block_payload.packets.size()+"', '"+
                                                      this.tstamp+"', '"+
                                                      this.nonce+"', '"+
+                                                     this.net_dif+"', '"+
                                                      this.signer_balance+"', '"+
                                                      this.payload_hash+"', '"+
         		                             this.payload.length+"')");
                 
-	   	// Superclass
-	   	CResult res=super.commit(block_payload);
-	   	if (res.passed==false) return res;
-                
-	   	// Commit payload
-	   	res=block_payload.commit();
-	   	if (res.passed==false) return res;
-                
-                 // New block
+                // New block
                 UTILS.CBLOCK.newBlock(this.block, this.hash, this.tstamp);
                 
                 // Record block ?

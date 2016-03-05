@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.peers;
 
 import java.io.Serializable;
@@ -24,7 +27,7 @@ public class CPeerData implements Serializable
         this.port=port;
     }
     
-    public CResult check()
+    public CResult check() throws Exception
     {
         // Check ip
         if (UTILS.BASIC.IPValid(IP)==false)
@@ -38,7 +41,7 @@ public class CPeerData implements Serializable
  	return new CResult(true, "Ok", "CGetPeersResponsePacket.java", 22);
     }
     
-    public void commit()
+    public void commit() throws Exception
     {
         try
         {
@@ -59,7 +62,7 @@ public class CPeerData implements Serializable
             }
         
            // CLose
-           s.close();
+           rs.close(); s.close();
         }
         catch (SQLException ex)
         {

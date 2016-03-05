@@ -1,5 +1,8 @@
 // $Id: BMW384.java 166 2010-05-03 16:44:36Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

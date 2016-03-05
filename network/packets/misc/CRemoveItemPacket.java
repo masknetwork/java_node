@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.misc;
 
 import java.sql.ResultSet;
@@ -14,7 +17,7 @@ public class CRemoveItemPacket extends CBroadcastPacket
     public CRemoveItemPacket(String fee_adr, 
                              String adr, 
                              String table, 
-                             String rowhash)
+                             String rowhash) throws Exception
     {
        super("ID_REMOVE_ITEM_PACKET");
 	
@@ -34,7 +37,7 @@ public class CRemoveItemPacket extends CBroadcastPacket
    }
 			 
    // Check 
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
 	// Super class
 	CResult res=super.check(block);
@@ -55,7 +58,7 @@ public class CRemoveItemPacket extends CBroadcastPacket
 	return new CResult(true, "Ok", "CRemoveItemPacket", 74);
    }
 			   
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
 	// Superclass
 	CResult res=super.commit(block);

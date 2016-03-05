@@ -1,5 +1,8 @@
 // $Id: MD4.java 241 2010-06-21 15:04:01Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

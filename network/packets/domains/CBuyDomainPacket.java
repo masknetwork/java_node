@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.domains;
 
 import wallet.kernel.*;
@@ -11,7 +14,7 @@ public class CBuyDomainPacket extends CBroadcastPacket
   public CBuyDomainPacket(String fee_adr,
 		          String buyer_adr, 
                           String attach_adr, 
-                          String domain)
+                          String domain) throws Exception
   {
 	  super("ID_BUY_DOMAIN_PACKET");
 	  
@@ -29,7 +32,7 @@ public class CBuyDomainPacket extends CBroadcastPacket
 	}
 		
         // Check 
-	public CResult check(CBlockPayload block)
+	public CResult check(CBlockPayload block) throws Exception
 	{
 	    // Super class
 	    CResult res=super.check(block);
@@ -54,7 +57,7 @@ public class CBuyDomainPacket extends CBroadcastPacket
 	    return new CResult(true, "Ok", "CBuyDomainPacket", 74);
 	}
 		   
-	public CResult commit(CBlockPayload block)
+	public CResult commit(CBlockPayload block) throws Exception
 	{
 	    // Superclass
             CResult res=super.commit(block);

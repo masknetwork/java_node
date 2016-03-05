@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.tweets;
 
 import java.sql.ResultSet;
@@ -20,7 +23,7 @@ public class CResponseRewardPayload extends CPayload
    
    public CResponseRewardPayload(String adr, 
 		                 long resID,
-                                 double tip)
+                                 double tip) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -40,7 +43,7 @@ public class CResponseRewardPayload extends CPayload
  	   this.sign();
    }
    
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
        try
        {
@@ -77,7 +80,9 @@ public class CResponseRewardPayload extends CPayload
                                   "You have awarded a response", 
                                   "", 
                                   UTILS.BASIC.hash(String.valueOf(this.resID)), 
-                                  this.block);
+                                  this.block,
+                                  block,
+                                  0);
              
              // Check Hash
 	     String h=UTILS.BASIC.hash(this.getHash()+
@@ -92,7 +97,7 @@ public class CResponseRewardPayload extends CPayload
    		return new CResult(false, "Invalid signature", "CFollowPayload", 157);
             
             // Close
-            s.close();
+            rs.close(); s.close();
        
         }
         catch (SQLException ex) 
@@ -109,7 +114,7 @@ public class CResponseRewardPayload extends CPayload
  	return new CResult(true, "Ok", "CFollowPayload", 164);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
        try
        {

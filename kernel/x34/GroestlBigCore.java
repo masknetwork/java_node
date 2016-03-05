@@ -1,5 +1,8 @@
 // $Id: GroestlBigCore.java 256 2011-07-15 19:07:16Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

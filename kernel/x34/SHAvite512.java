@@ -1,5 +1,8 @@
 // $Id: SHAvite512.java 222 2010-06-09 10:47:13Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

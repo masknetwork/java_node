@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.adr;
 
 import wallet.kernel.*;
@@ -33,7 +36,7 @@ public class CRestrictRecipientsPayload extends CPayload
 		                     String adr_3, 
 		                     String adr_4, 
                                      String adr_5, 
-		                     int days)
+		                     int days) throws Exception
    {
 	   // Superclass
   	   super(target_adr);
@@ -71,7 +74,7 @@ public class CRestrictRecipientsPayload extends CPayload
    	   this.sign();
    }
    
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
    	  // Super class
    	  CResult res=super.check(block);
@@ -129,7 +132,7 @@ public class CRestrictRecipientsPayload extends CPayload
  	  return new CResult(true, "Ok", "CRestrictRecipientsPayload", 105);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
 	   CResult res=this.check(block);
 	   if (res.passed==false) return res;

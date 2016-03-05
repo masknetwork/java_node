@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network;
 
 import java.io.*;
@@ -42,7 +45,7 @@ public class CPeers
         RemindTask task;
        
         
-   CPeers(CNetwork station)
+   CPeers(CNetwork station) throws Exception
    {   
 	   this.network=station;
            
@@ -53,7 +56,7 @@ public class CPeers
              timer.schedule(task, 0, 1000); 
    }
    
-   public void lastSeen(String peer)
+   public void lastSeen(String peer) throws Exception
    {
 	   for (int a=0; a<=this.peers.size()-1; a++)
 	   {
@@ -62,7 +65,7 @@ public class CPeers
 	   }
    }
    
-   public void addPeer(CPeer peer, int port)
+   public void addPeer(CPeer peer, int port) throws Exception
    {
        try
        {
@@ -113,7 +116,7 @@ public class CPeers
 	   	       + "WHERE peer='"+peer.adr+"'");
        
            // Close
-           if (s!=null) s.close();
+           if (s!=null) rs.close(); s.close();
        
            // Console
            UTILS.CONSOLE.write("Peer Added "+peer.adr);
@@ -128,7 +131,7 @@ public class CPeers
        }
    }
    
-   public void removePeer(CPeer peer)
+   public void removePeer(CPeer peer) throws Exception
    {
        // Console
        if (this.conectedTo(peer.adr)) 
@@ -147,8 +150,10 @@ public class CPeers
                             + "WHERE peer='"+peer.adr+"'");
    }
    
-   public void removePeer(String peer)
+   public void removePeer(String peer) 
    {
+       try
+       {
        //Remove from peers list
        for (int a=0; a<=this.peers.size()-1; a++)
        {
@@ -161,6 +166,11 @@ public class CPeers
        
        // Peer removed
        UTILS.CONSOLE.write("Peer removed "+peer+" !!!");
+       }
+       catch (Exception ex) 
+       	      {  
+       		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
+              }
    }
    
    public CPeer conect(String adr, int port)
@@ -196,7 +206,7 @@ public class CPeers
    }
    
    // Maintain the minimum peers number
-   public void maintainPeers()
+   public void maintainPeers() throws Exception
    {
       if (!UTILS.STATUS.engine_status.equals("ID_CONNECTING")) return;
 	   	   
@@ -233,7 +243,7 @@ public class CPeers
  		       }
                        
                        // Close
-                       if (s!=null) s.close();
+                       if (s!=null) rs.close(); s.close();
  		       
      		 }
      		 catch (SQLException ex)
@@ -243,7 +253,7 @@ public class CPeers
      	 }    
    }
    
-   public void getNewPeers()
+   public void getNewPeers() throws Exception
    {
       if (this.peers.size()>0)
        {
@@ -252,7 +262,7 @@ public class CPeers
        }
    }
    
-   public void checkPendingPeers()
+   public void checkPendingPeers() throws Exception
    {
        try
        {
@@ -281,7 +291,7 @@ public class CPeers
              }
           
              // Close
-             s.close();
+             rs.close(); s.close();
           }
        }
        catch (SQLException ex)
@@ -294,7 +304,7 @@ public class CPeers
        }
    }
    
-   public void removeInactives()
+   public void removeInactives() throws Exception
    {
        try
        {
@@ -310,7 +320,7 @@ public class CPeers
            while (rs.next()) this.removePeer(rs.getString("peer"));
            
            // Close connection
-           s.close();
+           rs.close(); s.close();
        }
        catch (SQLException ex)
        {
@@ -330,6 +340,8 @@ public class CPeers
        @Override
        public void run() 
        {  
+           try
+           {
              
          // Tick
          tick++;
@@ -340,12 +352,18 @@ public class CPeers
            
           // Removes inactive peers
           parent.removeInactives();
+           }
+           catch (Exception ex) 
+       	      {  
+       		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
+              }
        }
    }
  
    
      // List all threads and recursively list all subgroup
-     void listThreads(ThreadGroup group, String indent) {
+     void listThreads(ThreadGroup group, String indent)  throws Exception
+     {
         System.out.println(indent + "Group[" + group.getName() + 
         		":" + group.getClass()+"]");
         int nt = group.activeCount();
@@ -369,7 +387,7 @@ public class CPeers
         }
     }
    
-   public void broadcast(CPacket packet) 
+   public void broadcast(CPacket packet)  throws Exception
    {
         // Broadcast packet
         for (int a=0; a<=this.peers.size()-1; a++)
@@ -381,7 +399,7 @@ public class CPeers
         UTILS.CONSOLE.write("Broadcasted packet...");
     }
    
-   public boolean conectedTo(String adr)
+   public boolean conectedTo(String adr) throws Exception
    {
 	   for (int a=0; a<=this.peers.size()-1; a++)
 	   {
@@ -392,7 +410,7 @@ public class CPeers
 	   return false;
    }
    
-   public boolean checkCon(Socket so)
+   public boolean checkCon(Socket so) throws Exception
    {
        try
        {
@@ -420,7 +438,7 @@ public class CPeers
            return false;
        
        // Close
-       if (s!=null) s.close();
+       if (s!=null) rs.close(); s.close();
        
        // Record connection
        UTILS.DB.executeUpdate("INSERT INTO con_log (IP, "
@@ -442,7 +460,7 @@ public class CPeers
        return true;
    }
    
-   public void serverStart(int port)
+   public void serverStart(int port) throws Exception
    {
 	   this.port=port;	
 	   

@@ -1,5 +1,8 @@
 // $Id: Luffa512.java 235 2010-06-18 15:31:36Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

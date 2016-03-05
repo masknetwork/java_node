@@ -1,5 +1,8 @@
 // $Id: Keccak512.java 189 2010-05-14 21:21:46Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

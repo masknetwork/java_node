@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.adr;
 
 import wallet.kernel.*;
@@ -12,7 +15,7 @@ public class COTPPacket extends CBroadcastPacket
 		     String otp_adr, 
 		     String next_pass, 
 		     String def_address, 
-		     long days) 
+		     long days)  throws Exception
 	{
 		// Constructor
 	    super("ID_OTP_PACKET");
@@ -40,7 +43,7 @@ public class COTPPacket extends CBroadcastPacket
             }
 	}
 	
-	public CResult check(CBlockPayload block)
+	public CResult check(CBlockPayload block) throws Exception
 	{
             try
             {
@@ -88,7 +91,7 @@ public class COTPPacket extends CBroadcastPacket
           return new CResult(true, "Ok", "COTPPacket", 74);
    }
 		   
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
        try
        {

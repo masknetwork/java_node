@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import java.sql.*;
@@ -16,10 +19,11 @@ public class CDB
 	// Connection
 	public Connection con;
   
-	
+	// Statement
+        public Statement s;
         
         
-   public CDB()
+   public CDB() throws Exception
    {
        
 	   try 
@@ -40,6 +44,8 @@ public class CDB
                  
                  
               }
+              
+              this.s=con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
   	   } 
 	   catch (SQLException ex) 
 	   { 
@@ -56,7 +62,7 @@ public class CDB
    }
    
    // Check connection
-   public boolean checkConnection()
+   public boolean checkConnection() throws Exception
    {
        try
        {
@@ -102,7 +108,7 @@ public class CDB
    }
    
    // Get a connection
-   public Statement getStatement()
+   public Statement getStatement() throws Exception
    {
        Statement s=null;
        
@@ -112,6 +118,7 @@ public class CDB
        try
        {
            s=con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+           s.closeOnCompletion();
            return s;
        }
        catch (SQLException ex) 
@@ -129,7 +136,7 @@ public class CDB
    }
    
     // Checks if result set contains any data 
-    public boolean hasData(ResultSet rs)
+    public boolean hasData(ResultSet rs) throws Exception
     {
         if (rs==null) return false;
 			
@@ -152,34 +159,34 @@ public class CDB
   	}
     }
 	
-   public Statement executeUpdate(String query) 
+   public Statement executeUpdate(String query) throws Exception
    {
        // Check connection
        this.checkConnection();
        
        try
        {
-	      Statement s=con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-              PreparedStatement p=con.prepareStatement(query);
+	      PreparedStatement p=con.prepareStatement(query);
               p.execute();
               p.close();
-              s.close();
+             
               
               // Log ?
               if (UTILS.LOG_QUERIES) UTILS.NET_STAT.addQuery(query);
               
               return null;     
 	}
-	catch (SQLException e) 
-	{ 
-              UTILS.LOG.log("Query Error", e.getMessage()+query, "CDB.java", 172);
-	}
-        catch (Exception e) 
+	catch (Exception e) 
 	{ 
 	      UTILS.LOG.log("Query Error", e.getMessage()+query, "CDB.java", 176);
+              throw new Exception("Query error");
 	}
-       
-       return null;
    } 
+   
+   public void reset() throws Exception
+   {
+       this.executeUpdate("DROP database wallet");
+       this.executeUpdate("CREATE database wallet");
+   }
   
 }

@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network;
 
 import java.sql.ResultSet;
@@ -9,7 +12,7 @@ import wallet.kernel.*;
 
 public class CTransPool 
 {
-	public CTransPool() 
+	public CTransPool()  throws Exception
 	{
 		UTILS.DB.executeUpdate("DELETE "+
 				           "FROM trans_pool "+
@@ -20,7 +23,7 @@ public class CTransPool
 			     double amount, 
 			     String cur, 
 			     String hash, 
-			     long block)
+			     long block) throws Exception
 	{
             try
             {
@@ -53,14 +56,14 @@ public class CTransPool
             }
 	}
 	
-	public void newBlock(long block)
+	public void newBlock(long block) throws Exception
 	{
 		UTILS.DB.executeUpdate("DELETE "
 				       + "FROM trans_pool "
 				      + "WHERE block<="+block);
 	}
 	
-	public double getBalance(String adr, String cur)
+	public double getBalance(String adr, String cur) throws Exception
 	{	
             try
 	    {
@@ -89,14 +92,14 @@ public class CTransPool
                         double balance=act_balance+spent;
                         
                         // Close 
-                        if (s!=null) s.close();
+                        if (s!=null) rs.close(); s.close();
                         
                         // Return
                         return balance;
 		    }
                     else 
 		    {
-			s.close();
+			rs.close(); s.close();
 			return UTILS.BASIC.getBalance(adr, cur);
 		    }
 		    

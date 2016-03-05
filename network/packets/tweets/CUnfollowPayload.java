@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.tweets;
 
 import java.sql.ResultSet;
@@ -15,7 +18,7 @@ public class CUnfollowPayload extends CPayload
    // Tweet ID
    String unfollow_adr;
    
-   public CUnfollowPayload(String adr, String unfollow_address)
+   public CUnfollowPayload(String adr, String unfollow_address) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -31,7 +34,7 @@ public class CUnfollowPayload extends CPayload
  	   this.sign();
    }
    
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
        try
        {
@@ -67,7 +70,7 @@ public class CUnfollowPayload extends CPayload
    		return new CResult(false, "Invalid signature", "CFollowPayload", 157);
             
             // Close
-            s.close();
+            rs.close(); s.close();
        
         }
         catch (SQLException ex) 
@@ -84,7 +87,7 @@ public class CUnfollowPayload extends CPayload
  	return new CResult(true, "Ok", "CFollowPayload", 164);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
        try
        {

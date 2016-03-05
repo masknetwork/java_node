@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network;
 
 import java.net.*;
@@ -59,7 +62,7 @@ public class CPeer extends Thread
     // Schedule delete in 2 seconds
     boolean schedule_delete=false;
    
-	CPeer(CPeers peers, String adr, int port)
+	CPeer(CPeers peers, String adr, int port) throws Exception
 	{
            // Address
 	   this.adr=adr;
@@ -98,7 +101,7 @@ public class CPeer extends Thread
            }
 	}
 	
-   CPeer(CPeers peers, Socket client) throws SocketException
+   CPeer(CPeers peers, Socket client) throws Exception
    {   
           // Adr
 	  this.adr=client.getInetAddress().getHostAddress();
@@ -123,7 +126,7 @@ public class CPeer extends Thread
           this.peers=peers;
    }
    
-   public void couldNotConnect()
+   public void couldNotConnect() throws Exception
    {
        UTILS.DB.executeUpdate("UPDATE peers_pool "
                          + "SET con_att_no=con_att_no+1, "
@@ -132,7 +135,7 @@ public class CPeer extends Thread
                              + "WHERE peer='"+this.adr+"'");
    }
    
-   public void close()
+   public void close() throws Exception
    {
        try
        {
@@ -157,7 +160,7 @@ public class CPeer extends Thread
        }
    }
    
-   public void conAtt(String peer)
+   public void conAtt(String peer) throws Exception
    {
 	   UTILS.DB.executeUpdate("UPDATE peers "
 	   		             + "SET last_con_att='"+UTILS.BASIC.tstamp()+"' "
@@ -165,7 +168,7 @@ public class CPeer extends Thread
    }
    
    
-   public void startMonitor()
+   public void startMonitor() throws Exception
    {
  	 
    }
@@ -178,12 +181,19 @@ public class CPeer extends Thread
        @Override
        public void run() 
        {  
-          // Record traffic
-           if (parent.in_count!=null && parent.out_count!=null)
-           UTILS.DB.executeUpdate("UPDATE peers "
-                            + "SET in_traffic='"+parent.in_count.getByteCount()+"', "
-                                + "out_traffic='"+parent.out_count.getByteCount()+"' "
-                          + "WHERE peer='"+parent.adr+"'");
+           try
+           {
+              // Record traffic
+              if (parent.in_count!=null && parent.out_count!=null)
+              UTILS.DB.executeUpdate("UPDATE peers "
+                                      + "SET in_traffic='"+parent.in_count.getByteCount()+"', "
+                                          + "out_traffic='"+parent.out_count.getByteCount()+"' "
+                                    + "WHERE peer='"+parent.adr+"'");
+           }
+           catch (Exception ex) 
+       	   {  
+       		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
+           }
        }
    }
    
@@ -227,7 +237,15 @@ public class CPeer extends Thread
 	   catch (EOFException ex) 
 	   { 
                UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 93);
+               
+               try
+               {
 	       this.peers.removePeer(this); 
+               }
+               catch (Exception e) 
+       	      {  
+       		UTILS.LOG.log("SQLException", e.getMessage(), "CBuyDomainPayload.java", 57);
+              }
 	   }
 	   catch (IOException ex) 
 	   { 

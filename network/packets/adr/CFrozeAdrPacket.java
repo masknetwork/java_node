@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.adr;
 
 import wallet.kernel.*;
@@ -8,7 +11,7 @@ import wallet.network.packets.blocks.*;
 
 public class CFrozeAdrPacket extends CBroadcastPacket 
 {
-    public CFrozeAdrPacket(String fee_adr, String block_adr, int days)
+    public CFrozeAdrPacket(String fee_adr, String block_adr, int days) throws Exception
     {
        // Constructor
        super("ID_FROZE_ADR_PACKET");
@@ -33,7 +36,7 @@ public class CFrozeAdrPacket extends CBroadcastPacket
         }
     }
 	   
-    public CResult check(CBlockPayload block)
+    public CResult check(CBlockPayload block) throws Exception
     {
         try
         {
@@ -82,7 +85,7 @@ public class CFrozeAdrPacket extends CBroadcastPacket
 	return new CResult(true, "Ok", "CFrozeAdrPacket", 82);
     }
 	  
-    public CResult commit(CBlockPayload block) 
+    public CResult commit(CBlockPayload block) throws Exception 
     {
         try
         {

@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.adr;
 
 import wallet.kernel.*;
@@ -19,7 +22,9 @@ public class CAddSignPacket extends CBroadcastPacket
                           String signer_4, 
                           String signer_5,
                           int min,
-                          long days)
+                          long days,
+                          String packet_sign,
+                          String payload_sign) throws Exception
     {
 	   // Constructor
 	   super("ID_MULTISIG_PACKET");
@@ -34,7 +39,8 @@ public class CAddSignPacket extends CBroadcastPacket
                                                             signer_4, 
                                                             signer_5,
                                                             min,
-                                                            days);
+                                                            days,
+                                                            payload_sign);
 			
 	      // Build the payload
 	      this.payload=UTILS.SERIAL.serialize(sign_payload);
@@ -43,7 +49,10 @@ public class CAddSignPacket extends CBroadcastPacket
 	      fee=new CFeePayload(fee_adr, days*0.0001);
 	   
 	      // Sign packet
-	      this.sign();
+	      if (packet_sign.equals("")) 
+                  this.sign();
+              else
+                  this.sign=packet_sign;
            }
            catch (Exception ex) 
            { 
@@ -52,7 +61,7 @@ public class CAddSignPacket extends CBroadcastPacket
     }
     
     // Check 
-    public CResult check(CBlockPayload block)
+    public CResult check(CBlockPayload block) throws Exception
     {
     	  try
           {
@@ -107,7 +116,7 @@ public class CAddSignPacket extends CBroadcastPacket
      	  return new CResult(true, "Ok", "CAddSignPacket", 107);
     }
     
-    public CResult commit(CBlockPayload block)
+    public CResult commit(CBlockPayload block) throws Exception
     {
         try
         {

@@ -1,5 +1,8 @@
 // $Id: ShabalGeneric.java 231 2010-06-16 21:46:06Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

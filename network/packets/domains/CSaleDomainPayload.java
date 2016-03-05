@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.domains;
 
 import java.sql.ResultSet;
@@ -28,7 +31,7 @@ public class CSaleDomainPayload extends CPayload
 		             String domain, 
 		             double sale_price, 
 		             double mkt_bid, 
-		             long mkt_days)
+		             long mkt_days) throws Exception
    {
 	   // Constructor
 	   super(owner_adr);
@@ -56,7 +59,7 @@ public class CSaleDomainPayload extends CPayload
            this.sign();
    }
    
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
        try
        {
@@ -102,7 +105,7 @@ public class CSaleDomainPayload extends CPayload
      	  return new CResult(false, "Invalid hash", "CSaleDomainPayload.java", 74);
       
           // Close
-          s.close();
+          rs.close(); s.close();
        }
        catch (SQLException ex)
        {
@@ -113,7 +116,7 @@ public class CSaleDomainPayload extends CPayload
        return new CResult(true, "Ok", "CSaleDomainPayload", 67);
    }
 	
-	public CResult commit(CBlockPayload block)
+	public CResult commit(CBlockPayload block) throws Exception
 	{		
             CResult res=this.check(block);
 	    if (res.passed==false) return res;

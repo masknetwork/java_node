@@ -1,5 +1,8 @@
 // $Id: MDHelper.java 157 2010-04-26 19:03:44Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

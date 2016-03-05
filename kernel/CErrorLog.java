@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import java.io.File;
@@ -22,8 +25,10 @@ public class CErrorLog
    // Log message to console
    public boolean log_to_console=true;
    
-   public CErrorLog()
+   public CErrorLog() 
    {
+       try
+       {
          // Port busy ?
         if (portBusy()) System.exit(0);
        
@@ -33,9 +38,7 @@ public class CErrorLog
        // Check version
        File ver=new File(UTILS.WRITEDIR+"ver.txt");
 		  
-       try
-       { 
-           // Settings file does not exist
+        // Settings file does not exist
            if (ver.exists()==false)
 	   {
 	       this.init();
@@ -52,27 +55,24 @@ public class CErrorLog
 		    FileUtils.writeStringToFile(new File(UTILS.WRITEDIR+"ver.txt"), "0.0.1");  
 	        }
 	    }
+           
+           // Check if error log file exists
+	File f=new File(UTILS.WRITEDIR+"err_log.txt");
+		  
+	
+	   FileOutputStream f_out=new FileOutputStream(f, true);
+           out=new PrintWriter(f_out);
 	}
-        catch (IOException ex)
+        catch (Exception ex)
         {
 			  
 	}
 		  
-	// Check if error log file exists
-	File f=new File(UTILS.WRITEDIR+"err_log.txt");
-		  
-	try
-	{
-	   FileOutputStream f_out=new FileOutputStream(f, true);
-           out=new PrintWriter(f_out);
-        }
-	catch (FileNotFoundException e) 
-	{  
-			  
-        }
+	
+       
     }
 	  
-   public boolean portBusy()
+   public boolean portBusy() throws Exception
          {
              try 
              {
@@ -104,6 +104,8 @@ public class CErrorLog
 	  
 	  public void log(String type, String mes, String file, int line)
 	  {
+              try
+              {
               if (mes==null) mes="No Message";
               
 	      Calendar cal = Calendar.getInstance();
@@ -123,14 +125,19 @@ public class CErrorLog
               if (this.log_to_db==true && UTILS.DB!=null)
                  UTILS.DB.executeUpdate("INSERT INTO err_log(type, mes, file, line, tstamp) "
                                      + "VALUES('"+type+"', '"+UTILS.BASIC.base64_encode(mes)+"', '"+file+"', '"+String.valueOf(line)+"', '"+UTILS.BASIC.tstamp()+"')");
-	  }
+              }
+              catch (Exception ex) 
+       	      {  
+       		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
+              }
+              }
 	  
-	  public void close()
+	  public void close() throws Exception
 	  {
 		  out.close();
 	  }
 	  
-	  public String getAppDataDirectory() 
+	  public String getAppDataDirectory()  throws Exception
 		{
 
 		    String appDataDirectory;

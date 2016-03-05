@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.trans;
 
 import java.security.SecureRandom;
@@ -54,7 +57,7 @@ public class CTransPayload extends CPayload
                              String req_field_3,
                              String req_field_4,
                              String req_field_5,
-                             long cartID)
+                             long cartID) throws Exception
         {
            // Constructo
            super(src);
@@ -119,7 +122,7 @@ public class CTransPayload extends CPayload
        }
         
        
-	 public CResult check(CBlockPayload block)
+	 public CResult check(CBlockPayload block) throws Exception
 	 {
               try
                {
@@ -144,7 +147,7 @@ public class CTransPayload extends CPayload
             if (this.cur.equals("MSK"))
             {
 	      if (this.amount<0.0001)
-	      	  return new CResult(false, "Invalid amount.", "CTransPayload", 77);
+	      	  return new CResult(false, "Invalid amount ("+this.amount+")", "CTransPayload", 77);
             }
             else
             {
@@ -292,7 +295,9 @@ public class CTransPayload extends CPayload
                                  "Transaction to another address "+this.src, 
                                  this.escrower, 
                                  this.hash, 
-                                 this.block);
+                                 this.block,
+                                 block,
+                                 0);
                 
             // To destination
             if (this.escrower.equals("") && !UTILS.BASIC.hasAttr(this.src, "ID_MULTISIG"))
@@ -304,7 +309,9 @@ public class CTransPayload extends CPayload
                                  "Transaction from address "+this.src, 
                                  this.escrower, 
                                  this.hash, 
-                                 this.block);
+                                 this.block,
+                                 block,
+                                 0);
             
             if (UTILS.WALLET.isMine(this.dest))
             {
@@ -327,7 +334,7 @@ public class CTransPayload extends CPayload
 	    return new CResult(true, "Ok", "CTransPayload", 164);
         }
          
-         public void checkIPN(String status)
+         public void checkIPN(String status) throws Exception
          {
              try
              {
@@ -376,17 +383,11 @@ public class CTransPayload extends CPayload
              }
          }
          
-         public CResult commit(CBlockPayload block)
+         public CResult commit(CBlockPayload block) throws Exception
 	 { 
              try
              {
-                 CResult res=this.check(block);
-                 if (!res.passed) return res;
-                     
-                 // Commit parent
-                 super.commit(block);
-                 
-                // Take coins
+                 // Take coins
                 UTILS.BASIC.clearTrans(hash, "ID_SEND");
                 
                  // IPN
@@ -456,7 +457,8 @@ public class CTransPayload extends CPayload
                    {
                       // Clear transaction for receiver
                       UTILS.BASIC.clearTrans(hash, "ID_RECEIVE");
-                
+                      
+                      
                       // OTP
                       if (!this.otp_new_hash.equals(""))
                           UTILS.DB.executeUpdate("UPDATE adr_options "

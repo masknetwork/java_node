@@ -1,5 +1,8 @@
 // $Id: SkeinBigCore.java 253 2011-06-07 18:33:10Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

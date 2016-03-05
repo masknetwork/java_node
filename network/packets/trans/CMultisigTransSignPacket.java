@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.trans;
 
 import wallet.kernel.CFootprint;
@@ -11,7 +14,7 @@ public class CMultisigTransSignPacket extends CBroadcastPacket
 {
     public CMultisigTransSignPacket(String fee_adr,
                                     String trans_hash,
-                                    String signer)
+                                    String signer) throws Exception
     {
         super("ID_MULTISIG_TRANS_SIGN_PACKET");
 	  
@@ -29,7 +32,7 @@ public class CMultisigTransSignPacket extends CBroadcastPacket
   }
   
   // Check 
-  public CResult check(CBlockPayload block)
+  public CResult check(CBlockPayload block) throws Exception
   {
      // Super class
      CResult res=super.check(block);
@@ -61,7 +64,7 @@ public class CMultisigTransSignPacket extends CBroadcastPacket
      return new CResult(true, "Ok", "CMesPacketPacket", 45);
   }
   
-  public CResult commit(CBlockPayload block)
+  public CResult commit(CBlockPayload block) throws Exception
   {
      // Superclass
      CResult res=super.commit(block);

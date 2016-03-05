@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.domains;
 
 import java.sql.ResultSet;
@@ -13,7 +16,7 @@ public class CUpdatePriceDomainPacket extends CBroadcastPacket
 {
      public CUpdatePriceDomainPacket(String fee_adr,
 		                     String domain, 
-                                     double new_price)
+                                     double new_price) throws Exception
     {
 	 super("ID_UPDATE_DOMAIN_PRICE_PACKET");
 	 
@@ -33,7 +36,7 @@ public class CUpdatePriceDomainPacket extends CBroadcastPacket
            adr=rs.getString("adr");
            
            // Close
-           s.close();
+           rs.close(); s.close();
         }
         catch (SQLException ex)
         {
@@ -55,7 +58,7 @@ public class CUpdatePriceDomainPacket extends CBroadcastPacket
 	}
 		
         // Check 
-	public CResult check(CBlockPayload block)
+	public CResult check(CBlockPayload block) throws Exception
 	{
 	    // Super class
 	    CResult res=super.check(block);
@@ -76,7 +79,7 @@ public class CUpdatePriceDomainPacket extends CBroadcastPacket
 	    return new CResult(true, "Ok", "CRenewDomainPacket", 74);
 	}
 		   
-	public CResult commit(CBlockPayload block)
+	public CResult commit(CBlockPayload block) throws Exception
 	{
 	    // Superclass
             CResult res=super.commit(block);

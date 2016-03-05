@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 
@@ -46,7 +49,7 @@ public class CECC
     }
     
     // Construct using public key
-    public CECC(String pubKey)
+    public CECC(String pubKey) throws Exception
     {
     	try
 		{
@@ -73,7 +76,7 @@ public class CECC
 		this.public_key=Base64.decodeBase64(public_key);
     }
     
-    public String encrypt(String data)
+    public String encrypt(String data) throws Exception
     {
        try
 	   {

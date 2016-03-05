@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.tweets;
 
 import wallet.kernel.*;
@@ -11,7 +14,7 @@ public class CUnfollowPacket extends CBroadcastPacket
 {
    public CUnfollowPacket(String fee_adr,
                           String adr,
-                          String unfollow_address)
+                          String unfollow_address) throws Exception
    {
 	   // Super class
 	   super("ID_UNFOLLOW_PACKET");
@@ -30,7 +33,7 @@ public class CUnfollowPacket extends CBroadcastPacket
    }
    
    // Check 
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
           // Super class
    	  CResult res=super.check(block);
@@ -72,7 +75,7 @@ public class CUnfollowPacket extends CBroadcastPacket
    	  return new CResult(true, "Ok", "CFollowPayload", 45);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
    	  // Superclass
    	  CResult res=super.commit(block);

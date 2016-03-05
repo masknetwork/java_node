@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.tweets;
 
 import java.sql.ResultSet;
@@ -16,7 +19,7 @@ public class CFollowPayload extends CPayload
    String follow_adr;
    
    public CFollowPayload(String adr, 
-		         String follow_adr)
+		         String follow_adr) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -32,7 +35,7 @@ public class CFollowPayload extends CPayload
  	   this.sign();
    }
    
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
        try
        {
@@ -67,7 +70,7 @@ public class CFollowPayload extends CPayload
    		return new CResult(false, "Invalid signature", "CFollowPayload", 157);
             
             // Close
-            s.close();
+            rs.close(); s.close();
        
         }
         catch (SQLException ex) 
@@ -84,7 +87,7 @@ public class CFollowPayload extends CPayload
  	return new CResult(true, "Ok", "CFollowPayload", 164);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
        try
        {

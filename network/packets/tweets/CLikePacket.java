@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.tweets;
 
 import wallet.kernel.*;
@@ -11,7 +14,7 @@ public class CLikePacket extends CBroadcastPacket
 {
    public CLikePacket(String fee_adr,
                       String adr, 
-		      long tweetID)
+		      long tweetID) throws Exception
    {
 	   // Super class
 	   super("ID_TWEET_LIKE");
@@ -31,7 +34,7 @@ public class CLikePacket extends CBroadcastPacket
    }
    
    // Check 
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
           // Super class
    	  CResult res=super.check(block);
@@ -73,7 +76,7 @@ public class CLikePacket extends CBroadcastPacket
    	  return new CResult(true, "Ok", "CLikePacket", 45);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
    	  // Superclass
    	  CResult res=super.commit(block);

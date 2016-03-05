@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import java.sql.ResultSet;
@@ -91,7 +94,7 @@ public class CFootprint
         this.values[no]=val;
     }
     
-    public void write()
+    public void write() throws Exception
     {
         try
         {
@@ -144,7 +147,7 @@ public class CFootprint
                                                  +UTILS.BASIC.tstamp()+"')");
            
            // Close
-           s.close();
+           rs.close(); s.close();
            
         }
         catch (SQLException ex) 

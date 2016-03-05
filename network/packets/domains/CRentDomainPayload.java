@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.domains;
 
 import java.sql.ResultSet;
@@ -21,7 +24,7 @@ public class CRentDomainPayload extends CPayload
 	
 	public CRentDomainPayload(String adr, 
                                   String domain, 
-                                  long days) 
+                                  long days)  throws Exception
 	{
             // Constructor
             super(adr);
@@ -41,7 +44,7 @@ public class CRentDomainPayload extends CPayload
 	    this.sign();
 	}
     
-	public CResult check(CBlockPayload block)
+	public CResult check(CBlockPayload block) throws Exception
 	{
             try
             {
@@ -69,7 +72,7 @@ public class CRentDomainPayload extends CPayload
                  return new CResult(false, "Domain already exist", "CRentDomainPayload.java", 79);
         	
               // Close
-              s.close();
+              rs.close(); s.close();
               
               // Check days
               if (!UTILS.BASIC.mkt_days_valid(this.days))
@@ -85,7 +88,7 @@ public class CRentDomainPayload extends CPayload
 	    return new CResult(true, "Ok", "CRentDomainPayload", 67);
 	}
 	
-	public CResult commit(CBlockPayload block)
+	public CResult commit(CBlockPayload block) throws Exception
 	{
             // Superclass
 	    super.commit(block);

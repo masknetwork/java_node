@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network;
 
 import wallet.kernel.UTILS;
@@ -32,7 +35,7 @@ public class CResult
 			this.line=line;
 		}
 		
-		public void report()
+		public void report() throws Exception
 		{
 			if (this.passed==false) 
 				System.out.print(this.reason+"("+this.file+", "+this.line+")");

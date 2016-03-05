@@ -1,5 +1,8 @@
 // $Id: LuffaSmallCore.java 240 2010-06-21 14:58:28Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

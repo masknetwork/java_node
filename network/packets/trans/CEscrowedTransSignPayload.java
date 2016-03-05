@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.trans;
 
 import java.security.SecureRandom;
@@ -19,7 +22,7 @@ public class CEscrowedTransSignPayload extends CPayload
     // Type
     String type;
 	
-    public CEscrowedTransSignPayload(String signer, String trans_hash, String type) 
+    public CEscrowedTransSignPayload(String signer, String trans_hash, String type)  throws Exception
     {
         super(signer);
 			
@@ -38,14 +41,18 @@ public class CEscrowedTransSignPayload extends CPayload
         this.sign();
     }
 	
-	public CResult check(CBlockPayload block)
+	public CResult check(CBlockPayload block) throws Exception
 	{
             try
     	    { 
                 // Super class
 	        CResult res=super.check(block);
 	        if (res.passed==false) return res;
-	   	
+                
+                // Check
+                res=this.check(block);
+	   	if (res.passed==false) return res;
+                
 	        // Check type ?
 	        if (!this.type.equals("ID_RELEASE") && !this.type.equals("ID_RETURN"))
 	            return new CResult(false, "Invalid signture type", "CEscrowedTransSignPayload.java", 79);
@@ -111,7 +118,9 @@ public class CEscrowedTransSignPayload extends CPayload
                                           "Funds have been released by escrower / sender", 
                                           escrower, 
                                           this.hash, 
-                                          this.block);
+                                          this.block,
+                                          block,
+                                          0);
                  
                  // Return ?
                  if (this.type.equals("ID_RETURN"))
@@ -123,10 +132,12 @@ public class CEscrowedTransSignPayload extends CPayload
                                           "Funds have been returned to you by escrower / sender", 
                                           escrower, 
                                           this.hash, 
-                                          this.block);
+                                          this.block,
+                                          block,
+                                          0);
                  
                  // Close
-                 s.close();
+                 rs.close(); s.close();
             }
     	   catch (SQLException ex)
     	   {
@@ -138,7 +149,7 @@ public class CEscrowedTransSignPayload extends CPayload
 	   return new CResult(true, "Ok", "CNewAssetPayload", 67);
 	}
 	   
-	   public CResult commit(CBlockPayload block)
+	   public CResult commit(CBlockPayload block) throws Exception
 	   {
                try
                {

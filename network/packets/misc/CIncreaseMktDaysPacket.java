@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.misc;
 
 import java.sql.ResultSet;
@@ -15,7 +18,7 @@ public class CIncreaseMktDaysPacket extends CBroadcastPacket
                                   String adr, 
                                   long days, 
                                   String table, 
-                                  String rowhash)
+                                  String rowhash) throws Exception
     {
        super("ID_INCREASE_MKT_DAYS_PACKET");
        
@@ -56,7 +59,7 @@ public class CIncreaseMktDaysPacket extends CBroadcastPacket
    }
 			 
    // Check 
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
 	// Super class
 	CResult res=super.check(block);
@@ -101,7 +104,7 @@ public class CIncreaseMktDaysPacket extends CBroadcastPacket
 	return new CResult(true, "Ok", "CIncreaseMktDaysPacket.java", 74);
    }
 			   
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
 	// Superclass
 	CResult res=super.commit(block);

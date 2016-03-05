@@ -1,5 +1,8 @@
 // $Id: Hamsi224.java 236 2010-06-18 15:41:41Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

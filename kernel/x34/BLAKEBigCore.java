@@ -1,5 +1,8 @@
 // $Id: BLAKEBigCore.java 252 2011-06-07 17:55:14Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**

@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.domains;
 
 import java.sql.ResultSet;
@@ -23,7 +26,7 @@ public class CBuyDomainPayload extends CPayload
 	
     public CBuyDomainPayload(String buyer_adr, 
                              String attach_adr, 
-    		             String domain)
+    		             String domain) throws Exception
     {
         // Constructor
 	super(buyer_adr);
@@ -68,7 +71,7 @@ public class CBuyDomainPayload extends CPayload
 		                 UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.pay)));
            
            // Close
-           s.close();
+           rs.close(); s.close();
         }
         catch (SQLException ex)
         {
@@ -79,7 +82,7 @@ public class CBuyDomainPayload extends CPayload
         this.sign();
     }
    
-    public CResult check(CBlockPayload block)
+    public CResult check(CBlockPayload block) throws Exception
 	{
              try
        	     { 
@@ -133,7 +136,7 @@ public class CBuyDomainPayload extends CPayload
                  
                  
                  // Close
-                 s.close();
+                 rs.close(); s.close();
               }
        	      catch (SQLException ex) 
        	      {  
@@ -145,7 +148,7 @@ public class CBuyDomainPayload extends CPayload
        }
        
 	
-	public CResult commit(CBlockPayload block)
+	public CResult commit(CBlockPayload block) throws Exception
 	{	
             // Superclass
 	    super.commit(block);

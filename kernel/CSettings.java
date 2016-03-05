@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import java.io.*;
@@ -51,7 +54,7 @@ public class CSettings
         public String pass;
        
 	
-  public CSettings()
+  public CSettings() throws Exception
   {
 	  // Check if settings file exists
 	  File f=new File(UTILS.WRITEDIR+"settings.txt");

@@ -1,7 +1,9 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import org.json.*;
-import com.sun.xml.internal.fastinfoset.util.StringArray;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -10,8 +12,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.apache.commons.io.IOUtils;
-import wallet.network.packets.feeds.CFeedPacket;
-import wallet.network.packets.feeds.CFeedPayload;
+import wallet.network.packets.trade.feeds.CFeedPacket;
+import wallet.network.packets.trade.feeds.CFeedPayload;
 
 public class CFeedSource  extends Thread
 {
@@ -31,7 +33,7 @@ public class CFeedSource  extends Thread
     CFeedPayload payload;
     
     
-    public CFeedSource(String adr, String link, String feed_symbol)
+    public CFeedSource(String adr, String link, String feed_symbol) throws Exception
     {
          // Address
            this.adr=adr;
@@ -122,33 +124,25 @@ public class CFeedSource  extends Thread
                                                                + "'ID_OK', '"
                                                                +UTILS.BASIC.tstamp()+"')");
         }
-        catch (MalformedURLException e)
-        {
-            UTILS.LOG.log("MalformedURLException", e.getMessage(), "CFeedSource.java", 639); 
-            this.feedErr(e.getMessage());
-        }
-        catch (SQLException e)
-        {
-            UTILS.LOG.log("SQLException", e.getMessage(), "CFeedSource.java", 639); 
-            this.feedErr(e.getMessage());
-        }
         catch (Exception e) 
 	{ 
-            UTILS.LOG.log("Exception", e.getMessage(), "CFeedSource.java", 639); 
-            this.feedErr(e.getMessage());
+          
         }
     }
     
-    public void feedErr(String mes)
+    public void feedErr(String mes) throws Exception
     {
-             // Update
-            UTILS.DB.executeUpdate("INSERT INTO feeds_sources_res(feed, "
-                                                               + "result, "
-                                                               + "err_mes, "
-                                                               + "tstamp) "
-                                                   + "VALUES('"+this.feed_symbol+"', "
-                                                               + "'ID_ERR', '"
-                                                               +UTILS.BASIC.base64_encode(mes)+"', '"
-                                                               +UTILS.BASIC.tstamp()+"')");
+        // Null ?
+        if (mes==null) mes="null";
+            
+        // Update
+        UTILS.DB.executeUpdate("INSERT INTO feeds_sources_res(feed, "
+                                                           + "result, "
+                                                           + "err_mes, "
+                                                           + "tstamp) "
+                                               + "VALUES('"+this.feed_symbol+"', "
+                                                           + "'ID_ERR', '"
+                                                           +UTILS.BASIC.base64_encode(mes)+"', '"
+                                                           +UTILS.BASIC.tstamp()+"')");
     }
 }

@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import wallet.kernel.x34.Skein512;
@@ -256,9 +259,10 @@ public class CCPUMiner extends Thread
         
     }
     
-    public void run()
+    public void run() 
     {
-        
+        try
+        {
         // Hash
         String hash;
         
@@ -279,6 +283,7 @@ public class CCPUMiner extends Thread
         
         // Num
         String snum="";
+        String ihash="";
         
         int po=0;
         
@@ -286,9 +291,10 @@ public class CCPUMiner extends Thread
                  
         while (!Thread.currentThread().isInterrupted())
         {
-            if (UTILS.CBLOCK.nonce==0 && 
-                !UTILS.NET_STAT.last_block_hash.equals("") && 
-                UTILS.NETWORK.peers.peers.size()>-1)
+            if (!UTILS.NET_STAT.last_block_hash.equals("") && 
+                UTILS.NETWORK.peers.peers.size()>-1 &&
+                !UTILS.CBLOCK.signer.equals("") &&
+                UTILS.STATUS.engine_status.equals("ID_ONLINE"))
             {
               // Nonce
               nonce++;
@@ -303,89 +309,20 @@ public class CCPUMiner extends Thread
                                     UTILS.CBLOCK.payload_hash+
                                     UTILS.CBLOCK.signer+
                                     String.valueOf(UTILS.CBLOCK.signer_balance)+
-                                    ts+
-                                    String.valueOf(nonce));
+                                    String.valueOf(ts)+
+                                    String.valueOf(nonce)+
+                                    String.valueOf(UTILS.NET_STAT.net_dif));
+              
+              ihash=hash;
               
               // Step
               step++;
               
-              // Load algorithms
-              for (int pos=0; pos<=63; pos++)
-              {
-                  // Character
-                  char ch=UTILS.NET_STAT.last_block_hash.charAt(pos);
-                  
-                  switch (ch)
-                  {
-                      case '0' : hash=UTILS.BASIC.base64_encode(f0.digest(hash.getBytes())); break;
-                      case '1' : hash=UTILS.BASIC.base64_encode(f1.digest(hash.getBytes())); break;
-                      case '2' : hash=UTILS.BASIC.base64_encode(f2.digest(hash.getBytes())); break;
-                      case '3' : hash=UTILS.BASIC.base64_encode(f3.digest(hash.getBytes())); break;
-                      case '4' : hash=UTILS.BASIC.base64_encode(f4.digest(hash.getBytes())); break;
-                      case '5' : hash=UTILS.BASIC.base64_encode(f5.digest(hash.getBytes())); break;
-                      case '6' : hash=UTILS.BASIC.base64_encode(f6.digest(hash.getBytes())); break;
-                      case '7' : hash=UTILS.BASIC.base64_encode(f7.digest(hash.getBytes())); break;
-                      case '8' : hash=UTILS.BASIC.base64_encode(f8.digest(hash.getBytes())); break;
-                      case '9' : hash=UTILS.BASIC.base64_encode(f9.digest(hash.getBytes())); break;
-                      case 'a' : hash=UTILS.BASIC.base64_encode(a.digest(hash.getBytes())); break;
-                      case 'b' : hash=UTILS.BASIC.base64_encode(b.digest(hash.getBytes())); break;
-                      case 'c' : hash=UTILS.BASIC.base64_encode(c.digest(hash.getBytes())); break;
-                      case 'd' : hash=UTILS.BASIC.base64_encode(d.digest(hash.getBytes())); break;
-                      case 'e' : hash=UTILS.BASIC.base64_encode(e.digest(hash.getBytes())); break;
-                      case 'f' : hash=UTILS.BASIC.base64_encode(f.digest(hash.getBytes())); break;
-                      case 'g' : hash=UTILS.BASIC.base64_encode(g.digest(hash.getBytes())); break;
-                      case 'h' : hash=UTILS.BASIC.base64_encode(h.digest(hash.getBytes())); break;
-                      case 'i' : hash=UTILS.BASIC.base64_encode(i.digest(hash.getBytes())); break;
-                      case 'j' : hash=UTILS.BASIC.base64_encode(j.digest(hash.getBytes())); break;
-                      case 'k' : hash=UTILS.BASIC.base64_encode(k.digest(hash.getBytes())); break;
-                      case 'l' : hash=UTILS.BASIC.base64_encode(l.digest(hash.getBytes())); break;
-                      case 'm' : hash=UTILS.BASIC.base64_encode(m.digest(hash.getBytes())); break;
-                      case 'n' : hash=UTILS.BASIC.base64_encode(n.digest(hash.getBytes())); break;
-                      case 'o' : hash=UTILS.BASIC.base64_encode(o.digest(hash.getBytes())); break;
-                      case 'p' : hash=UTILS.BASIC.base64_encode(p.digest(hash.getBytes())); break;
-                      case 'r' : hash=UTILS.BASIC.base64_encode(r.digest(hash.getBytes())); break;
-                      case 's' : hash=UTILS.BASIC.base64_encode(s.digest(hash.getBytes())); break;
-                      case 't' : hash=UTILS.BASIC.base64_encode(t.digest(hash.getBytes())); break;
-                      case 'u' : hash=UTILS.BASIC.base64_encode(u.digest(hash.getBytes())); break;
-                      case 'v' : hash=UTILS.BASIC.base64_encode(v.digest(hash.getBytes())); break;
-                      case 'x' : hash=UTILS.BASIC.base64_encode(x.digest(hash.getBytes())); break;
-                      case 'y' : hash=UTILS.BASIC.base64_encode(y.digest(hash.getBytes())); break;
-                      case 'z' : hash=UTILS.BASIC.base64_encode(z.digest(hash.getBytes())); break;
-                      case 'w' : hash=UTILS.BASIC.base64_encode(w.digest(hash.getBytes())); break;
-                  }
-              }
-              
-              // Last Hash
-              hash=UTILS.BASIC.hash(hash);
+              // Get hash
+              hash=this.getHash(UTILS.NET_STAT.last_block_hash, hash);
              
-              
-              po=0;
-              snum="";
-              while (snum.length()<18)
-              {
-                  // Character
-                  char ch=hash.charAt(po);
-                  
-                  switch (ch)
-                  {
-                      case '0' : snum=snum+'0'; break; 
-                      case '1' : snum=snum+'1'; break; 
-                      case '2' : snum=snum+'2'; break; 
-                      case '3' : snum=snum+'3'; break; 
-                      case '4' : snum=snum+'4'; break; 
-                      case '5' : snum=snum+'5'; break; 
-                      case '6' : snum=snum+'6'; break; 
-                      case '7' : snum=snum+'7'; break; 
-                      case '8' : snum=snum+'8'; break; 
-                      case '9' : snum=snum+'9'; break; 
-                  }
-                  
-                   // Pos
-                  po++;
-              }
-              
               // Number
-              num=Long.parseLong(snum);
+              num=this.hashToNum(hash);
               
               // Speed
               if (step%10000==0) 
@@ -396,76 +333,34 @@ public class CCPUMiner extends Thread
               
               // Found solution
               if (num<UTILS.NET_STAT.net_dif) 
-              {
+              {   
+                  
                   UTILS.CBLOCK.last_tstamp=ts;
                   UTILS.CBLOCK.nonce=nonce;
                   UTILS.CBLOCK.setNonce(nonce);
                   UTILS.CBLOCK.block_hash=hash;
                   UTILS.CBLOCK.broadcast();
                   nonce=Math.round(Math.random()*10000000000L);
+                  
+                  
               }
             }
         }
+        }
+        catch (Exception ex) 
+       	      {  
+       		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
+              }
         
         System.out.println("CPUMiner has stopped !!!");
     }
     
-    public boolean checkHash(String hash)
+    public long hashToNum(String hash) throws Exception
     {
-        // Load algorithms
-        for (int pos=0; pos<=63; pos++)
-        {
-            // Character
-            char ch=UTILS.NET_STAT.last_block_hash.charAt(pos);
-                  
-            switch (ch)
-            {
-                      case '0' : hash=UTILS.BASIC.base64_encode(f0.digest(hash.getBytes())); break;
-                      case '1' : hash=UTILS.BASIC.base64_encode(f1.digest(hash.getBytes())); break;
-                      case '2' : hash=UTILS.BASIC.base64_encode(f2.digest(hash.getBytes())); break;
-                      case '3' : hash=UTILS.BASIC.base64_encode(f3.digest(hash.getBytes())); break;
-                      case '4' : hash=UTILS.BASIC.base64_encode(f4.digest(hash.getBytes())); break;
-                      case '5' : hash=UTILS.BASIC.base64_encode(f5.digest(hash.getBytes())); break;
-                      case '6' : hash=UTILS.BASIC.base64_encode(f6.digest(hash.getBytes())); break;
-                      case '7' : hash=UTILS.BASIC.base64_encode(f7.digest(hash.getBytes())); break;
-                      case '8' : hash=UTILS.BASIC.base64_encode(f8.digest(hash.getBytes())); break;
-                      case '9' : hash=UTILS.BASIC.base64_encode(f9.digest(hash.getBytes())); break;
-                      case 'a' : hash=UTILS.BASIC.base64_encode(a.digest(hash.getBytes())); break;
-                      case 'b' : hash=UTILS.BASIC.base64_encode(b.digest(hash.getBytes())); break;
-                      case 'c' : hash=UTILS.BASIC.base64_encode(c.digest(hash.getBytes())); break;
-                      case 'd' : hash=UTILS.BASIC.base64_encode(d.digest(hash.getBytes())); break;
-                      case 'e' : hash=UTILS.BASIC.base64_encode(e.digest(hash.getBytes())); break;
-                      case 'f' : hash=UTILS.BASIC.base64_encode(f.digest(hash.getBytes())); break;
-                      case 'g' : hash=UTILS.BASIC.base64_encode(g.digest(hash.getBytes())); break;
-                      case 'h' : hash=UTILS.BASIC.base64_encode(h.digest(hash.getBytes())); break;
-                      case 'i' : hash=UTILS.BASIC.base64_encode(i.digest(hash.getBytes())); break;
-                      case 'j' : hash=UTILS.BASIC.base64_encode(j.digest(hash.getBytes())); break;
-                      case 'k' : hash=UTILS.BASIC.base64_encode(k.digest(hash.getBytes())); break;
-                      case 'l' : hash=UTILS.BASIC.base64_encode(l.digest(hash.getBytes())); break;
-                      case 'm' : hash=UTILS.BASIC.base64_encode(m.digest(hash.getBytes())); break;
-                      case 'n' : hash=UTILS.BASIC.base64_encode(n.digest(hash.getBytes())); break;
-                      case 'o' : hash=UTILS.BASIC.base64_encode(o.digest(hash.getBytes())); break;
-                      case 'p' : hash=UTILS.BASIC.base64_encode(p.digest(hash.getBytes())); break;
-                      case 'r' : hash=UTILS.BASIC.base64_encode(r.digest(hash.getBytes())); break;
-                      case 's' : hash=UTILS.BASIC.base64_encode(s.digest(hash.getBytes())); break;
-                      case 't' : hash=UTILS.BASIC.base64_encode(t.digest(hash.getBytes())); break;
-                      case 'u' : hash=UTILS.BASIC.base64_encode(u.digest(hash.getBytes())); break;
-                      case 'v' : hash=UTILS.BASIC.base64_encode(v.digest(hash.getBytes())); break;
-                      case 'x' : hash=UTILS.BASIC.base64_encode(x.digest(hash.getBytes())); break;
-                      case 'y' : hash=UTILS.BASIC.base64_encode(y.digest(hash.getBytes())); break;
-                      case 'z' : hash=UTILS.BASIC.base64_encode(z.digest(hash.getBytes())); break;
-                      case 'w' : hash=UTILS.BASIC.base64_encode(w.digest(hash.getBytes())); break;
-                  }
-              }
-              
-              // Last Hash
-              hash=UTILS.BASIC.hash(hash);
-             
-              
-              int po=0;
+        int po=0;
               String snum="";
               
-              while (snum.length()<18)
+              while (snum.length()<18 && po<64)
               {
                   // Character
                   char ch=hash.charAt(po);
@@ -491,9 +386,67 @@ public class CCPUMiner extends Thread
               // Number
               long num=Long.parseLong(snum);
               
-              // Found solution
-              if (num<UTILS.NET_STAT.net_dif) 
-                return true;
-              else return false;
-        }
+              // Return 
+              return num;
+        
+    }
+    
+    public  String getHash(String ph, String ha) throws Exception
+    {
+        int pos;
+        String hash=ha;
+        String prev_hash=ph;
+        
+        // Load algorithms
+        for (pos=0; pos<=63; pos++)
+        {
+            // Character
+            char ch=prev_hash.charAt(pos);
+                  
+                  switch (ch)
+                  {
+                      case '0' : hash=UTILS.BASIC.base64_encode(f0.digest(hash.getBytes())); break;
+                      case '1' : hash=UTILS.BASIC.base64_encode(f1.digest(hash.getBytes())); break;
+                      case '2' : hash=UTILS.BASIC.base64_encode(f2.digest(hash.getBytes())); break;
+                      case '3' : hash=UTILS.BASIC.base64_encode(f3.digest(hash.getBytes())); break;
+                      case '4' : hash=UTILS.BASIC.base64_encode(f4.digest(hash.getBytes())); break;
+                      case '5' : hash=UTILS.BASIC.base64_encode(f5.digest(hash.getBytes())); break;
+                      case '6' : hash=UTILS.BASIC.base64_encode(f6.digest(hash.getBytes())); break;
+                      case '7' : hash=UTILS.BASIC.base64_encode(f7.digest(hash.getBytes())); break;
+                      case '8' : hash=UTILS.BASIC.base64_encode(f8.digest(hash.getBytes())); break;
+                      case '9' : hash=UTILS.BASIC.base64_encode(f9.digest(hash.getBytes())); break;
+                      case 'a' : hash=UTILS.BASIC.base64_encode(a.digest(hash.getBytes())); break;
+                      case 'b' : hash=UTILS.BASIC.base64_encode(b.digest(hash.getBytes())); break;
+                      case 'c' : hash=UTILS.BASIC.base64_encode(c.digest(hash.getBytes())); break;
+                      case 'd' : hash=UTILS.BASIC.base64_encode(d.digest(hash.getBytes())); break;
+                      case 'e' : hash=UTILS.BASIC.base64_encode(e.digest(hash.getBytes())); break;
+                      case 'f' : hash=UTILS.BASIC.base64_encode(f.digest(hash.getBytes())); break;
+                      case 'g' : hash=UTILS.BASIC.base64_encode(g.digest(hash.getBytes())); break;
+                      case 'h' : hash=UTILS.BASIC.base64_encode(h.digest(hash.getBytes())); break;
+                      case 'i' : hash=UTILS.BASIC.base64_encode(i.digest(hash.getBytes())); break;
+                      case 'j' : hash=UTILS.BASIC.base64_encode(j.digest(hash.getBytes())); break;
+                      case 'k' : hash=UTILS.BASIC.base64_encode(k.digest(hash.getBytes())); break;
+                      case 'l' : hash=UTILS.BASIC.base64_encode(l.digest(hash.getBytes())); break;
+                      case 'm' : hash=UTILS.BASIC.base64_encode(m.digest(hash.getBytes())); break;
+                      case 'n' : hash=UTILS.BASIC.base64_encode(n.digest(hash.getBytes())); break;
+                      case 'o' : hash=UTILS.BASIC.base64_encode(o.digest(hash.getBytes())); break;
+                      case 'p' : hash=UTILS.BASIC.base64_encode(p.digest(hash.getBytes())); break;
+                      case 'r' : hash=UTILS.BASIC.base64_encode(r.digest(hash.getBytes())); break;
+                      case 's' : hash=UTILS.BASIC.base64_encode(s.digest(hash.getBytes())); break;
+                      case 't' : hash=UTILS.BASIC.base64_encode(t.digest(hash.getBytes())); break;
+                      case 'u' : hash=UTILS.BASIC.base64_encode(u.digest(hash.getBytes())); break;
+                      case 'v' : hash=UTILS.BASIC.base64_encode(v.digest(hash.getBytes())); break;
+                      case 'x' : hash=UTILS.BASIC.base64_encode(x.digest(hash.getBytes())); break;
+                      case 'y' : hash=UTILS.BASIC.base64_encode(y.digest(hash.getBytes())); break;
+                      case 'z' : hash=UTILS.BASIC.base64_encode(z.digest(hash.getBytes())); break;
+                      case 'w' : hash=UTILS.BASIC.base64_encode(w.digest(hash.getBytes())); break;
+                  }
+              }
+              
+              // Last Hash
+              hash=UTILS.BASIC.hash(hash);
+              
+              // Return 
+              return hash;
+    }
 }

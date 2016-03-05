@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.adr;
 
 import java.sql.ResultSet;
@@ -50,7 +53,7 @@ public class CReqDataPayload extends CPayload
                            String field_3_name, int field_3_min, int field_3_max, 
                            String field_4_name, int field_4_min, int field_4_max, 
                            String field_5_name, int field_5_min, int field_5_max, 
-                           int days)
+                           int days) throws Exception
     {
     	   // Superclass
   	   super(adr);
@@ -100,7 +103,7 @@ public class CReqDataPayload extends CPayload
            this.sign();
     }
     
-    public CResult check(CBlockPayload block)
+    public CResult check(CBlockPayload block) throws Exception
     {
     	// Super class
     	CResult res=super.check(block);
@@ -229,7 +232,7 @@ public class CReqDataPayload extends CPayload
   	return new CResult(true, "Ok", "CReqDataPayload", 63);
     }
     
-    public CResult commit(CBlockPayload block)
+    public CResult commit(CBlockPayload block) throws Exception
     {
  	// Check
         CResult res=this.check(block);

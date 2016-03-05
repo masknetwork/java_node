@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.domains;
 
 import java.sql.ResultSet;
@@ -12,7 +15,7 @@ import wallet.network.packets.trans.*;
 
 public class CTransferDomainPacket extends CBroadcastPacket 
 {
-   public CTransferDomainPacket(String fee_adr, String domain, String toAdr)
+   public CTransferDomainPacket(String fee_adr, String domain, String toAdr) throws Exception
    {
 	super("ID_TRANSFER_DOMAIN_PACKET");
 	
@@ -32,7 +35,7 @@ public class CTransferDomainPacket extends CBroadcastPacket
            adr=rs.getString("adr");
            
            // Close
-           s.close();
+           rs.close(); s.close();
         }
         catch (SQLException ex)
         {
@@ -55,7 +58,7 @@ public class CTransferDomainPacket extends CBroadcastPacket
    }
 			 
    // Check 
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
 	// Super class
 	CResult res=super.check(block);
@@ -76,7 +79,7 @@ public class CTransferDomainPacket extends CBroadcastPacket
 	return new CResult(true, "Ok", "CTransferDomainPacket", 74);
    }
 			   
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
 	// Superclass
 	CResult res=super.commit(block);

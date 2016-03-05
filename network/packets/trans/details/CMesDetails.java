@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.trans.details;
 
 import wallet.kernel.*;
@@ -9,7 +12,7 @@ public class CMesDetails extends CPayDetails
    // Message
    public String mes;
    
-   public CMesDetails(String mes, String adr)
+   public CMesDetails(String mes, String adr) throws Exception
    {
        // Secure random
        String k=UTILS.BASIC.randString(25);
@@ -25,7 +28,7 @@ public class CMesDetails extends CPayDetails
        this.hash=UTILS.BASIC.hash(this.key+this.mes);
    }
    
-   public void getMessage(String adr, String trans_hash)
+   public void getMessage(String adr, String trans_hash) throws Exception
    {
        // Load address
        CAddress a=UTILS.WALLET.getAddress(adr);
@@ -43,7 +46,7 @@ public class CMesDetails extends CPayDetails
        
    }
    
-   public CResult check()
+   public CResult check() throws Exception
    {
        return new CResult(true, "Ok", "CTransPayload", 164);
    }

@@ -1,3 +1,9 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import java.sql.ResultSet;
@@ -163,7 +169,7 @@ public class CAdrOptions
     
    
     
-	public CAdrOptions(String adr, boolean from_adr_pool) 
+	public CAdrOptions(String adr, boolean from_adr_pool) throws Exception
 	{
             try
             {
@@ -186,7 +192,11 @@ public class CAdrOptions
 		}
 		else this.loadData(adr, from_adr_pool);
                 
-                if (s!=null) s.close();
+                if (s!=null) 
+                {
+                    rs_adr.close();
+                    s.close();
+                } 
             }
             catch (SQLException ex)
             {
@@ -194,7 +204,7 @@ public class CAdrOptions
             }
 	}
 	
-	public void loadData(String adr, boolean from_trans_pool)
+	public void loadData(String adr, boolean from_trans_pool) throws Exception
 	{
 		
 		try
@@ -220,7 +230,11 @@ public class CAdrOptions
 		    // Block
 		    this.block=rs_adr.getLong("block");
                     
-                    if (s!=null) s.close();
+                    if (s!=null) 
+                    {
+                        rs_adr.close();
+                        s.close();
+                    }
 		}
 		catch (SQLException ex) 
 		{ 
@@ -320,7 +334,7 @@ public class CAdrOptions
     		}
     	}
           
-          if (s!=null) s.close();
+          if (s!=null) rs.close(); s.close();
     }
     catch (SQLException ex) 
     { 

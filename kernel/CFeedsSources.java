@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel;
 
 import java.sql.ResultSet;
@@ -12,7 +15,7 @@ public class CFeedsSources
     // Timer
     Timer timer;
     
-    public CFeedsSources()
+    public CFeedsSources() throws Exception
     {
          // Reset 
         UTILS.DB.executeUpdate("UPDATE feeds_sources SET next_run='"+UTILS.BASIC.tstamp()+"'");
@@ -43,19 +46,22 @@ public class CFeedsSources
              {
                  // Update 
                  UTILS.DB.executeUpdate("UPDATE feeds_sources "
-                                         + "SET next_run=next_run+"+rs.getLong("interval")+" "
+                                         + "SET next_run="+UTILS.BASIC.tstamp()+"+ping_interval "
                                        + "WHERE ID='"+rs.getLong("ID")+"'");
                  
                  // Load
                  CFeedSource feed=new CFeedSource(rs.getString("adr"), 
-                                                  UTILS.BASIC.base64_decode(rs.getString("website")), 
+                                                  UTILS.BASIC.base64_decode(rs.getString("url")), 
                                                   rs.getString("feed_symbol"));
                  feed.start();
              }
+             
+             // Close
+             rs.close(); s.close();
          }
-         catch (SQLException e)
+         catch (Exception e)
         {
-            UTILS.LOG.log("SQLException", e.getMessage(), "CFeedSource.java", 639); 
+            
         }
        }
    }

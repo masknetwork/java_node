@@ -1,3 +1,6 @@
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.network.packets.tweets;
 
 import wallet.kernel.*;
@@ -22,7 +25,7 @@ public class CNewTweetPacket extends CBroadcastPacket
                           String video, 
                           double budget, 
                           String budget_cur, 
-                          long budget_expire)
+                          long budget_expire) throws Exception
    {
 	   // Super class
 	   super("ID_NEW_TWEET_PACKET");
@@ -53,7 +56,7 @@ public class CNewTweetPacket extends CBroadcastPacket
    }
    
    // Check 
-   public CResult check(CBlockPayload block)
+   public CResult check(CBlockPayload block) throws Exception
    {
           // Super class
    	  CResult res=super.check(block);
@@ -105,7 +108,7 @@ public class CNewTweetPacket extends CBroadcastPacket
    	  return new CResult(true, "Ok", "CNewAdPacket", 45);
    }
    
-   public CResult commit(CBlockPayload block)
+   public CResult commit(CBlockPayload block) throws Exception
    {
    	  // Superclass
    	  CResult res=super.commit(block);

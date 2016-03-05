@@ -1,5 +1,8 @@
 // $Id: HamsiBigCore.java 239 2010-06-21 14:58:08Z tp $
 
+// Author : Vlad Cristian
+// Contact : vcris@gmx.com
+
 package wallet.kernel.x34;
 
 /**
