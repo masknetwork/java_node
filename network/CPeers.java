@@ -243,7 +243,7 @@ public class CPeers
  		       }
                        
                        // Close
-                       if (s!=null) rs.close(); s.close();
+                       rs.close(); s.close();
  		       
      		 }
      		 catch (SQLException ex)

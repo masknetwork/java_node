@@ -207,7 +207,7 @@ public class CNewExchangerPayload extends CPayload
           if (!this.asset.equals("MSK"))
           {
               // Asset valid
-              if (!UTILS.BASIC.symbolValid(this.cur))
+              if (!UTILS.BASIC.isSymbol(this.cur))
                  return new CResult(false, "Invalid asset symbol", "CNewEscrowerPayload.java", 69);
          
               // Search asset

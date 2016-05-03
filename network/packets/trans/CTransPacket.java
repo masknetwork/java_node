@@ -19,33 +19,18 @@ public class CTransPacket extends CBroadcastPacket
 			    String cur,
 			    String mes,
                             String escrower,
-                            String otp_old_pass,
-                            String otp_new_pass,
-                            String req_field_1,
-                            String req_field_2,
-                            String req_field_3,
-                            String req_field_4,
-                            String req_field_5,
-                            long cartID) throws Exception
+                            String sign) throws Exception
 	{
 		// Super class
 		super("ID_TRANS_PACKET");
 		   
-		CTransPayload dec_payload;
-                dec_payload = new CTransPayload(src, 
-                                                dest,
-                                                amount,
-                                                cur,
-                                                mes,
-                                                escrower, 
-                                                otp_old_pass, 
-                                                otp_new_pass,
-                                                req_field_1,
-                                                req_field_2, 
-                                                req_field_3, 
-                                                req_field_4, 
-                                                req_field_5, 
-                                                0);
+		CTransPayload dec_payload = new CTransPayload(src, 
+                                                              dest,
+                                                              amount,
+                                                              cur,
+                                                              mes,
+                                                              escrower,
+                                                              sign);
 				
 		// Build the payload
 		this.payload=UTILS.SERIAL.serialize(dec_payload);
@@ -78,7 +63,7 @@ public class CTransPacket extends CBroadcastPacket
 	   	  if (this.checkSign()==false)
 	   		return new CResult(false, "Invalid signature", "CTransPacket", 39);
 	   	  
-	          // Deserialize transaction data
+                  // Deserialize transaction data
 	   	  CTransPayload dec_payload=(CTransPayload) UTILS.SERIAL.deserialize(payload);
 	   	  res=dec_payload.check(block);
 	   	  if (res.passed==false) return res;
@@ -116,9 +101,13 @@ public class CTransPacket extends CBroadcastPacket
 	   
 	   public CResult commit(CBlockPayload block) throws Exception
 	   {
-	   	  // Superclass
+                  // Superclass
 	   	  CResult res=this.check(block);
-	   	  
+                  if (!res.passed) throw new Exception(res.reason);
+                  
+                  // Commit
+                  super.commit(block);
+                  
                   if (res.passed)
                   {
 	   	     // Deserialize transaction data

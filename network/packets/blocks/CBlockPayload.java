@@ -144,53 +144,7 @@ public class CBlockPayload extends CPayload
                                        + "WHERE status='ID_UNCONFIRMED'");
         }
         
-	// Commits all transactions
-	public CResult commit()  throws Exception
-	{
-            try
-            {
-            // Start logging
-                UTILS.LOG_QUERIES=true;
-                
-                // Delete unconfirmed trans
-                this.delTrans(this.block);
-               
-		for (int a=0; a<=this.packets.size()-1; a++)
-	        {
-                   // Packet
-		   CPacket p=((CPacket)this.packets.get(a));
-                   
-                   // Commit
-                   CResult res=p.commit(this);
-		   
-                   // Report
-                   if (res.passed==false) res.report();
-	        }
-		
-                // Pay block reward
-                this.payReward(this.target_adr);
-                 
-                // Delete expired items
-                this.delExpired();
-                
-                // Check options
-                UTILS.CRONS.runCrons(block, this);
-                
-                // Refresh tables
-                UTILS.NET_STAT.refreshTables(block);
-            }
-             catch (Exception ex) 
-       	      {  
-       		UTILS.LOG.log("Exception", ex.getMessage(), "CBuyDomainPayload.java", 57);
-              }
-                
-                // Trans pool
-		UTILS.NETWORK.TRANS_POOL.newBlock(this.block);
-                
-		// Ok
-		return new CResult(true, "Ok", "CBlock", 68);
-
-        }
+	
 	
         public void payReward(String adr) throws Exception
         {
@@ -235,9 +189,6 @@ public class CBlockPayload extends CPayload
 	{
             long check_index=0;
             
-            // Delete inconfirmed
-            this.delTrans(this.block);
-            
             // Signer valid
             if (!UTILS.BASIC.adressValid(this.target_adr))
                  return new CResult(false, "Invalid signer", "CBlockPayload.java", 239);
@@ -256,5 +207,50 @@ public class CBlockPayload extends CPayload
             // Ok
 	    return new CResult(true, "Ok", "CBlock", 68);
 	}
+        
+        // Commits all transactions
+	public CResult commit()  throws Exception
+	{
+            try
+            {
+            // Start logging
+                UTILS.LOG_QUERIES=true;
+                
+                // Delete unconfirmed trans
+                this.delTrans(this.block);
+               
+		for (int a=0; a<=this.packets.size()-1; a++)
+	        {
+                   // Packet
+		   CPacket p=((CPacket)this.packets.get(a));
+                   
+                   // Commit
+                   CResult res=p.commit(this);
+		   
+                   // Report
+                   if (res.passed==false) res.report();
+	        }
+		
+                // Pay block reward
+                this.payReward(this.target_adr);
+                 
+                // Delete expired items
+                this.delExpired();
+                
+                // Check options
+                UTILS.CRONS.runCrons(block, this);
+            }
+             catch (Exception ex) 
+       	      {  
+       		UTILS.LOG.log("Exception", ex.getMessage(), "CBlockPayload.java", 57);
+              }
+                
+                // Trans pool
+		UTILS.NETWORK.TRANS_POOL.newBlock(this.block);
+                
+		// Ok
+		return new CResult(true, "Ok", "CBlock", 68);
+
+        }
 
 }

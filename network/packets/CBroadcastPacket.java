@@ -64,8 +64,8 @@ public class CBroadcastPacket extends CPacket
 	    // Commit
 	    CResult res=super.commit(block);
 	    if (!res.passed) return res;
-		
-	    // Commit fee
+            
+            // Commit fee
 	    if (!this.tip.equals("ID_BLOCK"))
             {
 		CResult res_fee=this.fee.commit(block);

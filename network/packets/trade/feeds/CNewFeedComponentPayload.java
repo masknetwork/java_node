@@ -23,6 +23,9 @@ public class CNewFeedComponentPayload extends CPayload
     // Description
     String description;
     
+    // Type
+    String type;
+    
     // Symbol
     String symbol;
     
@@ -39,6 +42,7 @@ public class CNewFeedComponentPayload extends CPayload
                                     String feed_symbol,
                                     String title,
                                     String description,
+                                    String type,
                                     String symbol,
                                     String rl_symbol,
                                     double fee,
@@ -59,6 +63,9 @@ public class CNewFeedComponentPayload extends CPayload
        // Symbol
        this.symbol=symbol;
        
+       // Type
+       this.type=type;
+       
        // RL symbol
        this.rl_symbol=rl_symbol;
        
@@ -73,6 +80,7 @@ public class CNewFeedComponentPayload extends CPayload
 			     feed_symbol+
 		             title+
                              description+
+                             type+
                              symbol+
                              rl_symbol+
                              String.valueOf(fee)+
@@ -87,11 +95,11 @@ public class CNewFeedComponentPayload extends CPayload
         try
         {
             // Symbol valid
-            if (!UTILS.BASIC.symbolValid(this.symbol))
+            if (!UTILS.BASIC.isSymbol(this.symbol))
               return new CResult(false, "Invalid title", "CNewFeedComponentPayload", 67);
             
              // Feed symbol valid
-             if (!UTILS.BASIC.symbolValid(this.symbol))
+             if (!UTILS.BASIC.isSymbol(this.symbol))
                 return new CResult(false, "Invalid feed symbol", "CNewFeedComponentPayload", 67);
              
              // Check feed
@@ -109,16 +117,22 @@ public class CNewFeedComponentPayload extends CPayload
              // Description
              if (!UTILS.BASIC.descriptionValid(this.description))
                 return new CResult(false, "Invalid description", "CNewFeedComponentPayload", 67);
-         
-             // Days
-             if (!UTILS.BASIC.mktDays(days))
-                 return new CResult(false, "Invalid days", "CNewFeedComponentPayload", 67);
+             
+             // Type
+             if (this.type.equals("ID_CRYPTO") && 
+                 this.type.equals("ID_FX") && 
+                 this.type.equals("ID_COMM") && 
+                 this.type.equals("ID_IND") && 
+                 this.type.equals("ID_STOCKS") && 
+                 this.type.equals("ID_OTHER"))
+             throw new Exception("Invalid branch type, CNewFeedComponentPayload");
              
              // Hash
              String h=UTILS.BASIC.hash(this.getHash()+
 			               feed_symbol+
 		                       title+
                                        description+
+                                       type+
                                        symbol+
                                        rl_symbol+
                                        String.valueOf(fee)+
@@ -154,6 +168,7 @@ public class CNewFeedComponentPayload extends CPayload
             UTILS.DB.executeUpdate("INSERT INTO feeds_branches(feed_symbol, "
                                                               + "name, "
                                                               + "description, "
+                                                              + "type, "
                                                               + "symbol, "
                                                               + "expire, "
                                                               + "fee, "
@@ -162,6 +177,7 @@ public class CNewFeedComponentPayload extends CPayload
                                                               this.feed_symbol+"', '"+
                                                               UTILS.BASIC.base64_encode(this.title)+"', '"+
                                                               UTILS.BASIC.base64_encode(this.description)+"', '"+
+                                                              this.type+"', '"+
                                                               this.symbol+"', '"+
                                                               expire+"', '"+
                                                               this.fee+"', '"+

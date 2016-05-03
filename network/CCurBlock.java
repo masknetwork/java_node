@@ -8,8 +8,6 @@ import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Timer;
-import java.util.TimerTask;
 import wallet.kernel.CAddress;
 import wallet.kernel.CCPUMiner;
 import wallet.kernel.CStatus;
@@ -27,8 +25,6 @@ public class CCurBlock
    // Bock
    public CBlockPacket block;
    
-   // Timer
-   public Timer timer;
    
    // Block hash
    public String block_hash;
@@ -55,14 +51,14 @@ public class CCurBlock
    public long nonce=0;
    
    // CPU miner
-   public CCPUMiner miner_1;
-   public CCPUMiner miner_2;
-   public CCPUMiner miner_3;
-   public CCPUMiner miner_4;
-   public CCPUMiner miner_5;
-   public CCPUMiner miner_6;
-   public CCPUMiner miner_7;
-   public CCPUMiner miner_8;
+   public CCPUMiner miner_1=null;
+   public CCPUMiner miner_2=null;
+   public CCPUMiner miner_3=null;
+   public CCPUMiner miner_4=null;
+   public CCPUMiner miner_5=null;
+   public CCPUMiner miner_6=null;
+   public CCPUMiner miner_7=null;
+   public CCPUMiner miner_8=null;
    
    // Block time
    public long block_time=20;
@@ -88,16 +84,6 @@ public class CCurBlock
        // Next
        rs.next();
        
-       // Start CPU miner
-       miner_1=new CCPUMiner();
-       miner_2=new CCPUMiner();
-       miner_3=new CCPUMiner();
-       miner_4=new CCPUMiner();
-       miner_5=new CCPUMiner();
-       miner_6=new CCPUMiner();
-       miner_7=new CCPUMiner();
-       miner_8=new CCPUMiner();
-       
        // Set signer
        this.setSigner();
        
@@ -111,6 +97,43 @@ public class CCurBlock
        rs.close(); s.close();
    }
  
+   public void startMiner(int miner)
+   {
+       switch (miner)
+       {
+           case 1 : this.miner_1=new CCPUMiner(); 
+                                 this.miner_1.start(); 
+                                 break;
+                                 
+           case 2 : this.miner_2=new CCPUMiner(); 
+                                 this.miner_2.start(); 
+                                 break;
+                                 
+           case 3 : this.miner_3=new CCPUMiner(); 
+                                 this.miner_3.start(); 
+                                 break;
+                                 
+           case 4 : this.miner_4=new CCPUMiner(); 
+                                 this.miner_4.start(); 
+                                 break;
+                                 
+           case 5 : this.miner_5=new CCPUMiner(); 
+                                 this.miner_5.start(); 
+                                 break;
+                                 
+           case 6 : this.miner_6=new CCPUMiner(); 
+                                 this.miner_6.start(); 
+                                 break;
+                                 
+           case 7 : this.miner_7=new CCPUMiner(); 
+                                 this.miner_7.start(); 
+                                 break;
+                                 
+           case 8 : this.miner_8=new CCPUMiner(); 
+                                 this.miner_8.start(); 
+                                 break;
+       }
+   }
    
    public void addPacket(CPacket packet) throws Exception
    {
@@ -234,7 +257,7 @@ public class CCurBlock
        // Load
        ResultSet rs=s.executeQuery("SELECT *  "
                                    + "FROM blocks "
-                                  + "WHERE block>="+(UTILS.NET_STAT.last_block-this.retarget)+" ORDER BY block ASC");
+                                  + "WHERE block="+(UTILS.NET_STAT.last_block-this.retarget)+" ORDER BY block ASC");
        
        // Tstamp
        long tstamp=0;
@@ -257,7 +280,9 @@ public class CCurBlock
        else if (tstamp<last_tstamp-(this.retarget*20))
          UTILS.NET_STAT.net_dif=UTILS.NET_STAT.net_dif+UTILS.NET_STAT.net_dif/100;
        
-       
+       // Minimum dif
+       if (UTILS.NET_STAT.net_dif>20000000000000L) UTILS.NET_STAT.net_dif=20000000000000L;
+           
        // Update net stat
        UTILS.DB.executeUpdate("UPDATE net_stat "
                                + "SET last_block='"+UTILS.NET_STAT.last_block + "', "

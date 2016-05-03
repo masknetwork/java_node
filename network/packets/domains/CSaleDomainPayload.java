@@ -71,18 +71,7 @@ public class CSaleDomainPayload extends CPayload
           if (!UTILS.BASIC.domainValid(this.domain))
             return new CResult(false, "Invalid domain", "CSaleDomainPayload.java", 74);
         
-          // Price
-          if (!UTILS.BASIC.mktBidValid(this.sale_price))
-           return new CResult(false, "Invalid price", "CSaleDomainPayload.java", 74);
-        
-          // Market bid
-          if (!UTILS.BASIC.mktBidValid(this.mkt_bid))
-           return new CResult(false, "Invalid market bid", "CSaleDomainPayload.java", 74);
-        
-          // Days
-          if (!UTILS.BASIC.mktDaysValid(this.mkt_days))
-             return new CResult(false, "Invalid days", "CSaleDomainPayload.java", 74);
-        
+          
           // Domain exist
           Statement s=UTILS.DB.getStatement();
           ResultSet rs=s.executeQuery("SELECT * "

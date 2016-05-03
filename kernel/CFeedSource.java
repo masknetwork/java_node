@@ -50,8 +50,13 @@ public class CFeedSource  extends Thread
     {
         String symbol;
         
+         
+        
         try
         {
+            // // Statement
+         Statement s=UTILS.DB.getStatement();
+         
            // URL
            URL url = new URL(this.link);
            
@@ -68,14 +73,12 @@ public class CFeedSource  extends Thread
            String data = IOUtils.toString(in, con.getContentEncoding());
            
            // Object
-           JSONObject obj = new JSONObject(data);
+           JSONObject obj = new JSONObject(data); 
            
            // Response
            JSONArray response = obj.getJSONArray("response");           
            
-           // // Statement
-           Statement s=UTILS.DB.getStatement();
-         
+          
            // Load branches
            ResultSet rs=s.executeQuery("SELECT * "
                                        + "FROM feeds_branches "
@@ -101,8 +104,11 @@ public class CFeedSource  extends Thread
                       // Get the price
                       double price=response.getJSONObject(a).getDouble("price");
                       
+                      // Status
+                      String status=response.getJSONObject(a).getString("status");
+                      
                       // Add to payload
-                      payload.addVal(rs.getString("symbol"), price, "ID_OPEN");
+                      payload.addVal(rs.getString("symbol"), price, status);
                   }
                }
            }
@@ -123,11 +129,16 @@ public class CFeedSource  extends Thread
                                                    + "VALUES('"+this.feed_symbol+"', "
                                                                + "'ID_OK', '"
                                                                +UTILS.BASIC.tstamp()+"')");
+            
+            rs.close();
+            s.close();
         }
         catch (Exception e) 
 	{ 
-          
+            
         }
+        
+       
     }
     
     public void feedErr(String mes) throws Exception

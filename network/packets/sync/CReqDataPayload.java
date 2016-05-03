@@ -57,52 +57,13 @@ public class CReqDataPayload implements java.io.Serializable
 	
 	public CResult commit(String sender) throws Exception
 	{
-		CDeliverBlocksPacket packet=new CDeliverBlocksPacket(this.start, this.end);
-			
-			for (long block=start; block<=end; block++)
-			{
-			  // Finds the block
-			  File f = new File(UTILS.WRITEDIR+"blocks/block_"+block+".block");
-			  if (f.exists())
- 			  {
-				  try
-				  {
-				     // Read image from disk
-				     FileInputStream f_in = new FileInputStream(UTILS.WRITEDIR+"blocks/block_"+block+".block");
-
-				     // Read object using ObjectInputStream
-				     ObjectInputStream obj_in = new ObjectInputStream (f_in);
-
-				     // Read an object
-				     CBlockPacket obj = (CBlockPacket)obj_in.readObject();
-				     
-				     // Add block
-				     packet.addBlock(obj);
-				  }
-				  catch (FileNotFoundException ex) 
-				  {
-					  UTILS.LOG.log("FileNotFoundException", ex.getMessage(), "CReqDataPayload.java", 77);
-				  }
-				  catch (IOException ex) 
-				  {
-					  UTILS.LOG.log("IOException", ex.getMessage(), "CReqDataPayload.java", 77);
-				  }
-				  catch (ClassNotFoundException ex) 
-				  {
-					  UTILS.LOG.log("ClassNotFoundException", ex.getMessage(), "CReqDataPayload.java", 77);
-				  }
-			  }
-			 
-			}
-			
-			// Send block
-			UTILS.NETWORK.sendToPeer(sender, packet);
-		
-		
-	
-		
 		
 		// Return
 	 	return new CResult(true, "Ok", "CReqDataPayload", 164);
 	}
+        
+        public void sendBlocks()
+        {
+          
+        }
 }

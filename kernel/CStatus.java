@@ -11,7 +11,7 @@ import java.util.TimerTask;
 import wallet.network.CPeer;
 
 
-public class CStatus extends CTicker
+public class CStatus
 {
 	// Status
 	public String engine_status;
@@ -91,7 +91,7 @@ public class CStatus extends CTicker
            Runtime runtime = Runtime.getRuntime();
            
            // Low memory ?
-           if (runtime.freeMemory()<1) 
+           if (runtime.freeMemory()<200000) 
            {
                UTILS.LOG.log("ID_ERROR", "Exit virtual machine (run out of memory)", "CStatus.java", 146);
                System.exit(0);

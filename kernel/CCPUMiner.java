@@ -149,6 +149,9 @@ public class CCPUMiner extends Thread
     // 9
     SHA512 f9;
     
+    // Hash rate
+    long hash=0;
+    
     
     public CCPUMiner()
     {
@@ -292,7 +295,7 @@ public class CCPUMiner extends Thread
         while (!Thread.currentThread().isInterrupted())
         {
             if (!UTILS.NET_STAT.last_block_hash.equals("") && 
-                UTILS.NETWORK.peers.peers.size()>-1 &&
+                UTILS.NETWORK.peers.peers.size()>=0 &&
                 !UTILS.CBLOCK.signer.equals("") &&
                 UTILS.STATUS.engine_status.equals("ID_ONLINE"))
             {
@@ -327,8 +330,47 @@ public class CCPUMiner extends Thread
               // Speed
               if (step%10000==0) 
               {
-                  speed=Math.round(10000/(UTILS.BASIC.tstamp()-start));
+                  if (UTILS.BASIC.tstamp()>start) 
+                       speed=Math.round(10000/(UTILS.BASIC.tstamp()-start));
+                  else
+                       speed=10000;
+                  
+                  // Start
                   start=UTILS.BASIC.tstamp();
+                  
+                  // Hash rate
+                  this.hash=speed;
+                  
+                  // Total hash power
+                  int mine_threads=1;
+                  long total_hash=this.hash;
+                  
+                  // Thread 2
+                  if (UTILS.CBLOCK.miner_2!=null) 
+                  {
+                    mine_threads++;
+                    total_hash=total_hash+UTILS.CBLOCK.miner_2.hash;
+                  }
+                  
+                  // Thread 3
+                  if (UTILS.CBLOCK.miner_3!=null) 
+                  {
+                    mine_threads++;
+                    total_hash=total_hash+UTILS.CBLOCK.miner_3.hash;
+                  }
+                  
+                  // Thread 4
+                  if (UTILS.CBLOCK.miner_4!=null) 
+                  {
+                    mine_threads++;
+                    total_hash=total_hash+UTILS.CBLOCK.miner_4.hash;
+                  }
+                  
+                  // Update
+                  UTILS.DB.executeUpdate("UPDATE web_sys_data "
+                                          + "SET mining='"+UTILS.BASIC.tstamp()+"', "
+                                              + "mining_threads='"+mine_threads+"',"
+                                              + "hashing_power='"+total_hash+"'");
               }
               
               // Found solution
@@ -345,7 +387,7 @@ public class CCPUMiner extends Thread
                   
               }
             }
-        }
+          }
         }
         catch (Exception ex) 
        	      {  

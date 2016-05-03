@@ -58,9 +58,7 @@ public class CAddress
     // Description
     public String description="";
     
-    // Address Options
- 	public CAdrOptions options;
- 	
+    	
  	// Domain
  	public String domain="";
  	
@@ -83,37 +81,26 @@ public class CAddress
 	
 	public CAddress(String public_key, String private_key, String description, float balance)  throws Exception
 	{
-		try
-		{
-		  KeyFactory keyFactory = KeyFactory.getInstance("EC", "BC");
-		  X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(Base64.decodeBase64(public_key));
-		  this.ecPublicKey = (ECPublicKey) keyFactory.generatePublic(publicKeySpec);
-		  PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(Base64.decodeBase64(private_key));
-		  this.ecPrivateKey = (ECPrivateKey) keyFactory.generatePrivate(privateKeySpec);
-		}
-		catch (NoSuchAlgorithmException ex) 
-		{ 
-			UTILS.LOG.log("NoSuchAlgorithmException", ex.getMessage(), "CAddress.java", 91); 
-		}
-		catch (InvalidKeySpecException ex) 
-		{ 
-			UTILS.LOG.log("InvalidKeySpecException", ex.getMessage(), "CAddress.java", 91); 
-		}
-		catch (NoSuchProviderException ex) 
-		{ 
-			UTILS.LOG.log("NoSuchProviderException", ex.getMessage(), "CAddress.java", 91); 
-	    }
+            // Key factory
+            KeyFactory keyFactory = KeyFactory.getInstance("EC", "BC");
+		  
+            // Encoded key
+            X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(Base64.decodeBase64(public_key));
+		  
+            // Public key
+            this.ecPublicKey = (ECPublicKey) keyFactory.generatePublic(publicKeySpec);
+		  
+            // Encoded key spec
+            PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(Base64.decodeBase64(private_key));
+		  
+            // Private key
+            this.ecPrivateKey = (ECPrivateKey) keyFactory.generatePrivate(privateKeySpec);
 		
-		// Public key
-		this.public_key=Base64.decodeBase64(public_key);
-		this.private_key=Base64.decodeBase64(private_key);
+	    // Public key
+	    this.public_key=Base64.decodeBase64(public_key);
 		
-		// Load Options
-		this.options=new CAdrOptions(public_key, false);
-		this.balance=this.options.balance;
-		
-		
-		this.domain=UTILS.BASIC.domainFromAdr(this.getPublic());
+            // Private key
+            this.private_key=Base64.decodeBase64(private_key);
 	}
 	
 	public boolean importAddress(String user, 
@@ -121,30 +108,12 @@ public class CAddress
                                      String private_key, 
                                      String tag)  throws Exception
 	{
-		try
-		{
-		  Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+		 Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 		  KeyFactory keyFactory = KeyFactory.getInstance("EC", "BC");
 		  X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(Base64.decodeBase64(public_key));
 		  this.ecPublicKey = (ECPublicKey) keyFactory.generatePublic(publicKeySpec);
 		  PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(Base64.decodeBase64(private_key));
 		  this.ecPrivateKey = (ECPrivateKey) keyFactory.generatePrivate(privateKeySpec);
-		}
-		catch (NoSuchAlgorithmException ex) 
-		{ 
-			UTILS.LOG.log("NoSuchAlgorithmException", ex.getMessage(), "CAddress.java", 130); 
-			return false;
-		}
-		catch (InvalidKeySpecException ex) 
-		{ 
-			UTILS.LOG.log("InvalidKeySpecException", ex.getMessage(), "CAddress.java", 135); 
-			return false;
-		}
-		catch (NoSuchProviderException ex) 
-		{ 
-			UTILS.LOG.log("NoSuchProviderException", ex.getMessage(), "CAddress.java", 140); 
-			return false;
-	    }
 		
 		// Public key
 		this.public_key=Base64.decodeBase64(public_key);
@@ -152,9 +121,6 @@ public class CAddress
 		this.balance=0;
 		this.description=tag;
 		
-		// Load Options
-		this.options=new CAdrOptions(public_key, false);
-		this.balance=this.options.balance;
 		
 		
 		// Insert address
@@ -174,19 +140,10 @@ public class CAddress
 	}
 	
 	
-	public void refreshOptions() throws Exception
-	{
-		this.options=new CAdrOptions(this.getPublic(), false);
-		this.domain=UTILS.BASIC.domainFromAdr(this.getPublic());
-		this.balance=options.balance;
-		
-	}
-
+	
 	public void generate(String curve) throws Exception
 	{
-		try
-		{
-		   KeyPairGenerator keyPairGenerator =KeyPairGenerator.getInstance("EC", "BC");
+		KeyPairGenerator keyPairGenerator =KeyPairGenerator.getInstance("EC", "BC");
 	           ECNamedCurveParameterSpec curveParameterSpec = ECNamedCurveTable.getParameterSpec(curve);
 		   keyPairGenerator.initialize(curveParameterSpec, new SecureRandom()); 
 		   this.curve=curve;
@@ -197,15 +154,10 @@ public class CAddress
 		   
 		   this.public_key=ecPublicKey.getEncoded();
 		   this.private_key=ecPrivateKey.getEncoded();
-	  }
-	  catch (NoSuchProviderException ex) { UTILS.CONSOLE.write(ex.getMessage()); }
-	  catch (NoSuchAlgorithmException ex) { UTILS.CONSOLE.write(ex.getMessage()); }
-	  catch (InvalidAlgorithmParameterException ex) { UTILS.CONSOLE.write(ex.getMessage()); }
+	  
 	
      	
 
-		// Load Options
-		this.options=new CAdrOptions(this.getPublic(), false);
 	}
 	
 	public String getPublic() 

@@ -3,6 +3,7 @@
 
 package wallet.kernel;
 
+import wallet.kernel.net_stat.CNetStat;
 import java.text.DecimalFormat;
 import wallet.network.*;
 
@@ -63,10 +64,14 @@ public class UTILS
     public static CCPUMinerUtils MINER_UTILS;
     
     // Formatter
-    public static DecimalFormat FORMAT = new DecimalFormat("#.####");
+    public static DecimalFormat FORMAT = new DecimalFormat("#.########");
     public static DecimalFormat FORMAT_8 = new DecimalFormat("#.########");
     
     // Root
     public static ThreadGroup ROOT;
+    
+    // Web ops
+    public static CWebOps WEB_OPS;
+    
  
 }

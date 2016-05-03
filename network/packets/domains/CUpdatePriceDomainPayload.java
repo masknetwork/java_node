@@ -68,9 +68,6 @@ public class CUpdatePriceDomainPayload extends CPayload
         if (!UTILS.BASIC.domainValid(this.domain))
             return new CResult(false, "Invalid domain", "CSaleDomainPayload.java", 74);
         
-        // Price
-        if (!UTILS.BASIC.mktBidValid(this.new_price))
-           return new CResult(false, "Invalid price", "CSaleDomainPayload.java", 74);
         
         // Domain exist
         Statement s=UTILS.DB.getStatement();

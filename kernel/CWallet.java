@@ -127,14 +127,14 @@ public class CWallet
    
    public void checkForNewAdr() throws Exception
    {
-	   // Check for new adddresses
-	   for (int a=1; a<=100; a++)
-	   {   
-         if (UTILS.SETTINGS.settings.containsKey("add_adr_"+String.valueOf(a))) 
-         {
-    	    // Split address
-		    String ad=UTILS.SETTINGS.settings.getProperty("add_adr_"+String.valueOf(a));
-		    String v[]=ad.split("\\,");
+	// Check for new adddresses
+	for (int a=1; a<=100; a++)
+	{   
+            if (UTILS.SETTINGS.settings.containsKey("add_adr_"+String.valueOf(a))) 
+            {
+    	        // Split address
+		String ad=UTILS.SETTINGS.settings.getProperty("add_adr_"+String.valueOf(a));
+		String v[]=ad.split("\\,");
 		 
 		   
     	    if (!this.isMine(v[0]))
@@ -146,25 +146,7 @@ public class CWallet
 	   }
    }
    
-     public void refresh() throws Exception
-     {
-    	 this.balance=0;
-    	 
-    	 for (int a=0; a<=this.addresses.size()-1; a++)
-    	 {
-    		CAddress adr=((CAddress)this.addresses.get(a));
-    		adr.refreshOptions();
-    		this.balance=this.balance+adr.options.balance;
-    	 }
-    	 
-    	 // Refresh the coins balance
-    	 if (UTILS.SETTINGS.settings.getProperty("headless").equals("false"))
-    	 {
-    		 //UTILS.GOLD.setBalance(String.valueOf(this.balance));
-    		 //UTILS.INTERFATA.adr_panel.refresh();
-    	 }
-     }
-   
+     
      public void save() throws Exception
      {
     	 String w="";
@@ -236,9 +218,7 @@ public class CWallet
          
            // Save wallet
 	   save();
-				 
-	   // Refresh
-	   this.refresh();
+	
 				 
 	   // Last generated
 	   this.last_adr=adr;
@@ -259,8 +239,7 @@ public class CWallet
 		 // Save wallet
 		 save();
 		 
-		 // Refresh
-		 this.refresh();
+		
 		 
 		 // Last generated
 		 this.last_adr=adr;

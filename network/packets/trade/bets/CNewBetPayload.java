@@ -211,7 +211,7 @@ public class CNewBetPayload extends CPayload
        
            // Currency
            if (!this.cur.equals("MSK"))
-              if (!UTILS.BASIC.assetExist(this.cur))
+              if (!UTILS.BASIC.isAsset(this.cur))
                  return new CResult(false, "Invalid currency", "CNewBetPayload.java", 74); 
        
            // End block

@@ -1,5 +1,10 @@
 package wallet.network.packets.sync;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -40,6 +45,27 @@ public class CDeliverBlocksPacket extends CPacket
         
         // End
         this.end=end;
+        
+        for (long block=start; block<=end; block++)
+	{
+		// Finds the block
+	        File f = new File(UTILS.WRITEDIR+"blocks/block_"+block+".block");
+		if (f.exists())
+ 		{
+		    // Read image from disk
+		        FileInputStream f_in = new FileInputStream(UTILS.WRITEDIR+"blocks/block_"+block+".block");
+
+		        // Read object using ObjectInputStream
+		        ObjectInputStream obj_in = new ObjectInputStream (f_in);
+
+		        // Read an object
+			CBlockPacket obj = (CBlockPacket)obj_in.readObject();
+				     
+			// Add block
+			this.addBlock(obj);
+		}
+                else throw new Exception("Could not find block "+block);
+        }
 			
 	// Hash
         this.hash=UTILS.BASIC.hash(this.start+
@@ -51,11 +77,6 @@ public class CDeliverBlocksPacket extends CPacket
     {
         // Add block
 	blocks.add(block);
-			
-	// Hash
-	this.hash=UTILS.BASIC.hash(this.start+
-			           this.end+
-			           String.valueOf(UTILS.SERIAL.serialize(this.blocks)));
     }
 		
     public CResult commit(CBlockPayload block) throws Exception
@@ -113,6 +134,9 @@ public class CDeliverBlocksPacket extends CPacket
 			// No data
                         if (!UTILS.DB.hasData(rs))
 		        {
+                             // Stop timer
+			    this.cancel();
+                            
 		            // Commit
 			    for (int a=0; a<=this.blocks.size()-1; a++)
 			    {
@@ -121,19 +145,21 @@ public class CDeliverBlocksPacket extends CPacket
 				
                                 // Report error
                                 if (!res.passed) res.report();
-					 
-				UTILS.DB.executeUpdate("UPDATE status "
+			        
+                               UTILS.DB.executeUpdate("UPDATE status "
                                                         + "SET last_blocks_block='"+(this.start+a)+"'");
-			    }
+                               
+                               System.out.print(".");
+                            }
 				   
 		            // Delete from sync
 			    UTILS.DB.executeUpdate("DELETE FROM sync "
 					 	       + "WHERE type='ID_BLOCKS' "
 					 		 + "AND start='"+this.start+"'");
+                            
+                            System.out.println("");
+                            System.out.println("Done.");
 					 
-					
-			    // Stop timer
-			    this.cancel();
 			}
 	       }
                catch (Exception ex) 

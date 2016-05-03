@@ -54,15 +54,7 @@ public class CBuyDomainPayload extends CPayload
                                  rs.getDouble("sale_price"), 
                                  "MSK", 
                                  "",
-                                 "", 
-                                 "", 
-                                 "",
-                                 "",
-                                 "", 
-                                 "", 
-                                 "", 
-                                 "", 
-                                 0);
+                                 "", "");
 		
            // Hash
 	   hash=UTILS.BASIC.hash(this.getHash()+

@@ -199,7 +199,7 @@ public class CNewFeedMarketPayload extends CPayload
                                                    feed_fee_1*days, 
                                                    "MSK", 
                                                    "",
-                                                   "", "",  "", "", "",  "", "", "", 0);
+                                                   "", "");
            }
            
            // Close
@@ -229,7 +229,7 @@ public class CNewFeedMarketPayload extends CPayload
                                                          feed_fee_2*days, 
                                                          "MSK", 
                                                          "",
-                                                         "", "",  "", "", "",  "", "", "", 0);
+                                                         "", "");
               }
            }
            
@@ -257,7 +257,7 @@ public class CNewFeedMarketPayload extends CPayload
                                                          feed_fee_3*days, 
                                                          "MSK", 
                                                          "",
-                                                         "", "",  "", "", "",  "", "", "", 0);
+                                                         "", "");
               }
            }
            
@@ -339,7 +339,7 @@ public class CNewFeedMarketPayload extends CPayload
            
 	   // Currency
            if (!this.cur.equals("MSK"))
-              if (!UTILS.BASIC.assetExist(this.cur))
+              if (!UTILS.BASIC.isAsset(this.cur))
                 return new CResult(false, "Invalid currency", "CNewFeedMarketPayload.java", 74); 
         
 	   // Minimum hold time
@@ -401,7 +401,7 @@ public class CNewFeedMarketPayload extends CPayload
               return new CResult(false, "Invalid margin size", "CNewFeedMarketPayload.java", 74);
             
 	    // Days
-            if (this.days<1000)
+            if (this.days<100)
                return new CResult(false, "Invalid days", "CNewFeedMarketPayload.java", 74);                  
                                          
             // Title

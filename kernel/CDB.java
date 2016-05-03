@@ -5,6 +5,7 @@ package wallet.kernel;
 
 import java.sql.*;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 import org.apache.commons.codec.digest.*;
 import org.hsqldb.*;
@@ -22,6 +23,8 @@ public class CDB
 	// Statement
         public Statement s;
         
+        ArrayList<Statement> conns=new ArrayList<Statement>();
+        
         
    public CDB() throws Exception
    {
@@ -37,8 +40,7 @@ public class CDB
 		   
 	      if (UTILS.SETTINGS.db.equals("mysql"))
 	      {
-	         Class.forName("com.mysql.jdbc.Driver").newInstance();
-	         con = DriverManager.getConnection("jdbc:mysql://localhost:3306/"+UTILS.SETTINGS.db_name,
+	         con = DriverManager.getConnection("jdbc:mysql://localhost:3306/"+UTILS.SETTINGS.db_name+"?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC",
 					         UTILS.SETTINGS.db_user,
 					         UTILS.SETTINGS.db_pass);
                  
@@ -107,6 +109,7 @@ public class CDB
        return false;
    }
    
+   
    // Get a connection
    public Statement getStatement() throws Exception
    {
@@ -119,6 +122,8 @@ public class CDB
        {
            s=con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
            s.closeOnCompletion();
+           
+          
            return s;
        }
        catch (SQLException ex) 
@@ -168,11 +173,7 @@ public class CDB
        {
 	      PreparedStatement p=con.prepareStatement(query);
               p.execute();
-              p.close();
-             
-              
-              // Log ?
-              if (UTILS.LOG_QUERIES) UTILS.NET_STAT.addQuery(query);
+              p.close(); 
               
               return null;     
 	}
@@ -187,6 +188,21 @@ public class CDB
    {
        this.executeUpdate("DROP database wallet");
        this.executeUpdate("CREATE database wallet");
+   }
+   
+   public void begin() throws Exception
+   {
+       this.executeUpdate("BEGIN");
+   }
+   
+   public void commit() throws Exception
+   {
+       this.executeUpdate("COMMIT");
+   }
+   
+   public void rollback() throws Exception
+   {
+       this.executeUpdate("ROLLBACK");
    }
   
 }

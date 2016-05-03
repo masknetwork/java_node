@@ -158,7 +158,7 @@ public class CIssueAssetPayload extends CPayload
 	   return new CResult(false, "Invalid address", "CIssueAssetPayload.java", 79);
         
 	// Symbol length
-        if (!UTILS.BASIC.symbolValid(this.symbol))
+        if (!UTILS.BASIC.isSymbol(this.symbol))
            return new CResult(false, "Invalid symbol", "CIssueAssetPayload.java", 79);
         
        // Title
@@ -258,7 +258,7 @@ public class CIssueAssetPayload extends CPayload
     
     public CResult commit(CBlockPayload block) throws Exception
     {
- 	   CResult res=this.check(block);
+ 	   CResult res=super.commit(block);
  	   if (res.passed==false) return res;
  	  
            // Insert asset

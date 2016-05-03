@@ -42,9 +42,6 @@ public class CLoader extends Thread
     // Parent
     CPanel parent=null;
     
-    // Parent
-    CTicker parent_ticker=null;
-    
     // Params
     String params_str="";
     
@@ -99,18 +96,7 @@ public class CLoader extends Thread
 	     } 
 	}
 	
-	public CLoader(CTicker parent, String link)  throws Exception
-	{
-		 try 
-		 {
-		    this.url=new URL(link);
-		    this.parent_ticker=parent;
-		 }
-		 catch (MalformedURLException ex) 
-	     {
-	        UTILS.LOG.log("MalformedURLException", ex.getMessage(), "CLoader.java", 34);
-	     } 
-	}
+	
 	
 	 public void run()
 	 {	 
@@ -160,7 +146,5 @@ public class CLoader extends Thread
 		 if (parent!=null) 
 			 this.parent.loaded(this.data);
 		 
-		 if (parent_ticker!=null) 
-			 this.parent_ticker.loaded(this.data);
 	 }
 }

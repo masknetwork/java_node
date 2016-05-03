@@ -1,12 +1,23 @@
 package wallet;
 
+
+import wallet.kernel.net_stat.CNetStat;
 import java.math.BigInteger;
 import java.security.Security;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import wallet.agents.CAgent;
+import wallet.agents.VM.CCell;
 import wallet.kernel.*;
+import wallet.kernel.net_stat.CAdrTable;
+import wallet.kernel.x34.SHA256;
 import wallet.network.*;
+import wallet.network.packets.CPayload;
 import wallet.network.packets.assets.CIssueAssetPacket;
 import wallet.network.packets.blocks.CBlockPayload;
 import wallet.network.packets.domains.CBuyDomainPacket;
@@ -14,6 +25,7 @@ import wallet.network.packets.domains.CRenewDomainPacket;
 import wallet.network.packets.domains.CTransferDomainPacket;
 import wallet.network.packets.domains.CUpdatePriceDomainPacket;
 import wallet.network.packets.sync.CBlockchain;
+import wallet.network.packets.sync.CDeliverBlocksPacket;
 import wallet.network.packets.trans.CTransPacket;
 import wallet.network.packets.tweets.CLikePacket;
 import wallet.network.packets.tweets.CNewTweetPacket;
@@ -43,16 +55,19 @@ public class Wallet
         // DB
         CDB db=new CDB();
         UTILS.DB=db;
+        //UTILS.DB.reset();
         
         // Utils
         CUtils utils=new CUtils();
         UTILS.BASIC=utils;
         
-       // Miner utils
-       UTILS.MINER_UTILS=new CCPUMinerUtils();
+         // Serializer
+        UTILS.SERIAL=new CSerializer();
         
         // Bootstrap sequence
         CBootstrap boot=new CBootstrap();
+        
+        UTILS.MINER_UTILS=new CCPUMinerUtils();
         
         // Status
         UTILS.STATUS=new CStatus();
@@ -69,10 +84,7 @@ public class Wallet
         
         // Wallet
         UTILS.WALLET=new CWallet();
-        
-        // Serializer
-        UTILS.SERIAL=new CSerializer();
-        
+       
          // Net stat
          UTILS.NET_STAT=new CNetStat();
          UTILS.NET_STAT.refreshTables(0);
@@ -81,18 +93,25 @@ public class Wallet
         CCurBlock block=new CCurBlock();
         UTILS.CBLOCK=block;
         
-        UTILS.CBLOCK.miner_1.start();
-        
+        UTILS.CBLOCK.startMiner(1);
+        //UTILS.CBLOCK.startMiner(2);
         
         // Web operations
-        CWebOps ops=new CWebOps();
+        UTILS.WEB_OPS=new CWebOps();
         
         CFeedsSources src=new CFeedsSources();
         
         // Binary Options Engine
         UTILS.CRONS=new CCrons();
+       
+        //CDeliverBlocksPacket packet=new CDeliverBlocksPacket(1, 139);
+        //packet.commit(null);
+       
+        //CTestBattery bat=new CTestBattery();
+        //bat.start();
         
-        //UTILS.DB.reset();
+        
+       
       }
       catch (Exception e) 
       { 

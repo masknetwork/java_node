@@ -39,7 +39,7 @@ public class CFeedComponent implements Serializable
     public CResult check(String feed_symbol) throws Exception
     { 
          // Symbol valid
-         if (!UTILS.BASIC.symbolValid(this.symbol))
+         if (!UTILS.BASIC.isSymbol(this.symbol))
              return new CResult(false, "Invalid symbol", "CFeedComponent", 67);       
          
          try

@@ -103,21 +103,21 @@ public class CNewRegMarketPayload extends CPayload
              if (!res.passed) return res;
          
              // Asset symbol
-             if (!UTILS.BASIC.symbolValid(asset_symbol))
+             if (!UTILS.BASIC.isSymbol(asset_symbol))
                 return new CResult(false, "Invalid asset symbol", "CNewRegMarketPayload.java", 74);
          
              // Asset symbol exist
-             if (UTILS.BASIC.assetExist(asset_symbol)==false)
+             if (UTILS.BASIC.isAsset(asset_symbol)==false)
                 return new CResult(false, "Asset doesn't exist", "CNewRegMarketPayload.java", 74);
          
              // Currency symbol
              if (!this.cur_symbol.equals("MSK"))
-                if (!UTILS.BASIC.symbolValid(cur_symbol))
+                if (!UTILS.BASIC.isSymbol(cur_symbol))
                    return new CResult(false, "Invalid currency symbol", "CNewRegMarketPayload.java", 74);
          
              // Currency symbol exist
              if (!this.cur_symbol.equals("MSK"))
-               if (UTILS.BASIC.assetExist(cur_symbol)==false)
+               if (UTILS.BASIC.isAsset(cur_symbol)==false)
                  return new CResult(false, "Currency doesn't exist", "CNewRegMarketPayload.java", 74);
          
              // Market ID

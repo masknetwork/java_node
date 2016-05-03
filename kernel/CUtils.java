@@ -22,6 +22,7 @@ import java.util.zip.Inflater;
 import org.apache.commons.codec.binary.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.codec.binary.Hex;
 import wallet.network.CResult;
 import wallet.network.packets.blocks.CBlockPayload;
 
@@ -50,11 +51,6 @@ public class CUtils
 	// checks if address is valid
 	public boolean adressValid(String adr) throws Exception
 	{
-            // Address name ?
-            if (adr.length()<30)
-               if (this.domainExist(adr))
-                  return true;
-            
             // Length valid
             if (adr.length()!=108 && 
 		adr.length()!=124 && 
@@ -151,62 +147,14 @@ public class CUtils
 		for (int a=0; a<=UTILS.WALLET.addresses.size()-1; a++)
 		{
 			CAddress adr=(CAddress)UTILS.WALLET.addresses.get(a);
-			if (adr.options.isFrozen==false && 
-			    adr.options.isMultiSig==false && 
-			    adr.options.isOTP==false && 
-			    adr.balance>0.00001)
+			
 			return adr.getPublic();
 		}
 		
 		return "";
 	}
 	
-	public void removeAdrAttr(String adr, 
-                              String atr, 
-                              String par_1, 
-                              String par_2, 
-                              String par_3) throws Exception
-	{
-		UTILS.DB.executeUpdate("DELETE FROM adr_options "
-				                   + "WHERE adr='"+adr+"' "
-				                     + "AND op_type='"+atr+"' "
-				                     + "AND par_1='"+par_1+"'"
-				                     + "AND par_2='"+par_2+"'"
-				                     + "AND par_3='"+par_3+"'");
-	}
 	
-	// Check if address has options
-	public boolean hasOption(String adr, String tip, String par_1, String par_2, String par_3) throws Exception
-	{
-            try
-            {
-                Statement s=UTILS.DB.getStatement();
-	       ResultSet rs=s.executeQuery("SELECT * "
-	   		                         + "FROM adr_options "
-	   		                        + "WHERE adr='"+adr+"' "
-	   		                          + "AND op_type='"+tip+"' "
-	   		                          + "AND par_1='"+par_1+"' "
-	   		                          + "AND par_2='"+par_2+"' "
-	   		                          + "AND par_3='"+par_3+"'");
-	   
-	       // Option exist
-	       if (UTILS.DB.hasData(rs)==true) 
-               {
-                   // Close
-                   if (s!=null) rs.close(); s.close();
-                   
-                   // Return
-                   return true;
-               }
-            }
-	    catch (SQLException ex)
-            {
-               UTILS.LOG.log("SQLException", ex.getMessage(), "CUtils.java", 164);
-            }
-            
-	   // Return
-	   return false;	
-	}
 	
 	// Apply address options
 	public void applyAdrAttr(String adr, 
@@ -230,12 +178,7 @@ public class CUtils
                                                      + "FROM adr "
                                                     + "WHERE adr='"+adr+"'");
 		   
-		   // Address does not exist
-		   if (UTILS.DB.hasData(rs_adr)==false)
-			   UTILS.DB.executeUpdate("INSERT INTO ADR (adr, balance, block, last_interest) "
-	                    + "VALUES('"+adr+"', '0', '"+UTILS.BASIC.block()+"', '"+UTILS.BASIC.tstamp()+"')");
-		   
-                   if (s!=null) 
+		   if (s!=null) 
                    {
                        rs_adr.close();
                        s.close();
@@ -267,7 +210,7 @@ public class CUtils
 			  		          + "AND op_type='"+atr+"'");
                           
                           // Close
-                          if (s!=null) rs.close(); s.close();
+                          if (s!=null) rs.close(); 
 		   }
 		   else
 		   {
@@ -417,153 +360,8 @@ public class CUtils
 		return new byte[1];
 	}
 	
-	public int getImgSize(String adr) throws Exception
-	{
-		try
-	      {
-	        URL url = new URL("adr");
-	        URLConnection conn = url.openConnection();
-	        return conn.getContentLength();
-	      }
-	      catch (MalformedURLException ex) {}
-	      catch (IOException ex) {}
-		
-		return 0;
-	}
 	
-	public String getTime(long dif) throws Exception
-	{
-		// Seconds
-		if (dif<60) return (String.valueOf(dif)+" seconds");
-		
-		// Minutes
-		if (dif>=60 && dif<3600) return String.valueOf(Math.round(dif/60))+" minutes";
-		
-		// Hours
-		if (dif>=3600 && dif<144000) return String.valueOf(Math.round(dif/3600))+" hours";
-		
-		// Day
-		if (dif>=144000 && dif<172800) return "1 day";
-		
-		// Days
-		if (dif>=172800 && dif<2592000) return String.valueOf(Math.round(dif/144000))+" days";
-		
-		// Month
-		if (dif>=2592000 && dif<5184000) return "1 month";
-				
-		// Months
-		if (dif>=5184000 && dif<31536000) return String.valueOf(Math.round(dif/2592000))+" months";
-		
-		// Year
-		if (dif>=31536000 && dif<63172000) return "1 year";
-		
-		// Years
-		if (dif>=63172000) return String.valueOf(Math.round(dif/31536000))+" years";
-		
-		return "";
-	}
 	
-	public String splitText(int width, int letter_width, String txt) throws Exception
-	{
-		int last_word=0;
-		int line_size=0;
-		String sText="";
-		int found=0;
-		
-		for (int a=0; a<=txt.length()-1; a++)
-		{
-			// Increase line width
-		   	line_size=line_size+letter_width;
-		   	
-		   	// Add character to text
-		   	sText=sText+txt.charAt(a);
-		   	
-		   	// Space ?
-		   	if (txt.charAt(a)==' ') last_word=a;
-		   	
-		   	if (line_size>=width)
-		   	{
-		   		line_size=0;
-		   		sText=sText.substring(0, (last_word+found))+"-"+sText.substring(last_word+found, sText.length());
-		   	    found++;
-		   	}
-		}
-		
-		return sText;
-	}
-	
-	public String format_price(double price) throws Exception
-	{
-		String[] v=String.valueOf(price).split("\\.");
-		if (v[1].length()==0) return v[0]+".0000"; 
-		if (v[1].length()==1) return v[0]+"."+v[1]+"000"; 
-		if (v[1].length()==2) return v[0]+"."+v[1]+"00"; 
-		if (v[1].length()==3) return v[0]+"."+v[1]+"0"; 
-			
-		return String.valueOf(price);
-	}
-	
-	public String format_price_2_digits(double price) throws Exception
-	{
-		String[] v=String.valueOf(price).split("\\.");
-		if (v[1].length()==0) return v[0]+".00"; 
-		if (v[1].length()==1) return v[0]+"."+v[1]+"0"; 
-			
-		return String.valueOf(price);
-	}
-	
-	public boolean isPrice(String price) throws Exception
-	{
-		boolean point=false;
-		
-		if (price.length()<1 || price.length()>6) return false;
-		for (int a=0; a<=price.length()-1; a++)
-		{
-		  if (price.charAt(a)!='0' && 
-		      price.charAt(a)!='1' &&
-		      price.charAt(a)!='2' &&
-		      price.charAt(a)!='3' &&
-		      price.charAt(a)!='4' &&
-		      price.charAt(a)!='5' &&
-		      price.charAt(a)!='6' &&
-		      price.charAt(a)!='7' &&
-		      price.charAt(a)!='8' &&
-		      price.charAt(a)!='9' &&
-		      price.charAt(a)!='.')
-			  return false;
-		  
-		  if (price.charAt(a)=='.' && point==true) return false;
-		  
-		  if (price.charAt(a)=='.') point=true;
-		}
-			
-		return true;
-	}
-	
-	public boolean isInteger(String price) throws Exception
-	{
-		for (int a=0; a<=price.length()-1; a++)
-		  if (price.charAt(a)!='0' && 
-		      price.charAt(a)!='1' &&
-		      price.charAt(a)!='2' &&
-		      price.charAt(a)!='3' &&
-		      price.charAt(a)!='4' &&
-		      price.charAt(a)!='5' &&
-		      price.charAt(a)!='6' &&
-		      price.charAt(a)!='7' &&
-		      price.charAt(a)!='8' &&
-		      price.charAt(a)!='9')
-			  return false;
-			
-		return true;
-	}
-	
-	public String dateFromTstamp(long tstamp) throws Exception
-	{
-		 Date time=new Date(tstamp*1000);
-		 SimpleDateFormat dt = new SimpleDateFormat("MMM, dd, yyyy");
-		 return dt.format(time);
-	}
 	
 	public boolean isEmail(String email) throws Exception
 	{
@@ -583,15 +381,12 @@ public class CUtils
 	
 	public String base64_decode(String s) throws Exception
 	{
-		try
-		{
-		   return new String(org.apache.commons.codec.binary.Base64.decodeBase64(s));
-		}
-		catch(Exception ex) 
-		{
-			UTILS.LOG.log("Exception", ex.getMessage(), "CUtils.java", 464);
-			return "";
-		}
+           if (s==null) return "";
+           
+           if (!s.equals("")) 
+              return new String(org.apache.commons.codec.binary.Base64.decodeBase64(s));	
+           else
+              return "";
 	}
 	
 	public byte[] base64_decode_data(String s) throws Exception
@@ -668,33 +463,7 @@ public class CUtils
         }
         
         
-        public boolean transExist(String table, String hash, String cur, double amount) throws Exception
-        {
-            try
-            {
-               // Statement
-               Statement s=UTILS.DB.getStatement();
-                
-               // Load trans data
-               ResultSet rs_trans=s.executeQuery("SELECT * "
-                                                 + "FROM "+table+" "
-                                                + "WHERE hash='"+hash+"' "
-                                                  + "AND cur='"+cur+"' "
-                                                  + "AND amount='"+UTILS.FORMAT.format(amount)+"'");
-               
-               // Has data
-               if (UTILS.DB.hasData(rs_trans))
-                   return true;
-               else
-                   return false;
-            }
-            catch (SQLException ex) 
-       	    {  
-       	       UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
-            }
-            
-            return true;
-        }
+       
         
         public void newTransfer(String src, 
                                 String dest, 
@@ -983,6 +752,9 @@ public class CUtils
                // Load source
                ResultSet rs=s.executeQuery("SELECT * FROM my_adr WHERE adr='"+adr+"'"); 
                
+               // None ?
+               if (!UTILS.DB.hasData(rs)) return 0;
+               
                // Next
                rs.next();
             
@@ -1130,6 +902,7 @@ public class CUtils
                         UTILS.DB.executeUpdate("INSERT INTO adr (adr, "
                                                               + "balance, "
                                                               + "block, "
+                                                              + "created, "
                                                               + "total_received, "
                                                               + "total_spent, "
                                                               + "trans_no, "
@@ -1137,6 +910,7 @@ public class CUtils
                                                               + "last_interest) "
                                                      + "VALUES('"+adr+"', "+
                                                                   "'0', '"+
+                                                                  UTILS.BASIC.block()+"', '"+
                                                                   UTILS.BASIC.block()+"', "
                                                                   + "'0', "
                                                                   + "'0', "
@@ -1193,36 +967,17 @@ public class CUtils
         
 	public boolean isLink(String link) throws Exception
 	{
-		if (link.matches("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]"))
+		if (link.matches("^(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]"))
                     return true;
                 else 
                     return false;
 	}
-	
-	public String getLinkCode(String link) throws Exception
-	{
-		int c=0;
-		String code="";
-		
-		String h=this.hash(link);
-		for (int a=0; a<=h.length()-1; a++)
-			if (h.charAt(a)=='0' || 
-				h.charAt(a)=='1' || 
-				h.charAt(a)=='2' || 
-				h.charAt(a)=='3' || 
-				h.charAt(a)=='4' || 
-				h.charAt(a)=='5' || 
-				h.charAt(a)=='6' || 
-				h.charAt(a)=='7' || 
-				h.charAt(a)=='8' ||
-				h.charAt(a)=='9')
-			{
-				c++;
-				if (c<10) code=code+h.charAt(a);
-			}
-		
-		return code;
+        
+        public boolean isPic(String link) throws Exception
+	{    
+            return true;
 	}
+	
 	
 	public long block() throws Exception
 	{
@@ -1404,12 +1159,7 @@ public class CUtils
         return "";
 	}
 	
-	public long daysAheadFromBlock(long block) throws Exception
-	{
-		long aBlock=UTILS.BASIC.block();
-		long dif=Math.round(((block-aBlock)*100)/144000);
-		return dif;
-	}
+	
 	
 	public boolean hasAttr(String adr, String atr) throws Exception
 	{
@@ -1458,89 +1208,7 @@ public class CUtils
            UTILS.CONSOLE.write(stackTraceElements[4].toString());
 	}
 	
-	public long attrExpires(String adr, String atr) throws Exception
-	{
-	   try
-	   {
-		 // Frozen address ?
-                 Statement s=UTILS.DB.getStatement();
-		 ResultSet rs=s.executeQuery("SELECT * "
-                                          + "FROM adr_options "
-                                         + "WHERE adr='"+adr+"' "
-                                    	    + "AND op_type='"+atr+"'");
-
-                 if (UTILS.DB.hasData(rs)==true)
-                 {
-                     // Next
-                     rs.next();
-                     
-                     // Expires
-                     long expires=rs.getLong("expires");
-                     
-                     // Close
-                     if (s!=null) rs.close(); s.close();
-                     
-                     // Return
-                     return expires;
-                 }
-                 else
-                 {
-                     // Close
-                     if (s!=null) rs.close(); s.close();
-                     
-                     // Return
-                     return 0;
-                 }
-	    }
-	    catch (SQLException ex) 
-	    { 
-		UTILS.LOG.log("SQLException", ex.getMessage(), "CUtils.java", 44);
-	    }
-		
-		return 0;
-	}
 	
-	public String getAttrPar(String adr, String op_type, String par) throws Exception
-	{
-	    try
-	    {
-		 // Frozen address ?
-                 Statement s=UTILS.DB.getStatement();
-		 ResultSet rs=s.executeQuery("SELECT * "
-                                          + "FROM adr_options "
-                                         + "WHERE adr='"+adr+"' "
-                                    	    + "AND op_type='"+op_type+"'");
-
-                 if (UTILS.DB.hasData(rs)==true)
-                 {
-                     // Close
-                     rs.next();
-                     
-                     // Par
-                     String pa=rs.getString(par);
-                     
-                     // Close
-                     if (s!=null) rs.close(); s.close();
-                    
-                     // Return
-                     return pa;
-                 }
-                 else
-                 {
-                     // Close
-                     if (s!=null) rs.close(); s.close();
-                     
-                     // Return
-                     return "";
-                 }
-	    }
-	    catch (SQLException ex) 
-	    { 
-			UTILS.LOG.log("SQLException", ex.getMessage(), "CUtils.java", 44);
-	    }
-		
-		return "";
-	}
 	
 	public double getBalance(String adr, String cur) throws Exception
 	{
@@ -1595,46 +1263,7 @@ public class CUtils
 	   return 0;
 	}
 	
-        public boolean isLong(String n) throws Exception
-        {
-            if (n.length()>20) return false;
-
-            if (n.matches("[0-9]"))
-               return true;
-            else
-               return false;
-        }
-        
-	public String formatExpireBlock(long block) throws Exception
-	{
-		long dif=(block-this.block())*100;
-		return(this.getTime(dif));
-	}
-	
-	public String getTableHash(String table) throws Exception
-	{
-		String hash="";
-		
-		 try
-		   {
-                        Statement s=UTILS.DB.getStatement();
-			   ResultSet rs=s.executeQuery("SELECT * "
-			   		                         + "FROM "+table+" "
-			   		                     + "ORDER BY rowhash ASC");
-			   
-			   while (rs.next()) hash=hash+rs.getString("rowhash");
-                           
-                           // Close
-                           if (s!=null) rs.close(); s.close();
-		   }
-		   catch (SQLException ex) 
-		   {
-			   UTILS.LOG.log("SQLException", ex.getMessage(), "CRestrictedRec.java", 31);
-		   }
-		  
-		 return UTILS.BASIC.hash(hash);
-	}
-	
+       
 	public String getAppDataDirectory()  throws Exception
 	{
 
@@ -1709,14 +1338,6 @@ public class CUtils
                 return true;
         }
         
-        public boolean mkt_days_valid(long days) throws Exception
-        {
-             if (days<1)
-                return false;
-             else
-                return true;
-        }
-        
         public boolean titleValid(String title) throws Exception
         {
             // Check length
@@ -1729,24 +1350,13 @@ public class CUtils
         public boolean descriptionValid(String desc) throws Exception
         {
            // Description length
-            if (desc.length()<5 || desc.length()>250)
+            if (desc.length()<5 || desc.length()>1000)
                 return false;
             else
                 return true;
         }
         
-        public boolean symbolValid(String symbol) throws Exception
-        {
-           // Description length
-            if (symbol.length()!=6)
-                return false;
-            
-            // Check letters
-            if (!symbol.matches("[A-Z]+"))
-                return false;
-             else
-                return true;
-        }
+        
         
         public boolean UIDValid(String uid) throws Exception
         {
@@ -1761,87 +1371,7 @@ public class CUtils
                 return true;
         }
         
-        public boolean assetExist(String symbol) throws Exception
-        {
-            if (!this.symbolValid(symbol))
-               return false;
-            
-            try
-            {
-               Statement s=UTILS.DB.getStatement();
-               ResultSet rs=s.executeQuery("SELECT * FROM assets WHERE symbol='"+symbol+"'");
-               
-               if (!UTILS.DB.hasData(rs))
-               {
-                   rs.close(); s.close();
-                   return false;
-               }
-               else
-               {
-                   rs.close(); s.close();
-                   return true;
-               }
-            }
-            catch (SQLException ex) 
-       	    {  
-       		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
-            }
-            
-            return false;
-        }
         
-        public boolean mktBidValid(double mkt_bid) throws Exception
-        {
-             if (mkt_bid<0.0001)
-                return false;
-             else
-                return true;
-        }
-        
-        public boolean mktDaysValid(long mkt_days) throws Exception
-        {
-             if (mkt_days<1)
-                return false;
-             else
-                return true;
-        }
-        
-        public boolean mktDays(long mkt_days) throws Exception
-        {
-             if (mkt_days<1)
-                return false;
-             else
-                return true;
-        }
-        
-        public boolean feedExist(String feed) throws Exception
-        {
-           if (!this.symbolValid(feed))
-              return false;
-            
-           try
-           {
-              // Statement
-              Statement s=UTILS.DB.getStatement();
-           
-              // Market
-              ResultSet rs=s.executeQuery("SELECT * FROM feeds WHERE symbol='"+feed+"'");
-              if (UTILS.DB.hasData(rs))
-              {
-                 rs.close(); s.close();
-                 return true;
-              }
-              
-              rs.close(); s.close();
-              return false;
-           }
-           catch (SQLException ex) 
-       	   {  
-       	       UTILS.LOG.log("SQLException", ex.getMessage(), "CFeedMarketgMarketPayload.java", 57);
-           }
-           
-           return false;
-        }
         
       
         public boolean countryExist(String cou) throws Exception
@@ -1974,7 +1504,7 @@ public class CUtils
                Statement s=UTILS.DB.getStatement();
             
                // Feed symbol valid
-               if (!this.symbolValid(feed))
+               if (!this.isSymbol(feed))
                {
                   s.close();
                   return false;
@@ -1992,7 +1522,7 @@ public class CUtils
                }
            
                // Feed branch valid
-               if (!UTILS.BASIC.symbolValid(branch)) 
+               if (!UTILS.BASIC.isSymbol(branch)) 
                {
                   rs.close(); s.close();
                   return false;
@@ -2046,5 +1576,227 @@ public class CUtils
         return Math.round(Math.random()*10000000000L);
     }
     
+    public boolean isContractAdr(String adr) throws Exception
+    {
+       // Found
+       boolean found;
+       
+       // Statement
+       Statement s=UTILS.DB.getStatement();
+       
+       // Load data
+       ResultSet rs=s.executeQuery("SELECT * FROM agents WHERE adr='"+adr+"'");
+       
+       if (UTILS.DB.hasData(rs))
+           found=true;
+       else
+           found=false;
+       
+       // Close
+       s.close();
+       
+       // Return
+       return found;
+    }
     
+    public String toHexStr(byte[] data) throws Exception
+    {
+        return new String(Hex.encodeHex(data));
+    }
+    
+    public String fromHexStr(String data) throws Exception
+    {
+        return new String(Hex.decodeHex(data.toCharArray()));
+    }
+    
+    public boolean isSpecMkt(String adr) throws Exception
+    {
+       // Found
+       boolean found;
+       
+       // Statement
+       Statement s=UTILS.DB.getStatement();
+       
+       // Load data
+       ResultSet rs=s.executeQuery("SELECT * FROM feeds_spec_mkts WHERE adr='"+adr+"'");
+       
+       if (UTILS.DB.hasData(rs))
+           found=true;
+       else
+           found=false;
+       
+       // Close
+       s.close();
+       
+       // Return
+       return found;
+    }
+    
+    public boolean isMktPeggedAssetAdr(String adr) throws Exception
+    {
+        // Found
+       boolean found;
+       
+       // Statement
+       Statement s=UTILS.DB.getStatement();
+       
+       // Load data
+       ResultSet rs=s.executeQuery("SELECT * FROM assets WHERE adr='"+adr+"' AND linked_mktID>0");
+       
+       if (UTILS.DB.hasData(rs))
+           found=true;
+       else
+           found=false;
+       
+       // Close
+       s.close();
+       
+       // Return
+       return found;
+    }
+    
+    public boolean isAssetAdr(String adr) throws Exception
+    {
+        // Found
+       boolean found;
+       
+       // Statement
+       Statement s=UTILS.DB.getStatement();
+       
+       // Load data
+       ResultSet rs=s.executeQuery("SELECT * FROM assets WHERE adr='"+adr+"'");
+       
+       if (UTILS.DB.hasData(rs))
+           found=true;
+       else
+           found=false;
+       
+       // Close
+       s.close();
+       
+       // Return
+       return found;
+    }
+    
+    public boolean isAsset(String symbol) throws Exception
+    {
+        // Found
+       boolean found;
+       
+       // Statement
+       Statement s=UTILS.DB.getStatement();
+       
+       // Load data
+       ResultSet rs=s.executeQuery("SELECT * FROM assets WHERE symbol='"+symbol+"'");
+       
+       if (UTILS.DB.hasData(rs))
+           found=true;
+       else
+           found=false;
+       
+       // Close
+       s.close();
+       
+       // Return
+       return found;
+    }
+    
+    public boolean isFreeAdr(String adr) throws Exception
+    {
+        if (this.isAssetAdr(adr)==false && 
+            this.isContractAdr(adr)==false && 
+            this.isMktPeggedAssetAdr(adr)==false)
+            return true;
+        else
+            return false;
+    }
+    
+    public boolean isLong(String var) throws Exception
+    {
+	if (!var.matches("^[0-9]{1,10}$"))
+	   return false;
+	else 
+	   return true;
+    }
+	
+    public boolean isDecimal(String var) throws Exception
+    {
+	if (!var.matches("^[0-9]{1,10}\\.[0-9]{1,10}$"))
+	    return false;
+	else 
+	    return true;
+    }
+	
+    public boolean isNumber(String var) throws Exception
+    {
+	if (!var.matches("^[0-9]{1,10}(\\.[0-9]{1,10})?$"))
+            return false;
+	else 
+	    return true;
+    }
+	
+    public boolean isHash(String hash) throws Exception
+    {
+	if (!hash.matches("^[A-Fa-f0-9]{64}$"))
+            return false;
+	else 
+	    return true;
+    }
+	
+    public boolean isDomain(String domain) throws Exception
+    {
+	if (!domain.matches("^[0-9a-z]{2,30}$"))
+	   return false;
+	else 
+	   return true;
+    }
+	
+    public boolean isString(String str) throws Exception
+    {
+	String vals="1234567890-=!@#$%^&*()_+qwertyuiop[]QWERTYUIOP{}asdfghjkl;'\\ASDFGHJKL:\"|'zxcvbnm,./~ZXCVBNM<>?";
+	
+        for (int a=0; a<=str.length()-1; a++)
+	    if (vals.indexOf(str.charAt(a))==-1)
+		return false;
+        
+        return true;
+    }
+    
+    public boolean isSymbol(String symbol) throws Exception
+    {
+        // Check letters
+        if (!symbol.matches("[A-Z]{6}"))
+           return false;
+        else
+           return true;
+    }
+    
+    public boolean isFeed(String feed) throws Exception
+        {
+           if (!this.isSymbol(feed))
+              return false;
+            
+           try
+           {
+              // Statement
+              Statement s=UTILS.DB.getStatement();
+           
+              // Market
+              ResultSet rs=s.executeQuery("SELECT * FROM feeds WHERE symbol='"+feed+"'");
+              if (UTILS.DB.hasData(rs))
+              {
+                 rs.close(); s.close();
+                 return true;
+              }
+              
+              rs.close(); s.close();
+              return false;
+           }
+           catch (SQLException ex) 
+       	   {  
+       	       UTILS.LOG.log("SQLException", ex.getMessage(), "CFeedMarketgMarketPayload.java", 57);
+           }
+           
+           return false;
+        }
 }

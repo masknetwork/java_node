@@ -96,16 +96,7 @@ public class CNewAutoMarketTradePayload extends CPayload
                                            rs_mkt.getString("mkt_adr"), 
                                            to_pay, 
                                            rs_mkt.getString("cur_symbol"), 
-                                           "",
-                                           "", 
-                                           "", 
-                                           "",
-                                           "",
-                                           "", 
-                                           "", 
-                                           "", 
-                                           "", 
-                                           0);
+                                           "", "", "");
               
               // Transaction hash
               trans_hash=this.trans.hash;
@@ -127,15 +118,7 @@ public class CNewAutoMarketTradePayload extends CPayload
                                            qty, 
                                            rs_mkt.getString("asset_symbol"), 
                                            "",
-                                           "",
-                                           "", 
-                                           "",
-                                           "",
-                                           "", 
-                                           "", 
-                                           "", 
-                                           "", 
-                                           0);
+                                           "", "");
               
               // Transaction hash
               trans_hash=this.trans.hash;
@@ -166,7 +149,7 @@ public class CNewAutoMarketTradePayload extends CPayload
         double price=0;
         
         // Market symbol
-        if (!UTILS.BASIC.symbolValid(this.mkt_symbol))
+        if (!UTILS.BASIC.isSymbol(this.mkt_symbol))
            return new CResult(false, "Invalid market symbol", "CAutoMarketTradePayload.java", 74);
         
         try

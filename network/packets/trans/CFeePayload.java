@@ -16,15 +16,7 @@ public class CFeePayload extends CTransPayload
 		0.0001, 
                 "MSK",
                 "",
-		"", 
-                "", 
-                "", 
-                "",
-                "", 
-                "", 
-                "", 
-                "", 
-                0); 
+		"", ""); 
         }
 	  
     public  CFeePayload(String src, double amount) throws Exception
@@ -34,15 +26,7 @@ public class CFeePayload extends CTransPayload
     	       amount,
                "MSK",
                "",
-    	       "", 
-               "", 
-               "",
-               "",
-               "", 
-               "", 
-               "", 
-               "", 
-               0); 
+    	       "", ""); 
     }
     
     public CResult check(CBlockPayload block) throws Exception

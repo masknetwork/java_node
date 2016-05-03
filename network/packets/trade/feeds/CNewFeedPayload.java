@@ -84,7 +84,7 @@ public class CNewFeedPayload extends CPayload
              return new CResult(false, "Invalid description", "CNewFeedPayload", 67); 
          
          // Symbol
-         if (!UTILS.BASIC.symbolValid(this.symbol))
+         if (!UTILS.BASIC.isSymbol(this.symbol))
              return new CResult(false, "Invalid symbol", "CNewFeedPayload", 67); 
          
          // Website valid ?
@@ -95,10 +95,6 @@ public class CNewFeedPayload extends CPayload
          // Symbol already exist ?
          if (this.feedExist(symbol))
              return new CResult(false, "Feed already exist", "CNewFeedPayload", 67); 
-         
-         // Market Days
-         if (!UTILS.BASIC.mktDays(this.mkt_days))
-             return new CResult(false, "Invalid market days", "CNewFeedPayload", 67); 
          
          // Hash
          String h=UTILS.BASIC.hash(this.getHash()+

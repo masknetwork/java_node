@@ -1,0 +1,46 @@
+#block#
+
+// Last block
+mov last_block, SYS.NET.LAST_BLOCK
+
+// Query
+dbquery rows, "adr", "created", >=, last_block
+
+// Size
+size rows_no, rows
+
+// Now new addresses ?
+cmp rows_no, 0
+
+// Size 0 ?
+jme #exit#
+
+// Counter
+mov counter, -1
+
+#loop#
+
+// Increase counter
+add counter, 1
+
+// Compare
+cmp rows_no, counter
+
+// End ?
+jme #exit#
+
+// Load Row
+atpos row, rows, counter
+
+// Load Address
+atpos adr, row, 0
+
+// Send message
+jmp #message#
+
+#message#
+mes adr, "Welcome to masknetwork", "Welcome to masknetwork" 
+jmp #loop#
+
+#exit#
+exit 0

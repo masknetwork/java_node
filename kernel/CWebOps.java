@@ -8,17 +8,18 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Timer;
 import java.util.TimerTask;
+import org.apache.commons.codec.binary.Hex;
+import wallet.kernel.x34.SHA256;
+import wallet.kernel.x34.SHA512;
 import wallet.network.CPeer;
 import wallet.network.CResult;
-import wallet.network.packets.adr.CAddSignPacket;
-import wallet.network.packets.adr.CFrozeAdrPacket;
-import wallet.network.packets.adr.COTPPacket;
 import wallet.network.packets.adr.CProfilePacket;
-import wallet.network.packets.adr.CReqDataPacket;
-import wallet.network.packets.adr.CRestrictRecipientsPacket;
-import wallet.network.packets.adr.CSealAdrPacket;
-import wallet.network.packets.adr.CShareAdrPacket;
 import wallet.network.packets.ads.CNewAdPacket;
+import wallet.network.packets.app.CDeployAppNetPacket;
+import wallet.network.packets.app.CPublishAppPacket;
+import wallet.network.packets.app.CRentAppPacket;
+import wallet.network.packets.app.CUpdateAppPacket;
+import wallet.network.packets.app.CUpdateSettingsPacket;
 import wallet.network.packets.assets.CIssueAssetPacket;
 import wallet.network.packets.assets.CIssueAssetPayload;
 import wallet.network.packets.domains.CBuyDomainPacket;
@@ -50,10 +51,10 @@ import wallet.network.packets.mes.CMesPacket;
 import wallet.network.packets.misc.CIncreaseMktBidPacket;
 import wallet.network.packets.misc.CRemoveItemPacket;
 import wallet.network.packets.shop.escrowers.CNewEscrowerPacket;
+import wallet.network.packets.shop.goods.CStorePacket;
 import wallet.network.packets.trade.exchangers.CNewExchangerPacket;
 import wallet.network.packets.trade.exchangers.CNewExchangerPayload;
 import wallet.network.packets.trans.CEscrowedTransSignPacket;
-import wallet.network.packets.trans.CMultisigTransSignPacket;
 import wallet.network.packets.trans.CTransPacket;
 import wallet.network.packets.tweets.CFollowPacket;
 import wallet.network.packets.tweets.CLikePacket;
@@ -70,27 +71,19 @@ public class CWebOps
     // Timer
     Timer timer;
     
-    // Task
-    RemindTask task;
-    
+   
     public CWebOps()
     {
-       // Timer
-       timer = new Timer();
-       task=new RemindTask();
-       timer.schedule(task, 0, 1000); 
+    
     }
      
-     class RemindTask extends TimerTask 
-     {  
-       public CPeer parent;
-               
-       @Override
-       public void run() 
-       {  
-           String op="";
-        
-        try
+     public void loadWebOps() throws Exception
+     { 
+         String op;
+         
+       
+         
+       try
         {
            // Broadcast
            //if (UTILS.BASIC.tstamp()%60==0) UTILS.CBLOCK.broadcast();
@@ -119,19 +112,22 @@ public class CWebOps
                        // UserID
                        long userID=rs.getLong("par_3");
                        
+                       // Statement
+                       Statement st=UTILS.DB.getStatement();
+                       
                        // Load newly created adddress data
-                       rs=s.executeQuery("SELECT * "
-                                         + "FROM my_adr "
-                                        + "WHERE userID='"+userID+"'");
+                       ResultSet rsn=st.executeQuery("SELECT * "
+                                                    + "FROM my_adr "
+                                                   + "WHERE userID='"+userID+"'");
                        
                        // Has data
-                       if (UTILS.DB.hasData(rs))
+                       if (UTILS.DB.hasData(rsn))
                        {
                            // Next
-                           rs.next();
+                           rsn.next();
                            
                            // Address
-                           String adr=rs.getString("adr");
+                           String adr=rsn.getString("adr");
                        
                            // Initial coins 
                            CTransPacket packet=new CTransPacket("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmzMuWmpif2JdeB1/UA7XQumglLj3o4/qF/CisxzJyXf7JoXXmGvBDJFbCSr8Si09zKtkfoA7jyU=", 
@@ -140,18 +136,14 @@ public class CWebOps
 			                                       1, 
 			                                       "MSK",
 			                                       "Welcome to MaskNetwork",
-                                                               "",
-                                                               "",
-                                                               "",
-                                                               "",
-                                                               "",
-                                                               "",
-                                                               "",
-                                                               "",
-                                                               0);
+                                                               "", "");
                         
                            UTILS.NETWORK.broadcast(packet);
                        }
+                       
+                       // Close
+                       rsn.close();
+                       st.close();
                    }
                    
                    // Add peer
@@ -273,14 +265,7 @@ public class CWebOps
                                                              rs.getString("par_4"),
                                                              rs.getString("par_5"),
                                                              rs.getString("par_6"),
-                                                             rs.getString("par_7"),
-                                                             rs.getString("par_8"),
-                                                             rs.getString("par_9"),
-                                                             rs.getString("par_10"),
-                                                             rs.getString("par_11"),
-                                                             rs.getString("par_12"),
-                                                             rs.getString("par_13"),
-                                                             rs.getLong("par_14"));
+                                                             rs.getString("par_7"));
                         
                         UTILS.NETWORK.broadcast(packet);
                    }
@@ -327,68 +312,10 @@ public class CWebOps
                         UTILS.NETWORK.broadcast(packet);
                    }
                    
-                   if (op.equals("ID_REQ_DATA")) 
-                   {
-                        CReqDataPacket packet=new CReqDataPacket(rs.getString("fee_adr"),
-                                                                 rs.getString("target_adr"),
-                                                                 rs.getString("par_1"),
-                                                                 rs.getString("par_2"),
-                                                                 rs.getInt("par_3"),
-                                                                 rs.getInt("par_4"),
-                                                                 rs.getString("par_5"),
-                                                                 rs.getInt("par_6"),
-                                                                 rs.getInt("par_7"),
-                                                                 rs.getString("par_8"),
-                                                                 rs.getInt("par_9"),
-                                                                 rs.getInt("par_10"),
-                                                                 rs.getString("par_11"),
-                                                                 rs.getInt("par_12"),
-                                                                 rs.getInt("par_13"),
-                                                                 rs.getString("par_14"),
-                                                                 rs.getInt("par_15"),
-                                                                 rs.getInt("par_16"),
-                                                                 rs.getInt("days"));
-                        
-                        UTILS.NETWORK.broadcast(packet);
-                   }
-                   
-                   if (op.equals("ID_MULTISIG_SIGN")) 
-                   {
-                        CMultisigTransSignPacket packet=new CMultisigTransSignPacket(rs.getString("fee_adr"),
-                                                                                     rs.getString("par_1"),
-                                                                                     rs.getString("par_2"));
-                        
-                        UTILS.NETWORK.broadcast(packet);
-                   }
-                   
                    if (op.equals("ID_NEW_ADR")) 
                        UTILS.WALLET.newAddress(rs.getString("user"), 
                                                rs.getString("par_1"), 
                                                UTILS.BASIC.base64_decode(rs.getString("par_2")));
-                   
-                   if (op.equals("ID_SHARE_ADR"))
-                   {
-                       CShareAdrPacket packet=new CShareAdrPacket(rs.getString("fee_adr"), 
-			                                          rs.getString("target_adr"),
-			                                          rs.getString("par_1"));
-                       UTILS.NETWORK.broadcast(packet);
-                   }
-                   
-                    if (op.equals("ID_FROZE_ADR"))
-                    {
-                       CFrozeAdrPacket packet=new CFrozeAdrPacket(rs.getString("fee_adr"), 
-			                                          rs.getString("target_adr"),
-			                                          rs.getInt("days"));
-                       UTILS.NETWORK.broadcast(packet);
-                    }
-                    
-                    if (op.equals("ID_SEAL_ADR"))
-                    {
-                       CSealAdrPacket packet=new CSealAdrPacket(rs.getString("fee_adr"), 
-			                                        rs.getString("target_adr"),
-			                                        rs.getInt("days"));
-                       UTILS.NETWORK.broadcast(packet);
-                    }
                     
                     if (op.equals("ID_REVEAL_PK"))
                     {
@@ -416,48 +343,7 @@ public class CWebOps
                         UTILS.NETWORK.broadcast(packet);
                     }
                     
-                    if (op.equals("ID_RESTRICT"))
-                    {
-                       CRestrictRecipientsPacket packet=new CRestrictRecipientsPacket(rs.getString("fee_adr"), 
-			                                                              rs.getString("target_adr"),
-		                                                                      rs.getString("par_1"),
-                                                                                      rs.getString("par_2"),
-                                                                                      rs.getString("par_3"),
-                                                                                      rs.getString("par_4"),
-                                                                                      rs.getString("par_5"),
-                                                                                      rs.getInt("days"));
-                       UTILS.NETWORK.broadcast(packet);
-                       
-                    }
                     
-                    if (op.equals("ID_MULTISIG"))
-                    {
-                       CAddSignPacket packet=new CAddSignPacket(rs.getString("fee_adr"), 
-			                                        rs.getString("target_adr"),
-		                                                rs.getString("par_1"),
-                                                                rs.getString("par_2"),
-                                                                rs.getString("par_3"),
-                                                                rs.getString("par_4"),
-                                                                rs.getString("par_5"),
-                                                                rs.getInt("par_6"),
-                                                                rs.getLong("days"),
-                                                                rs.getString("packet_sign"),
-                                                                rs.getString("payload_sign"));
-                       UTILS.NETWORK.broadcast(packet);
-                    }
-                    
-                   
-                    
-                    if (op.equals("ID_OTP"))
-                    {
-                        COTPPacket packet=new COTPPacket(rs.getString("fee_adr"), 
-			                                 rs.getString("target_adr"),
-		                                         rs.getString("par_1"),
-                                                         rs.getString("par_2"),
-		                                         rs.getLong("days")); 
-                         UTILS.NETWORK.broadcast(packet);
-                    }
-                   
                    if (op.equals("ID_IMPORT_ADR"))
                    {
                        CAddress adr=new CAddress();
@@ -662,9 +548,10 @@ public class CWebOps
                                                                                  rs.getString("par_1"),
                                                                                  UTILS.BASIC.base64_decode(rs.getString("par_3")),
                                                                                  UTILS.BASIC.base64_decode(rs.getString("par_4")),
-                                                                                 rs.getString("par_2"),
                                                                                  rs.getString("par_5"),
-                                                                                 rs.getDouble("par_6"),
+                                                                                 rs.getString("par_2"),
+                                                                                 rs.getString("par_6"),
+                                                                                 rs.getDouble("par_7"),
                                                                                  rs.getLong("days"));
                                  
                       UTILS.NETWORK.broadcast(packet);
@@ -895,14 +782,90 @@ public class CWebOps
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
+                   // New store
+                   if (op.equals("ID_NEW_STORE"))
+                   {
+                       CStorePacket packet=new CStorePacket(rs.getString("fee_adr"), 
+                                                            rs.getString("target_adr"),
+                                                            rs.getString("par_1"), 
+                                                            rs.getString("par_2"),
+                                                            rs.getString("par_3"),
+                                                            rs.getString("par_4"),
+                                                            rs.getLong("days"));
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                   
+                   // Install to network
+                   if (op.equals("ID_DEPLOY_APP_NET"))
+                   {
+                       CDeployAppNetPacket packet=new CDeployAppNetPacket(rs.getString("fee_adr"), 
+                                                                          rs.getString("target_adr"),
+                                                                          rs.getLong("par_1"), 
+                                                                          rs.getLong("par_2"),
+                                                                          rs.getLong("days"));
+                       UTILS.NETWORK.broadcast(packet);
+                   }    
+                 
+                   // Publish application
+                   if (op.equals("ID_PUBLISH_APP"))
+                   {
+                       CPublishAppPacket packet=new CPublishAppPacket(rs.getString("fee_adr"), 
+                                                                      rs.getString("target_adr"),
+                                                                      rs.getString("par_1"), 
+                                                                      rs.getLong("par_2"),
+                                                                      rs.getString("par_3"),
+                                                                      rs.getString("par_4"),
+                                                                      rs.getString("par_5"),
+                                                                      rs.getString("par_6"),
+                                                                      rs.getString("par_7"),
+                                                                      rs.getString("par_8"),
+                                                                      rs.getString("par_9"),
+                                                                      rs.getDouble("par_10"));
+                       UTILS.NETWORK.broadcast(packet);
+                   }   
+                   
+                   // Rent
+                   if (op.equals("ID_RENT_APP"))
+                   {
+                       CRentAppPacket packet=new CRentAppPacket(rs.getString("fee_adr"), 
+                                                                rs.getString("target_adr"),
+                                                                rs.getLong("par_1"), 
+                                                                rs.getLong("days"));
+                       UTILS.NETWORK.broadcast(packet);
+                   }  
+                   
+                   
+                          
+                   // Update app
+                   if (op.equals("ID_UPDATE_APP"))
+                   {
+                       CUpdateAppPacket packet=new CUpdateAppPacket(rs.getString("fee_adr"), 
+                                                                    rs.getString("target_adr"),
+                                                                    rs.getLong("par_1"),
+                                                                    rs.getString("par_2"),
+                                                                    rs.getLong("days"));
+                       UTILS.NETWORK.broadcast(packet);
+                   }  
+                   
+                  
+                   // Update settings
+                   if (op.equals("ID_UPDATE_APP_SETTINGS"))
+                   {
+                       CUpdateSettingsPacket packet=new  CUpdateSettingsPacket(rs.getString("fee_adr"), 
+                                                                               rs.getString("target_adr"),
+                                                                               rs.getLong("par_1"),
+                                                                               rs.getString("par_2"));
+                       UTILS.NETWORK.broadcast(packet);
+                   }  
+                   
                 }
            }
            
            // Close
            rs.close(); s.close();
            
-           // Update web ops
-           UTILS.DB.executeUpdate("UPDATE web_ops SET status='ID_EXECUTED'");
+           
         }
         catch (SQLException ex)
         {
@@ -912,7 +875,13 @@ public class CWebOps
 	{ 
 		UTILS.LOG.log("Exception", e.getMessage(), "CWebOps.java", 639); 
         }
-       }
+        finally 
+        {
+            // Update web ops
+            try { UTILS.DB.executeUpdate("UPDATE web_ops SET status='ID_EXECUTED'"); } catch (Exception ex) {}
+        }
+        
+       
      }
      
     

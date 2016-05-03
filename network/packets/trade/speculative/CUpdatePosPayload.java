@@ -87,8 +87,7 @@ public class CUpdatePosPayload extends CPayload
                                              mkt_rs.getString("adr"), 
                                              margin, 
                                              mkt_rs.getString("cur"), 
-                                             "", "", "", "", "",
-                                             "", "", "", "", 0);
+                                             "", "", "");
                 
                 trans_hash=UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.trans));
            }

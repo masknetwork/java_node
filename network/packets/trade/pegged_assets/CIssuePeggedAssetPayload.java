@@ -189,7 +189,7 @@ public class CIssuePeggedAssetPayload extends CPayload
                                                    feed_fee_1, 
                                                    "MSK", 
                                                    "Data feed fee for "+String.valueOf(this.days)+" days",
-                                                   "", "",  "", "", "",  "", "", "", 0);
+                                                   "", "");
               
               // Close
               s.close();
@@ -220,7 +220,7 @@ public class CIssuePeggedAssetPayload extends CPayload
                                                          feed_fee_2, 
                                                          "MSK", 
                                                          "Data feed fee for "+String.valueOf(this.days)+" days",
-                                                         "", "",  "", "", "",  "", "", "", 0);
+                                                         "", "");
               }
               
                // Close
@@ -253,7 +253,7 @@ public class CIssuePeggedAssetPayload extends CPayload
                                                          feed_fee_3, 
                                                          "MSK", 
                                                          "Data feed fee for "+String.valueOf(this.days)+" days",
-                                                         "", "",  "", "", "",  "", "", "", 0);
+                                                         "", "");
               }
               
                // Close
@@ -336,7 +336,7 @@ public class CIssuePeggedAssetPayload extends CPayload
            
 	   // Currency
            if (!this.cur.equals("MSK"))
-              if (!UTILS.BASIC.assetExist(this.cur))
+              if (!UTILS.BASIC.isAsset(this.cur))
                 return new CResult(false, "Invalid currency", "CIssuePeggedAssetPayload.java", 74); 
         
 	   // Spread
@@ -401,7 +401,7 @@ public class CIssuePeggedAssetPayload extends CPayload
            return new CResult(false, "Invalid interest interval", "CIssuePeggedAssetPayload.java", 74); 
         
 	   // Asset symbol
-           if (UTILS.BASIC.assetExist(this.asset_symbol))
+           if (UTILS.BASIC.isAsset(this.asset_symbol))
               return new CResult(false, "Asset symbol lready exist", "CIssuePeggedAssetPayload.java", 74);
             
 	    // Days

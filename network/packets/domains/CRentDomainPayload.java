@@ -48,10 +48,7 @@ public class CRentDomainPayload extends CPayload
 	{
             try
             {
-	      // Check market days
-              if (!UTILS.BASIC.mkt_days_valid(this.days))
-               return new CResult(false, "Invalid market days", "CRentDomainPayload.java", 61);
-              
+	      
               // Domain valid
               if (!UTILS.BASIC.domainValid(this.domain))
                  return new CResult(false, "Invalid domain", "CRentDomainPayload.java", 61);
@@ -74,10 +71,7 @@ public class CRentDomainPayload extends CPayload
               // Close
               rs.close(); s.close();
               
-              // Check days
-              if (!UTILS.BASIC.mkt_days_valid(this.days))
-                 return new CResult(false, "Invalid days", "CRentDomainPayload.java", 61);
-       
+              
             }
             catch (SQLException ex)
             {

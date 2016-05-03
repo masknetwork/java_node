@@ -135,8 +135,7 @@ public class CNewSpecMarketPosPayload extends CPayload
                                        rs.getString("adr"), 
                                        this.margin, 
                                        rs.getString("cur"), 
-                                       "", "", "", "", "",
-                                       "", "", "", "", 0);
+                                       "", "", "");
           
           // Hash
           hash=UTILS.BASIC.hash(this.getHash()+

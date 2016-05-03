@@ -110,8 +110,12 @@ public class CNewTweetPacket extends CBroadcastPacket
    
    public CResult commit(CBlockPayload block) throws Exception
    {
+          // Check
+          CResult res=this.check(block);
+   	  if (res.passed==false) return res;
+   	  
    	  // Superclass
-   	  CResult res=super.commit(block);
+   	  res=super.commit(block);
    	  if (res.passed==false) return res;
    	  
    	  // Deserialize transaction data

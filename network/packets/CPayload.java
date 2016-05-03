@@ -96,7 +96,8 @@ public class CPayload  implements java.io.Serializable
            
  	   return new CResult(true, "Ok", "CPayload", 183);
         }
-    
+        
+        
         public void sign() throws Exception
         {
             if (!this.target_adr.equals(""))

@@ -44,8 +44,13 @@ public class CSync extends Thread
 	   ResultSet rs=s.executeQuery("SELECT * "
 				       + "FROM sync "
 				      + "WHERE peer='"+peer+"'");
-	
-            if (UTILS.DB.hasData(rs)==true) 
+	    
+           boolean hasData=UTILS.DB.hasData(rs);
+           
+           rs.close(); 
+           s.close();
+           
+            if (hasData==true) 
 	       return true;
 	    else
 	       return false;
@@ -141,6 +146,9 @@ public class CSync extends Thread
 				  }
 			    }
 		   }
+                  
+                  rs.close();
+                  s.close();
 		}
 		
 		catch (SQLException ex)

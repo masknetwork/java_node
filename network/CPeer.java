@@ -230,7 +230,7 @@ public class CPeer extends Thread
                // Wait for data
 	       while (true)
                {
-                 CPacket packet=(CPacket)in.readObject();
+                 CPacket packet=(CPacket)in.readObject(); 
 		 UTILS.NETWORK.processRequest(packet, this); 
                }
 	   }

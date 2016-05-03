@@ -5,13 +5,26 @@ package wallet.kernel;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Timer;
+import java.util.TimerTask;
+import wallet.agents.CAgent;
+import wallet.network.CPeer;
 import wallet.network.packets.blocks.CBlockPayload;
 
 public class CCrons 
 {
-   public void CCrons()
+   // Timer
+   Timer timer;
+    
+   // Task
+   RemindTask task;
+   
+   public CCrons()
    {
-       
+        // Timer
+       timer = new Timer();
+       task=new RemindTask();
+       timer.schedule(task, 0, 1000);
    }
    
    public void closeOption(long uid, String result, CBlockPayload block_payload) throws Exception
@@ -116,6 +129,8 @@ public class CCrons
                                       + "SET status='ID_LOST' "
                                     + "WHERE mktID='"+uid+"'");
            }
+           
+           rs.close(); s.close();
         }
         catch (SQLException ex) 
        	{  
@@ -258,6 +273,8 @@ public class CCrons
                                             break;
                }
            }
+           
+           rs.close(); s.close();
         }
         catch (SQLException ex) 
        	{  
@@ -405,6 +422,7 @@ public class CCrons
            }
            
            // Close
+           rs.close();
            s.close();
         }
         catch (SQLException ex) 
@@ -562,6 +580,8 @@ public class CCrons
                 
          
             }
+            
+            rs.close(); s.close();
         }
         catch (SQLException ex) 
        	{  
@@ -599,7 +619,7 @@ public class CCrons
         rs=s.executeQuery("SELECT SUM(balance) AS total "
                           + "FROM adr "
                          + "WHERE (last_interest<="+(block_payload.block-(UTILS.NET_STAT.blocks_per_day/24))+" OR last_interest=0) "
-                           + "AND adr<>'default'");
+                           + "AND adr<>'default' AND balance>=1");
       
         // Has data
         rs.next();
@@ -630,12 +650,14 @@ public class CCrons
             
             // Credit addresses
             UTILS.DB.executeUpdate("UPDATE adr "
-                                    + "SET balance=balance+("+UTILS.FORMAT.format(interest)+"*balance/100), "
+                                    + "SET balance=balance+("+interest+"*balance/100),"
+                    + "                    total_received=total_received+("+interest+"*balance/100),"
                                         + "last_interest='"+block_payload.block+"' "
                                   + "WHERE (last_interest<="+(block_payload.block-(UTILS.NET_STAT.blocks_per_day/24))+" OR last_interest=0) "
-                                    + "AND adr<>'default'");
-           
+                                    + "AND adr<>'default' AND balance>=1");
         }
+        
+        rs.close(); s.close();
     }
     
     public void openOrder(long orderID) throws Exception
@@ -669,6 +691,8 @@ public class CCrons
                                 + "SET status='ID_MARKET', "
                                     + "open='"+open+"' "
                               + "WHERE posID='"+orderID+"'");
+        
+        rs.close(); s.close();
         
     }
     
@@ -704,6 +728,8 @@ public class CCrons
                 
             }
         }
+        
+        rs.close(); s.close();
     }
     
      public void runCrons(long block, CBlockPayload block_payload) throws Exception
@@ -731,5 +757,109 @@ public class CCrons
          {
              UTILS.LOG.log("SQLException", ex.getMessage(), "CCrons.java", 57);
          }
+     }
+     
+    
+     public void checkMyAgents() throws Exception
+     {
+         try
+         {
+         // Statement
+         Statement s=UTILS.DB.getStatement();
+         
+         // Load agents
+         ResultSet rs=s.executeQuery("SELECT * "
+                                     + "FROM agents_mine "
+                                    + "WHERE compiler='SURfUEVORElORw=='");
+         
+         // Compile
+         while (rs.next())
+         {
+             CAgent agent=new CAgent(rs.getLong("ID"), true);
+             agent.parse();
+         }
+         
+         // Load agents
+         rs=s.executeQuery("SELECT * "
+                           + "FROM agents_mine "
+                           + "WHERE run='ID_PENDING'");
+         
+         // Compile
+         while (rs.next())
+         {
+             UTILS.DB.executeUpdate("UPDATE agents_mine "
+                                     + "SET run='' "
+                                   + "WHERE ID='"+rs.getLong("ID")+"'");
+              
+             CAgent agent=new CAgent(rs.getLong("ID"), true);
+             
+             // Load transaction
+             if (rs.getString("simulate_target").equals("ID_TRANS"))
+             agent.loadTrans(rs.getString("trans_sender"), 
+                             rs.getDouble("trans_amount"), 
+                             rs.getString("trans_cur"), 
+                             UTILS.BASIC.base64_decode(rs.getString("trans_mes")), 
+                             rs.getString("trans_escrower"), 
+                             UTILS.BASIC.hash(String.valueOf(Math.random())));
+             
+             // Message
+             if (rs.getString("simulate_target").equals("ID_MES"))
+             agent.loadMes(rs.getString("mes_sender"), 
+                           UTILS.BASIC.base64_decode(rs.getString("mes_subj")),
+                           UTILS.BASIC.base64_decode(rs.getString("mes_mes")),
+                           UTILS.BASIC.hash(String.valueOf(Math.random())));
+             
+             // Block
+             if (rs.getString("simulate_target").equals("ID_BLOCK"))
+             agent.loadBlock(rs.getString("block_hash"), 
+                             rs.getLong("block_no"),
+                             rs.getLong("block_nonce"));
+            
+             // Target
+             switch (rs.getString("simulate_target"))
+             {
+                 case "ID_TRANS" : agent.execute("#transaction#", true); 
+                                   break;
+                                   
+                 case "ID_MES" : agent.execute("#message#", true); 
+                                 break;
+                                 
+                 case "ID_BLOCK" : agent.execute("#block#", true); 
+                                   break;
+                                   
+                 case "ID_DEFAULT" : agent.execute("#start#", true); 
+                                     break;
+             }
+             
+            
+         }
+         
+           rs.close(); 
+           s.close();
+         }
+         catch (Exception ex)
+         {
+            throw new Exception(ex.getMessage());
+         }
+     }
+     
+     class RemindTask extends TimerTask 
+     {  
+       @Override
+       public void run()
+       {  
+           try
+           {
+               // Load web ops
+               UTILS.WEB_OPS.loadWebOps();
+               
+               // My agents
+               checkMyAgents();
+           }
+           catch (Exception ex)
+           {
+               System.out.println(ex.getMessage());
+           }
+       }
      }
 }

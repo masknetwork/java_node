@@ -17,7 +17,7 @@ public class CDeliverBlockchainPacket extends CPacket
         this.blockchain=new CBlockchain(start);
     }
     
-    public CResult check()
+    public CResult check() throws Exception
     {
         // Check blockchain
         CResult res=this.blockchain.check();

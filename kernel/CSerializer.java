@@ -21,17 +21,15 @@ public class CSerializer {
 		
 	}
 	
-	public byte[] serialize(Object obj) throws Exception
+	public byte[] serialize(Object obj) throws IOException
 	{
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-                        GZIPOutputStream gzipOut = new GZIPOutputStream(out);
-		        ObjectOutputStream os = new ObjectOutputStream(gzipOut);
-		        os.writeObject(obj);
-                        gzipOut.close();
-		        return out.toByteArray();
-		
-		
-	}
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            GZIPOutputStream gzipOut = new GZIPOutputStream(out);
+	    ObjectOutputStream os = new ObjectOutputStream(gzipOut);
+	    os.writeObject(obj);
+            gzipOut.close();
+	    return out.toByteArray();
+        }
 	
 	public  Object deserialize(byte[] data)  throws Exception
         {
