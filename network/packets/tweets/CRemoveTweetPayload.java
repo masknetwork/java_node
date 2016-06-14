@@ -18,7 +18,9 @@ public class CRemoveTweetPayload extends CPayload
    // Tweet ID
    long tweetID;
    
-   public CRemoveTweetPayload(String adr, long tweetID) throws Exception
+   public CRemoveTweetPayload(String adr, 
+                              long tweetID, 
+                              String sig) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -30,8 +32,8 @@ public class CRemoveTweetPayload extends CPayload
  	   hash=UTILS.BASIC.hash(this.getHash()+
  			         this.tweetID);
  	   
- 	   //Sign
- 	   this.sign();
+ 	   // Sign
+ 	   this.sign(sig);
    }
    
    public CResult check(CBlockPayload block) throws Exception
@@ -85,13 +87,8 @@ public class CRemoveTweetPayload extends CPayload
    
    public CResult commit(CBlockPayload block) throws Exception
    {
-       try
-       {
-          CResult res=this.check(block);
-          if (res.passed==false) return res;
-	  
-          // Superclass
-          super.commit(block);
+       // Superclass
+       super.commit(block);
        
           // Delete tweet
           UTILS.DB.executeUpdate("DELETE FROM tweets "
@@ -108,19 +105,9 @@ public class CRemoveTweetPayload extends CPayload
           // Delete comments
           UTILS.DB.executeUpdate("DELETE FROM tweets_comments "
                                      + "WHERE tweetID='"+this.tweetID+"'");
-          
-          // Decrease tweets
-          UTILS.DB.executeUpdate("UPDATE adr "
-                                  + "SET tweets=tweets-1 "
-                                + "WHERE adr='"+this.target_adr+"'");
-          
-       }
-       catch (Exception ex) 
-       {  
-       	    UTILS.LOG.log("SQLException", ex.getMessage(), "CRemoveTweetPayload.java", 57);
-       }
-       
-   	// Return 
-   	return new CResult(true, "Ok", "CRemoveTweetPayload", 70);
+         
+         
+   	  // Return 
+   	  return new CResult(true, "Ok", "CRemoveTweetPayload", 70);
     }
 }

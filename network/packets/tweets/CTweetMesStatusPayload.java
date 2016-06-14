@@ -23,7 +23,8 @@ public class CTweetMesStatusPayload extends CPayload
    	
    public CTweetMesStatusPayload(String adr, 
 		                 long mesID, 
-		                 String new_status) throws Exception
+		                 String new_status,
+                                 String sig) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -40,15 +41,13 @@ public class CTweetMesStatusPayload extends CPayload
                                  String.valueOf(this.mesID)+
                                  this.new_status);
  	   
- 	   //Sign
- 	   this.sign();
+ 	   // Sign
+ 	   this.sign(sig);
    }
    
    public CResult check(CBlockPayload block) throws Exception
    {
-       try
-       {
-             // Super class
+      // Super class
    	     CResult res=super.check(block);
    	     if (res.passed==false) return res;
    	
@@ -97,15 +96,6 @@ public class CTweetMesStatusPayload extends CPayload
    	    if (this.checkSig()==false)
    		return new CResult(false, "Invalid signature", "CTweetMesStatusPayload", 157);
        
-        }
-        catch (SQLException ex) 
-       	{  
-       	    UTILS.LOG.log("SQLException", ex.getMessage(), "CTweetMesStatusPayload.java", 57);
-        }
-        catch (Exception ex) 
-       	{  
-       	    UTILS.LOG.log("SQLException", ex.getMessage(), "CTweetMesStatusPayload.java", 57);
-        }
        
  	// Return
  	return new CResult(true, "Ok", "CTweetMesStatusPayload", 164);
@@ -113,12 +103,7 @@ public class CTweetMesStatusPayload extends CPayload
    
    public CResult commit(CBlockPayload block) throws Exception
    {
-       try
-       {
-          CResult res=this.check(block);
-          if (res.passed==false) return res;
-	  
-          // Superclass
+        // Superclass
           super.commit(block);
        
           // Status
@@ -152,15 +137,7 @@ public class CTweetMesStatusPayload extends CPayload
               UTILS.DB.executeUpdate("DELETE FROM tweets_comments "
                                       + "WHERE rowID='"+this.mesID+"'");
           }
-       }
-        catch (SQLException ex) 
-       	{  
-       	    UTILS.LOG.log("SQLException", ex.getMessage(), "CTweetMesPayload.java", 57);
-        }
-        catch (Exception ex) 
-       	{  
-       	    UTILS.LOG.log("SQLException", ex.getMessage(), "CTweetMesPayload.java", 57);
-        }
+      
        
    	// Return 
    	return new CResult(true, "Ok", "CTweetMesStatusPayload", 70);

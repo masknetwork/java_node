@@ -31,7 +31,9 @@ public class CNewExchangerPacket extends CBroadcastPacket
                               String town_type,
                               String town,
                               String escrowers,
-		              long days) throws Exception
+		              long days,
+                              String packet_sign,
+                              String payload_sign) throws Exception
    {
 	   // Constructs the broadcast packet
 	   super("ID_NEW_EXCHANGER_PACKET");
@@ -55,7 +57,8 @@ public class CNewExchangerPacket extends CBroadcastPacket
                                                                      town_type,
                                                                      town,
                                                                      escrowers,
-		                                                     days);
+		                                                     days,
+                                                                     payload_sign);
 					
 	   // Build the payload
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
@@ -64,7 +67,7 @@ public class CNewExchangerPacket extends CBroadcastPacket
 	   fee=new CFeePayload(net_fee_adr, days*0.0001);
 			   
 	    // Sign packet
-	    this.sign();
+	    this.sign(payload_sign);
 	}
 		
 	// Check 

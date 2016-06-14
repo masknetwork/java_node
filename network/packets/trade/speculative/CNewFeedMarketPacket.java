@@ -35,7 +35,9 @@ public class CNewFeedMarketPacket extends CBroadcastPacket
 			       String title,
 			       String desc,
 			       double max_margin,
-			       long days) throws Exception
+			       long days,
+                               String packet_sign,
+                               String payload_sign) throws Exception
     {
           super("ID_NEW_FEED_SPEC_MARKET_PACKET");
 	  
@@ -72,7 +74,7 @@ public class CNewFeedMarketPacket extends CBroadcastPacket
 	  fee=new CFeePayload(net_fee_adr, dec_payload.days*0.0001);
 			   
 	   // Sign packet
-	   this.sign();
+	   this.sign(payload_sign);
 	}
 		
         // Check 

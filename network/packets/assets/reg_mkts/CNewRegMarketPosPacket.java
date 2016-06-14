@@ -17,7 +17,9 @@ public class CNewRegMarketPosPacket extends CBroadcastPacket
                                   String tip,
                                   double price,
                                   double qty,
-                                  long mkt_days) throws Exception
+                                  long mkt_days,
+                                  String packet_sign,
+                                  String payload_sign) throws Exception
     {
           super("ID_NEW_REG_ASSET_MARKET_POS_PACKET");
 	  

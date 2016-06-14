@@ -189,7 +189,7 @@ public class CNewRegMarketTradePayload extends CPayload
         try
         {
           // Clear
-          UTILS.BASIC.clearTrans(hash, "ID_ALL");
+          UTILS.BASIC.clearTrans(hash, "ID_ALL", this.block);
             
           
            // Update position

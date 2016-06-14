@@ -5,6 +5,7 @@ package wallet.kernel;
 
 import wallet.kernel.net_stat.CNetStat;
 import java.text.DecimalFormat;
+import wallet.kernel.net_stat.consensus.*;
 import wallet.network.*;
 
 public class UTILS 
@@ -65,6 +66,7 @@ public class UTILS
     
     // Formatter
     public static DecimalFormat FORMAT = new DecimalFormat("#.########");
+    public static DecimalFormat FORMAT_4 = new DecimalFormat("#.####");
     public static DecimalFormat FORMAT_8 = new DecimalFormat("#.########");
     
     // Root
@@ -73,5 +75,9 @@ public class UTILS
     // Web ops
     public static CWebOps WEB_OPS;
     
- 
+    // Sync
+    public static CSync SYNC;
+    
+    // Blocks
+    public static CConsensus CONSENSUS;
 }

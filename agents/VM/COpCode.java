@@ -130,11 +130,14 @@ public class COpCode
             case "MES" : i=new CMES(VM, tokens); 
                          break;      
                          
-            case "DBQUERY" : i=new CDBQUERY(VM, tokens); 
-                             break;      
+            case "SEAL" : i=new CSEAL(VM, tokens); 
+                            break;      
                          
             case "TRANS" : i=new CTRANS(VM, tokens); 
-                           break;      
+                           break;     
+                           
+            case "LISTADD" : i=new CLISTADD(VM, tokens); 
+                             break;     
                          
             case "EXIT" : i=new CEXIT(VM, tokens); 
                           break;

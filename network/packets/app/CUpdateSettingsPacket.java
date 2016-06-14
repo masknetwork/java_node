@@ -12,7 +12,9 @@ public class CUpdateSettingsPacket extends CBroadcastPacket
    public CUpdateSettingsPacket(String net_fee_adr, 
                                 String adr, 
                                 long appID, 
-                                String settings) throws Exception
+                                String settings,
+                                String packet_sign,
+                                String payload_sign) throws Exception
    {
       super("ID_UPDATE_SETTINGS_PACKET");
       

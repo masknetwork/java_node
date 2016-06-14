@@ -76,7 +76,7 @@ public class CCrons
                                     0);
                 
               // Commit
-              UTILS.BASIC.clearTrans(UTILS.BASIC.hash(String.valueOf(uid)), "ID_ALL");
+              UTILS.BASIC.clearTrans(UTILS.BASIC.hash(String.valueOf(uid)), "ID_ALL", UTILS.NET_STAT.last_block);
               
               // Close option
               UTILS.DB.executeUpdate("UPDATE feeds_bets "
@@ -122,7 +122,7 @@ public class CCrons
                                     0);
                
               // Commit
-              UTILS.BASIC.clearTrans(UTILS.BASIC.hash(String.valueOf(uid)), "ID_ALL");
+              UTILS.BASIC.clearTrans(UTILS.BASIC.hash(String.valueOf(uid)), "ID_ALL", UTILS.NET_STAT.last_block);
               
               // Close option
               UTILS.DB.executeUpdate("UPDATE feeds_bets "
@@ -559,7 +559,7 @@ public class CCrons
                                                  0);
                        
                             // Clear
-                            UTILS.BASIC.clearTrans(rs.getString("rowhash"), "ID_ALL");
+                            UTILS.BASIC.clearTrans(rs.getString("rowhash"), "ID_ALL", UTILS.NET_STAT.last_block);
                        }
                        
                        // Close position
@@ -646,18 +646,20 @@ public class CCrons
                                  0);
             
             // Clear
-            UTILS.BASIC.clearTrans(block_payload.hash, "ID_ALL");
+            UTILS.BASIC.clearTrans(block_payload.hash, "ID_ALL", UTILS.NET_STAT.last_block);
             
             // Credit addresses
             UTILS.DB.executeUpdate("UPDATE adr "
-                                    + "SET balance=balance+("+interest+"*balance/100),"
-                    + "                    total_received=total_received+("+interest+"*balance/100),"
-                                        + "last_interest='"+block_payload.block+"' "
+                                    + "SET balance=balance+("+interest+"*balance/100), "
+                                        + "last_interest='"+block_payload.block+"', "
+                                        + "block='"+block_payload.block+"' "
                                   + "WHERE (last_interest<="+(block_payload.block-(UTILS.NET_STAT.blocks_per_day/24))+" OR last_interest=0) "
-                                    + "AND adr<>'default' AND balance>=1");
+                                    + "AND adr<>'default' "
+                                    + "AND balance>=1");
         }
         
-        rs.close(); s.close();
+        rs.close(); 
+        s.close();
     }
     
     public void openOrder(long orderID) throws Exception
@@ -775,7 +777,7 @@ public class CCrons
          // Compile
          while (rs.next())
          {
-             CAgent agent=new CAgent(rs.getLong("ID"), true);
+             CAgent agent=new CAgent(rs.getLong("ID"), true, UTILS.NET_STAT.last_block);
              agent.parse();
          }
          
@@ -791,7 +793,7 @@ public class CCrons
                                      + "SET run='' "
                                    + "WHERE ID='"+rs.getLong("ID")+"'");
               
-             CAgent agent=new CAgent(rs.getLong("ID"), true);
+             CAgent agent=new CAgent(rs.getLong("ID"), true, UTILS.NET_STAT.last_block);
              
              // Load transaction
              if (rs.getString("simulate_target").equals("ID_TRANS"))
@@ -818,16 +820,16 @@ public class CCrons
              // Target
              switch (rs.getString("simulate_target"))
              {
-                 case "ID_TRANS" : agent.execute("#transaction#", true); 
+                 case "ID_TRANS" : agent.execute("#transaction#", true, rs.getLong("block_no")); 
                                    break;
                                    
-                 case "ID_MES" : agent.execute("#message#", true); 
+                 case "ID_MES" : agent.execute("#message#", true, rs.getLong("block_no")); 
                                  break;
                                  
-                 case "ID_BLOCK" : agent.execute("#block#", true); 
+                 case "ID_BLOCK" : agent.execute("#block#", true, rs.getLong("block_no")); 
                                    break;
                                    
-                 case "ID_DEFAULT" : agent.execute("#start#", true); 
+                 case "ID_DEFAULT" : agent.execute("#start#", true, rs.getLong("block_no")); 
                                      break;
              }
              
@@ -853,8 +855,12 @@ public class CCrons
                // Load web ops
                UTILS.WEB_OPS.loadWebOps();
                
+               // Sync
+               UTILS.SYNC.tick();
+               
                // My agents
                checkMyAgents();
+              
            }
            catch (Exception ex)
            {

@@ -152,6 +152,7 @@ public class CPeers
    
    public void removePeer(String peer) 
    {
+       
        try
        {
        //Remove from peers list
@@ -160,6 +161,10 @@ public class CPeers
            CPeer p=(CPeer) this.peers.get(a);   
 	   if (p.adr.equals(peer)) this.removePeer(p);
        } 
+       
+      for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+         System.out.println(ste);
+      }
        
        // Delete from db
        UTILS.DB.executeUpdate("DELETE FROM peers WHERE peer='"+peer+"'"); 
@@ -308,16 +313,16 @@ public class CPeers
    {
        try
        {
-           Statement s=UTILS.DB.con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, 
-                                                    ResultSet.CONCUR_READ_ONLY);
+           Statement s=UTILS.DB.getStatement();
            
            // Load data
            ResultSet rs=s.executeQuery("SELECT * "
-                                     + "FROM peers "
-                                     + "WHERE last_seen<"+String.valueOf(UTILS.BASIC.tstamp()-600));
+                                       + "FROM peers "
+                                      + "WHERE last_seen<"+String.valueOf(UTILS.BASIC.tstamp()-600));
            
            // Remove peers
-           while (rs.next()) this.removePeer(rs.getString("peer"));
+           while (rs.next()) 
+               this.removePeer(rs.getString("peer"));
            
            // Close connection
            rs.close(); s.close();
@@ -341,22 +346,21 @@ public class CPeers
        public void run() 
        {  
            try
-           {
-             
-         // Tick
-         tick++;
+           {  
+              // Tick
+              tick++;
         
-         // Try to connect to pending peers
-         if (tick % 10==0) 
-            parent.checkPendingPeers();
+              // Try to connect to pending peers
+              if (tick % 10==0) 
+                 parent.checkPendingPeers();
            
-          // Removes inactive peers
-          parent.removeInactives();
+               // Removes inactive peers
+               parent.removeInactives();
            }
            catch (Exception ex) 
-       	      {  
-       		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
-              }
+       	   {  
+       		UTILS.LOG.log("Exception", ex.getMessage(), "CBuyDomainPayload.java", 57);
+           }
        }
    }
  

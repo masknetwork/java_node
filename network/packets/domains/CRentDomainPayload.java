@@ -24,7 +24,8 @@ public class CRentDomainPayload extends CPayload
 	
 	public CRentDomainPayload(String adr, 
                                   String domain, 
-                                  long days)  throws Exception
+                                  long days,
+                                  String payload_sign)  throws Exception
 	{
             // Constructor
             super(adr);
@@ -41,45 +42,43 @@ public class CRentDomainPayload extends CPayload
 			          String.valueOf(days));
 		
 	    // Signature
-	    this.sign();
+	    this.sign(payload_sign);
 	}
     
 	public CResult check(CBlockPayload block) throws Exception
 	{
-            try
-            {
-	      
-              // Domain valid
-              if (!UTILS.BASIC.domainValid(this.domain))
-                 return new CResult(false, "Invalid domain", "CRentDomainPayload.java", 61);
+           // Domain valid
+           if (!UTILS.BASIC.isDomain(this.domain))
+                 throw new Exception("Invalid domain name - CRentDomainPayload.java");
               
-              // Hash
-              String h=UTILS.BASIC.hash(this.getHash()+        
-                                        domain+
-			                String.valueOf(days));
-              if (!h.equals(this.hash))
-      	         return new CResult(false, "Invalid hash", "CRentDomainPayload.java", 61);
+           // Hash
+           String h=UTILS.BASIC.hash(this.getHash()+        
+                                     domain+
+			             String.valueOf(days));
+           
+           // Check hash
+           if (!h.equals(this.hash))
+      	       throw new Exception("Invalid hash - CRentDomainPayload.java");
         
-              // Domain already taken ?
-              Statement s=UTILS.DB.getStatement();
-              ResultSet rs=s.executeQuery("SELECT * "
-   		                          + "FROM domains "
-   		                         + "WHERE domain='"+this.domain+"'");
-              if (UTILS.DB.hasData(rs)==true)
-                 return new CResult(false, "Domain already exist", "CRentDomainPayload.java", 79);
-        	
-              // Close
-              rs.close(); s.close();
-              
-              
-            }
-            catch (SQLException ex)
-            {
-               UTILS.LOG.log("SQLException", ex.getMessage(), "CRentDomainPayload.java", 84);
-            }
-            
-            // Return
-	    return new CResult(true, "Ok", "CRentDomainPayload", 67);
+           // Domain already taken ?
+           Statement s=UTILS.DB.getStatement();
+           ResultSet rs=s.executeQuery("SELECT * "
+   		                       + "FROM domains "
+   		                      + "WHERE domain='"+this.domain+"'");
+           
+           // Domain exist
+           if (UTILS.DB.hasData(rs)==true)
+               throw new Exception("Invalid domain name - CRentDomainPayload.java");
+           
+           // Days
+           if (this.days<100)
+               throw new Exception("Invalid rent period - CRentDomainPayload.java");
+           
+           // Close
+           s.close();
+           
+           // Return
+	   return new CResult(true, "Ok", "CRentDomainPayload", 67);
 	}
 	
 	public CResult commit(CBlockPayload block) throws Exception
@@ -94,18 +93,14 @@ public class CRentDomainPayload extends CPayload
             
 	    UTILS.DB.executeUpdate("INSERT INTO domains (adr, "
         	   		                          + "domain, "
-        	   		                          + "expires, "
+        	   		                          + "expire, "
         	   		                          + "sale_price, "
-        	   		                          + "market_bid, "
-        	   		                          + "market_expires, "
-                                                          + "block) VALUES ('"+
+        	   		                          + "block) VALUES ('"+
                                                           this.target_adr+"', '"+
                                                           this.domain+"', '"+
                                                           (this.block+this.days*1440)+"', "
-                                                          + "'0', "
-                                                          + "'0', "
-                                                          + "'0', '"+
-                                                          String.valueOf(UTILS.BASIC.block())+"')");
+                                                          + "'0', '"
+                                                          +this.block+"')");
                 
             
 	   // Return 

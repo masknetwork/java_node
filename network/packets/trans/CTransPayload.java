@@ -98,7 +98,7 @@ public class CTransPayload extends CPayload
 	    	     throw new Exception("Invalid source address, CTransPayload");
                  
              // Free address
-	     if (!UTILS.BASIC.isFreeAdr(this.src))
+	     if (!UTILS.BASIC.canSpend(this.src))
                      throw new Exception("Invalid source address, CTransPayload");
                  
              // Check dest
@@ -290,7 +290,7 @@ public class CTransPayload extends CPayload
                     rs.next();
                     
                     // Load VM
-                    CAgent AGENT=new CAgent(rs.getLong("aID"), false);
+                    CAgent AGENT=new CAgent(rs.getLong("aID"), false, this.block);
                     
                     // Message ?
                     String message="";
@@ -306,7 +306,7 @@ public class CTransPayload extends CPayload
                                     this.hash);
                     
                     // Execute
-                    AGENT.execute("#transaction#", false);
+                    AGENT.execute("#transaction#", false, this.block);
                     
                     // Refund ?
                     if (!AGENT.transAproved()) 
@@ -316,7 +316,7 @@ public class CTransPayload extends CPayload
                 UTILS.DB.begin();
                 
                 // Take coins
-                UTILS.BASIC.clearTrans(hash, "ID_SEND");
+                UTILS.BASIC.clearTrans(hash, "ID_SEND", this.block);
                 
                 // IPN
                 this.checkIPN("confirmed");
@@ -325,7 +325,7 @@ public class CTransPayload extends CPayload
                 if (this.escrower.equals(""))
                 {
                     // Clear transaction for receiver
-                    UTILS.BASIC.clearTrans(hash, "ID_RECEIVE");
+                    UTILS.BASIC.clearTrans(hash, "ID_RECEIVE", this.block);
                 }
                 else
                 {

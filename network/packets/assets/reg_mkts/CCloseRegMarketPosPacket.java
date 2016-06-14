@@ -13,7 +13,9 @@ public class CCloseRegMarketPosPacket extends CBroadcastPacket
 {
      public CCloseRegMarketPosPacket(String fee_adr,
                                     String adr,
-                                    long orderID) throws Exception
+                                    long orderID,
+                                    String packet_sign,
+                                    String payload_sign) throws Exception
     {
           super("ID_REG_ASSET_MARKET_CLOSE_POS_PACKET");
 	  

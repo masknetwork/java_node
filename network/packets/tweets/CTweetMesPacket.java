@@ -16,7 +16,9 @@ public class CTweetMesPacket extends CBroadcastPacket
                           String adr, 
 		          long tweetID,
                           long comID,
-		          String mes) throws Exception
+		          String mes,
+                          String packet_sign,
+                          String payload_sign) throws Exception
    {
 	   // Super class
 	   super("ID_TWEET_COMMENT_PACKET");
@@ -25,7 +27,8 @@ public class CTweetMesPacket extends CBroadcastPacket
 	   CTweetMesPayload dec_payload=new CTweetMesPayload(adr, 
 		                                             tweetID, 
                                                              comID,
-		                                             mes);
+		                                             mes,
+                                                             payload_sign);
 			
 	   // Build the payload
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
@@ -34,7 +37,7 @@ public class CTweetMesPacket extends CBroadcastPacket
 	   fee=new CFeePayload(fee_adr,  0.0001);
 	   
 	   // Sign packet
-	   this.sign();
+           this.sign(payload_sign);
    }
    
    // Check 
@@ -83,18 +86,42 @@ public class CTweetMesPacket extends CBroadcastPacket
    
    public CResult commit(CBlockPayload block) throws Exception
    {
-   	  // Superclass
-   	  CResult res=super.commit(block);
-   	  if (res.passed==false) return res;
-   	  
-   	  // Deserialize transaction data
-   	  CTweetMesPayload dec_payload=(CTweetMesPayload) UTILS.SERIAL.deserialize(payload);
-
-	  // Fee is 0.0001 / day ?
-	  res=dec_payload.commit(block);
-          if (res.passed==false) return res;
-	  
-	  // Return 
-   	  return new CResult(true, "Ok", "CTweetMesPacket", 62);
+   	// Check
+        CResult res=this.check(block);
+                
+	// Superclass
+	res=super.commit(block);
+	if (res.passed==false) return res;
+            
+        try
+        {
+            // Begin
+            UTILS.DB.begin();
+                
+            if (res.passed)
+            {
+                // Deserialize transaction data
+                CTweetMesPayload dec_payload=(CTweetMesPayload) UTILS.SERIAL.deserialize(payload);
+                
+	        // Commit
+	        res=dec_payload.commit(block);
+	        if (res.passed==false) throw new Exception(res.reason); 
+            }
+            else throw new Exception(res.reason); 
+                    
+            // Commit
+            UTILS.DB.commit();
+        }
+        catch (Exception ex)
+        {
+            // Rollback
+            UTILS.DB.rollback();
+                
+            // Exception
+            throw new Exception(ex.getMessage());
+        }
+			  
+	// Return 
+	return new CResult(true, "Ok", "CNewTweetPacket.java", 9);
    }
 }

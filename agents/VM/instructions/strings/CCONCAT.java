@@ -27,6 +27,9 @@ public class CCONCAT extends CInstruction
    
     public  void execute() throws Exception
     {
+       // Log 
+       VM.RUNLOG.add(VM.REGS.RCI, "CONCAT "+this.to_loc.cel.val+", "+this.from_loc.cel.val);
+          
        // Copy
        this.to_loc.cel.concat(this.from_loc.cel);
     }

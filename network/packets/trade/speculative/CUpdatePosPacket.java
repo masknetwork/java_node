@@ -15,7 +15,9 @@ public class CUpdatePosPacket extends CBroadcastPacket
                            String adr, 
                            long posID, 
                            double sl,
-                           double tp) throws Exception
+                           double tp,
+                           String packet_sign,
+                           String payload_sign) throws Exception
    {
           super("ID_UPDATE_SPEC_POS_PACKET");
 	  
@@ -32,7 +34,7 @@ public class CUpdatePosPacket extends CBroadcastPacket
 	  fee=new CFeePayload(net_fee_adr, 0.0001);
 			   
 	   // Sign packet
-	   this.sign();
+	   this.sign(payload_sign);
    }
    
    // Check 

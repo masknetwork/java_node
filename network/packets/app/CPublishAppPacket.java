@@ -20,7 +20,9 @@ public class CPublishAppPacket extends CBroadcastPacket
                              String website, 
                              String pic, 
                              String ver, 
-                             double price) throws Exception
+                             double price,
+                             String packet_sign,
+                             String payload_sign) throws Exception
   {
       super("ID_PUBLISH_APP_PACKET");
       

@@ -38,7 +38,8 @@ public class CDeployAppNetPayload extends CPayload
     public CDeployAppNetPayload(String adr, 
                                 long appID, 
                                 long run_period, 
-                                long days) throws Exception
+                                long days,
+                                String sig) throws Exception
     {
         // Constructor
         super(adr);
@@ -94,7 +95,7 @@ public class CDeployAppNetPayload extends CPayload
                               this.name);
         
         // Sign
-        this.sign();
+        this.sign(sig);
     }
     
      public CResult check(CBlockPayload block) throws Exception
@@ -124,56 +125,33 @@ public class CDeployAppNetPayload extends CPayload
          if (UTILS.DB.hasData(rs))
             throw new Exception ("Sealed application already installed");
          
-         // Insert temp agent
-         UTILS.DB.executeUpdate("INSERT INTO agents_mine (adr, "
-                                                       + "globals, "
-                                                       + "interface, "
-                                                       + "signals, "
-                                                       + "code, "
-                                                       + "run, "
-                                                       + "exec_log, "
-                                                       + "storage, "
-                                                       + "name, "
-                                                       + "block, "
-                                                       + "url_pass, "
-                                                       + "expire, "
-                                                       + "status) VALUES('"
-                                                       +this.target_adr+"', '"
-                                                       +this.globals+"', '"
-                                                       +this.iface+"', '"
-                                                       +this.signals+"', '"
-                                                       +this.code+"', "
-                                                       + "'', '', '', '"
-                                                       +this.name+"', '"
-                                                       +this.block+"', '', '"
-                                                       +UTILS.BASIC.blocskFromDays(this.days)+"', "
-                                                       + "'ID_TEMP')");
+         // Globals
+         if (this.globals.length()>25000)
+             throw new Exception ("Invalid globals");
          
-         // Load agent
-         rs=s.executeQuery("SELECT * "
-                           + "FROM agents_mine "
-                          + "WHERE status='ID_TEMP' "
-                       + "ORDER BY ID DESC");
+         // Interface
+         if (this.iface.length()>25000)
+             throw new Exception ("Invalid globals");
          
-         // Next
-         rs.next();
+         // Signals
+         if (this.signals.length()>25000)
+             throw new Exception ("Invalid globals");
          
-         // Agent ID
-         long aID=rs.getLong("ID");
+         // Code
+         if (this.code.length()>25000)
+             throw new Exception ("Invalid globals");
          
-         // Agent
-         CAgent agent=new CAgent(aID, true);
+         // Run period
+         if (this.run_period<0)
+             throw new Exception ("Invalid run period");
          
-         // Parse
-         String r=agent.parse();
+         // Days
+         if (this.days<1)
+             throw new Exception ("Invalid days");
          
-         // Ok ?
-         if (!r.equals("ID_OK"))
-             throw new Exception("Syntax errors");
-         
-         // Delete
-         UTILS.DB.executeUpdate("DELETE FROM agents_mine "
-                                + "WHERE status='ID_TEMP'");
+         // Name
+         if (!UTILS.BASIC.isTitle(this.name))
+             throw new Exception ("Invalid name");
          
          // Hash
          String h=UTILS.BASIC.hash(this.getHash()+
@@ -222,13 +200,13 @@ public class CDeployAppNetPayload extends CPayload
                                                        +this.appID+"', '"
                                                        +this.target_adr+"', '"
                                                        +this.target_adr+"', '"
-                                                       +this.globals+"', '"
-                                                       +this.iface+"', '"
-                                                       +this.signals+"', '"
-                                                       +this.code+"', "
+                                                       +UTILS.BASIC.base64_encode(this.globals)+"', '"
+                                                       +UTILS.BASIC.base64_encode(this.iface)+"', '"
+                                                       +UTILS.BASIC.base64_encode(this.signals)+"', '"
+                                                       +UTILS.BASIC.base64_encode(this.code)+"', "
                                                        + "'', "
                                                        +"'', '"
-                                                       +this.name+"', '"
+                                                       +UTILS.BASIC.base64_encode(this.name)+"', '"
                                                        +this.block+"', '', '"
                                                        +UTILS.BASIC.blocskFromDays(this.days)+"', "
                                                        + "'ID_ONLINE')");

@@ -31,7 +31,9 @@ public class CNewBetPacket extends CBroadcastPacket
                         long start_block, 
                         long end_block, 
                         long accept_block, 
-                        String cur) throws Exception
+                        String cur,
+                        String packet_sign,
+                        String payload_sign) throws Exception
     {
           super("ID_NEW_FEED_BET_PACKET");
 	  
@@ -53,7 +55,8 @@ public class CNewBetPacket extends CBroadcastPacket
                                                         start_block, 
                                                         end_block, 
                                                         accept_block, 
-                                                        cur);  
+                                                        cur,
+                                                        payload_sign);  
                        
 					
 	  // Build the payload
@@ -63,7 +66,7 @@ public class CNewBetPacket extends CBroadcastPacket
 	  fee=new CFeePayload(fee_adr, (end_block-this.block)*0.0001);
 			   
 	   // Sign packet
-	   this.sign();
+	   this.sign(payload_sign);
 	}
 		
         // Check 

@@ -16,7 +16,7 @@ public class CTransPool
 	{
 		UTILS.DB.executeUpdate("DELETE "+
 				           "FROM trans_pool "+
-				          "WHERE block<"+UTILS.BASIC.block());
+				          "WHERE block<"+(UTILS.NET_STAT.last_block+1));
 	}
 	
 	public void addTrans(String src, 

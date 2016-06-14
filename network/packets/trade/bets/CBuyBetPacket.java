@@ -14,14 +14,17 @@ public class CBuyBetPacket extends CBroadcastPacket
    public CBuyBetPacket(String fee_adr,
                         String adr, 
                         long bet_uid, 
-                        double amount) throws Exception
+                        double amount,
+                        String packet_sign,
+                        String payload_sign) throws Exception
     {
           super("ID_NEW_BUY_BET_PACKET");
 	  
 	  // Builds the payload class
 	  CBuyBetPayload dec_payload=new CBuyBetPayload(adr, 
                                                         bet_uid, 
-                                                        amount);  
+                                                        amount,
+                                                        payload_sign);  
                        
 					
 	  // Build the payload
@@ -31,7 +34,7 @@ public class CBuyBetPacket extends CBroadcastPacket
 	  fee=new CFeePayload(fee_adr);
 			   
 	   // Sign packet
-	   this.sign();
+	   this.sign(payload_sign);
 	}
 		
         // Check 

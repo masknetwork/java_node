@@ -96,7 +96,7 @@ public class CNewFeedComponentPayload extends CPayload
         {
             // Symbol valid
             if (!UTILS.BASIC.isSymbol(this.symbol))
-              return new CResult(false, "Invalid title", "CNewFeedComponentPayload", 67);
+              return new CResult(false, "Invalid symbol", "CNewFeedComponentPayload", 67);
             
              // Feed symbol valid
              if (!UTILS.BASIC.isSymbol(this.symbol))

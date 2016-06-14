@@ -48,6 +48,36 @@ public class CBlockPacket extends CPacket
         // Dificulty
         public long net_dif;
         
+        // Adress table hash
+        public String tab_1="";
+        
+        // Adress table hash
+        public String tab_2="";
+        
+        // Adress table hash
+        public String tab_3="";
+        
+        // Adress table hash
+        public String tab_4="";
+        
+        // Adress table hash
+        public String tab_5="";
+        
+        // Adress table hash
+        public String tab_6="";
+        
+        // Adress table hash
+        public String tab_7="";
+        
+        // Adress table hash
+        public String tab_8="";
+        
+        // Adress table hash
+        public String tab_9="";
+        
+        // Adress table hash
+        public String tab_10="";
+        
 	public CBlockPacket(String signer, long signer_balance) throws Exception
         {
 	   // Constructor
@@ -68,11 +98,42 @@ public class CBlockPacket extends CPacket
            // Prev hash
            this.prev_hash=UTILS.NET_STAT.last_block_hash;
            
-           // Block
-           this.block=UTILS.NET_STAT.last_block+1;
-           
            // Dificulty
            this.net_dif=UTILS.NET_STAT.net_dif;
+           
+           // Checkpoint ?
+           if (this.block%UTILS.SETTINGS.chk_blocks==0)
+           {
+               // Adr table hash
+               this.tab_1=UTILS.NET_STAT.getHash("adr");
+               
+               // Adr table hash
+               this.tab_2=UTILS.NET_STAT.getHash("adr");
+              
+               // Adr table hash
+               this.tab_3=UTILS.NET_STAT.getHash("adr");
+               
+               // Adr table hash
+               this.tab_4=UTILS.NET_STAT.getHash("adr");
+               
+               // Adr table hash
+               this.tab_5=UTILS.NET_STAT.getHash("adr");
+               
+               // Adr table hash
+               this.tab_6=UTILS.NET_STAT.getHash("adr");
+               
+               // Adr table hash
+               this.tab_7=UTILS.NET_STAT.getHash("adr");
+               
+               // Adr table hash
+               this.tab_8=UTILS.NET_STAT.getHash("adr");
+               
+               // Adr table hash
+               this.tab_9=UTILS.NET_STAT.getHash("adr");
+               
+               // Adr table hash
+               this.tab_10=UTILS.NET_STAT.getHash("adr");
+           }
         }
 	
         // Sign
@@ -86,21 +147,29 @@ public class CBlockPacket extends CPacket
 	    this.sign=adr.sign(hash);
         }
         
-        
-	// Check 
-	public CResult check() throws Exception
-	{
-            // Check type
-	     if (!this.tip.equals("ID_BLOCK")) 
-	   	return new CResult(false, "Invalid packet type", "CBlockPacket", 39);
-           
-	     // Deserialize transaction data
-	     CBlockPayload block_payload=(CBlockPayload) UTILS.SERIAL.deserialize(payload);
-	     
-             // Block number
-             if (this.block<=UTILS.NET_STAT.last_block)
-                return new CResult(false, "Invalid block number", "CBlockPacket", 39);
-             
+        public boolean preCheck() throws Exception
+        {
+              // Statement
+              Statement s=UTILS.DB.getStatement();
+       
+              // Load
+              ResultSet rs=s.executeQuery("SELECT * "
+                                          + "FROM blocks "
+                                         + "WHERE hash='"+hash+"'");
+              
+              // Has data ?
+              if (UTILS.DB.hasData(rs))
+              {
+                  // Close
+                  s.close();
+                  
+                  // Return
+                  return false;
+              }
+              
+              // Close
+              s.close();
+              
              // Hash
              if (!UTILS.MINER_UTILS.checkHash(this.prev_hash, 
                                               this.block, 
@@ -110,14 +179,37 @@ public class CBlockPacket extends CPacket
                                               this.tstamp, 
                                               this.nonce,
                                               this.hash,
-                                              this.net_dif))
-             return new CResult(false, "Invalid hash", "CBlockPacket", 39);
-             
+                                              this.net_dif,
+                                              this.tab_1,
+                                              this.tab_2,
+                                              this.tab_3,
+                                              this.tab_4,
+                                              this.tab_5,
+                                              this.tab_6,
+                                              this.tab_7,
+                                              this.tab_8,
+                                              this.tab_9,
+                                              this.tab_10))
+                 return false;
+             else
+                 return true;
+        }
+        
+	// Check 
+	public CResult check() throws Exception
+	{
+             // Check type
+	     if (!this.tip.equals("ID_BLOCK")) 
+	   	return new CResult(false, "Invalid packet type", "CBlockPacket", 39);
+           
+	     // Deserialize transaction data
+	     CBlockPayload block_payload=(CBlockPayload) UTILS.SERIAL.deserialize(payload);
+	     
              // Super class
 	      CResult res=super.check(block_payload);
 	      if (res.passed==false) 
 	      {
-	   	return res;
+	   	 return res;
 	      }
 	      else
 	      {
@@ -129,13 +221,17 @@ public class CBlockPacket extends CPacket
 	      CECC ecc=new CECC(this.signer);
 	      if (!ecc.checkSig(hash, this.sign))
                    return new CResult(false, "Invalid signature", "CBlockPacket", 39);
-	   	  
+              
+                
 	      // Return 
 	      return new CResult(true, "Ok", "CBlockPacket", 42);
 	}
 	   
 	public CResult commit()  throws Exception
 	{
+               System.out.println("Commiting block "+this.block+" ("+this.hash+")");
+                
+                 
                 // Deserialize transaction data
 	   	CBlockPayload block_payload=(CBlockPayload) UTILS.SERIAL.deserialize(payload);
 	   	
@@ -148,41 +244,13 @@ public class CBlockPacket extends CPacket
 	   	if (res.passed==false) return res;
                 
                  // Insert the block
-                UTILS.DB.executeUpdate("INSERT INTO blocks(hash, "
-                                                        + "block, "
-        		                                + "prev_hash, "
-                                                        + "signer, "
-                                                        + "packets, "
-                                                        + "tstamp, "
-                                                        + "nonce, "
-                                                        + "net_dif, "
-                                                        + "signer_balance, "
-                                                        + "payload_hash, "
-                                                        + "size) "
-        		                + "VALUES('"+this.hash+"', '"+
-                                                     String.valueOf(this.block)+"', '"+
-        		                             this.prev_hash+"', '"+
-                                                     this.signer+"', '"+
-                                                     block_payload.packets.size()+"', '"+
-                                                     this.tstamp+"', '"+
-                                                     this.nonce+"', '"+
-                                                     this.net_dif+"', '"+
-                                                     this.signer_balance+"', '"+
-                                                     this.payload_hash+"', '"+
-        		                             this.payload.length+"')");
-                
-                FileOutputStream fout = new FileOutputStream(new File(UTILS.WRITEDIR+"blocks/block_"+this.block+".block"));
-                ObjectOutputStream oos = new ObjectOutputStream(fout);
-                oos.writeObject(this);
-                
-                // Run contracts
-                Statement s=UTILS.DB.getStatement();
-                
-                // Result set
-                ResultSet rs=s.executeQuery("SELECT * "
-                                            + "FROM agents "
-                                           + "WHERE run_period>0 "
-                                             + "AND status='ID_ONLINE'");
+                 Statement s=UTILS.DB.getStatement();
+                 
+                 // Result set
+                 ResultSet rs=s.executeQuery("SELECT * "
+                                             + "FROM agents "
+                                            + "WHERE run_period>0 "
+                                              + "AND status='ID_ONLINE'");
                 
                 if (UTILS.DB.hasData(rs))
                 {
@@ -193,7 +261,7 @@ public class CBlockPacket extends CPacket
                     if (UTILS.NET_STAT.last_block%rs.getLong("run_period")==0)
                     {
                        // Load VM
-                       CAgent AGENT=new CAgent(rs.getLong("aID"), false);
+                       CAgent AGENT=new CAgent(rs.getLong("aID"), false, this.block);
                        
                        // Load block
                        AGENT.loadBlock(hash, 
@@ -201,21 +269,75 @@ public class CBlockPacket extends CPacket
                                        this.nonce);
                     
                        // Execute
-                       AGENT.execute("#block#", false);
+                       AGENT.execute("#block#", false, this.block);
                     }
                 }
                 
                 // Refresh tables
                 UTILS.NET_STAT.refreshTables(this.block);
                 
+                // Sync ?
+                if (UTILS.STATUS.engine_status.equals("ID_SYNC"))
+                    this.addBlock(this);
+                
                 // New block
-                UTILS.CBLOCK.newBlock(this.block, this.hash, this.tstamp);
+                UTILS.CBLOCK.newBlock(this.block, this.prev_hash, this.hash, this.tstamp);
                 
                 // Close
-                rs.close();
                 s.close();
 	   	
 		// Return 
 	   	return new CResult(true, "Ok", "CBlockPacket", 55);
 	}
+        
+   public void addBlock(CBlockPacket block) throws Exception
+   {
+      // Deserialize payload
+       CBlockPayload block_payload=(CBlockPayload) UTILS.SERIAL.deserialize(block.payload);
+                
+       // Insert
+       UTILS.DB.executeUpdate("INSERT INTO blocks(hash, "
+                                                        + "block, "
+        		                                + "prev_hash, "
+                                                        + "signer, "
+                                                        + "packets, "
+                                                        + "tstamp, "
+                                                        + "nonce, "
+                                                        + "net_dif, "
+                                                        + "signer_balance, "
+                                                        + "tab_1, "
+                                                        + "tab_2, "
+                                                        + "tab_3, "
+                                                        + "tab_4, "
+                                                        + "tab_5, "
+                                                        + "tab_6, "
+                                                        + "tab_7, "
+                                                        + "tab_8, "
+                                                        + "tab_9, "
+                                                        + "tab_10, "
+                                                        + "payload_hash, "
+                                                        + "size) "
+        		                + "VALUES('"+block.hash+"', '"+
+                                                     String.valueOf(block.block)+"', '"+
+        		                             block.prev_hash+"', '"+
+                                                     block.signer+"', '"+
+                                                     block_payload.packets.size()+"', '"+
+                                                     block.tstamp+"', '"+
+                                                     block.nonce+"', '"+
+                                                     block.net_dif+"', '"+
+                                                     block.signer_balance+"', '"+
+                                                     block.tab_1+"', '"+
+                                                     block.tab_2+"', '"+
+                                                     block.tab_3+"', '"+
+                                                     block.tab_4+"', '"+
+                                                     block.tab_5+"', '"+
+                                                     block.tab_6+"', '"+
+                                                     block.tab_7+"', '"+
+                                                     block.tab_8+"', '"+
+                                                     block.tab_9+"', '"+
+                                                     block.tab_10+"', '"+
+                                                     block.payload_hash+"', '"+
+        		                             block.payload.length+"')");
+      
+   }
 }

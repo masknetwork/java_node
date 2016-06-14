@@ -14,7 +14,9 @@ public class CNewRegMarketTradePacket extends CBroadcastPacket
     public CNewRegMarketTradePacket(String fee_adr,
                                     String adr,
                                     String uid,
-                                    double qty) throws Exception
+                                    double qty,
+                                    String packet_sign,
+                                    String payload_sign) throws Exception
     {
           super("ID_NEW_REG_ASSET_MARKET_ORDER_PACKET");
 	  

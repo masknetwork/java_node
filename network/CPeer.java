@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.io.*;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 import wallet.kernel.*;
 import wallet.network.packets.*;
@@ -62,8 +64,14 @@ public class CPeer extends Thread
     // Schedule delete in 2 seconds
     boolean schedule_delete=false;
    
-	CPeer(CPeers peers, String adr, int port) throws Exception
-	{
+    
+    CPeer()
+    {
+        
+    }
+    
+    CPeer(CPeers peers, String adr, int port) throws Exception
+    {
            // Address
 	   this.adr=adr;
 		
@@ -75,13 +83,6 @@ public class CPeer extends Thread
            
            // Mode
            this.mode="ID_MODE_TO";
-           
-           // Already connected
-           if (peers.conectedTo(this.adr))
-           {
-             this.schedule_delete=true;
-             UTILS.CONSOLE.write(this.adr+" will be removed");
-           }
            
            try
            {
@@ -108,13 +109,6 @@ public class CPeer extends Thread
           
           // Write
           UTILS.CONSOLE.write("New peer created by client "+this.adr);
-          
-          // Already connected
-          if (peers.conectedTo(this.adr))
-          {
-              this.schedule_delete=true;
-              UTILS.CONSOLE.write(this.adr+" will be removed");
-          }
           
           // Port
           this.port=client.getPort();
@@ -238,18 +232,15 @@ public class CPeer extends Thread
 	   { 
                UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 93);
                
-               try
-               {
-	       this.peers.removePeer(this); 
-               }
-               catch (Exception e) 
-       	      {  
-       		UTILS.LOG.log("SQLException", e.getMessage(), "CBuyDomainPayload.java", 57);
-              }
+               try { this.peers.removePeer(this); }
+               catch (Exception e) {  UTILS.LOG.log("SQLException", e.getMessage(), "CBuyDomainPayload.java", 57); }
 	   }
 	   catch (IOException ex) 
 	   { 
 		   UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 93);
+                   
+                   try { this.peers.removePeer(this); }
+                   catch (Exception e) {  UTILS.LOG.log("SQLException", e.getMessage(), "CBuyDomainPayload.java", 57); }
 	   }
 	   catch (ClassNotFoundException ex) 
 	   { 
@@ -270,9 +261,11 @@ public class CPeer extends Thread
                    //UTILS.CONSOLE.write(" Written "+packet.tip+" to "+this.adr);
                    packet=null;
 	   }
-	   catch (IOException e) 
+	   catch (IOException ex) 
 	   { 
-		   UTILS.LOG.log("IOException", e.getMessage(), "CPeer.java", 252); 
+		   UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 252); 
+                   try { this.peers.removePeer(this); }
+                   catch (Exception e) {  UTILS.LOG.log("SQLException", e.getMessage(), "CBuyDomainPayload.java", 57); }
 	   }
            catch (Exception e) 
 	   { 

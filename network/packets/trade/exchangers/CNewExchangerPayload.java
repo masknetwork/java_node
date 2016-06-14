@@ -85,7 +85,8 @@ public class CNewExchangerPayload extends CPayload
                                 String town_type,
                                 String town,
                                 String escrowers,
-		                long days) throws Exception
+		                long days,
+                                String sig) throws Exception
   {
       // Constructor
       super(adr);
@@ -166,7 +167,7 @@ public class CNewExchangerPayload extends CPayload
 		                 days);
       
       // Sign
-      this.sign();
+      this.sign(sig);
   }
   
   public CResult check(CBlockPayload block) throws Exception

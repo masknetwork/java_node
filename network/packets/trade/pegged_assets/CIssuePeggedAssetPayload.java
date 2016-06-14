@@ -627,7 +627,7 @@ public class CIssuePeggedAssetPayload extends CPayload
         
        
             // Clear transactions
-            UTILS.BASIC.clearTrans(this.hash, "ID_ALL");
+            UTILS.BASIC.clearTrans(this.hash, "ID_ALL", this.block);
         
             // Return
 	    return new CResult(true, "Ok", "CIssuePeggedAssetPayload", 67); 

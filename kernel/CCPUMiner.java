@@ -306,6 +306,7 @@ public class CCPUMiner extends Thread
               ts=UTILS.BASIC.tstamp();
               
               // Hash
+              if ((UTILS.NET_STAT.last_block+1)%UTILS.SETTINGS.chk_blocks!=0)
               hash=UTILS.BASIC.hash(UTILS.NET_STAT.last_block_hash+
                                     "ID_BLOCK"+
                                     String.valueOf(UTILS.NET_STAT.last_block+1)+
@@ -315,6 +316,26 @@ public class CCPUMiner extends Thread
                                     String.valueOf(ts)+
                                     String.valueOf(nonce)+
                                     String.valueOf(UTILS.NET_STAT.net_dif));
+              else
+              hash=UTILS.BASIC.hash(UTILS.NET_STAT.last_block_hash+
+                                    "ID_BLOCK"+
+                                    String.valueOf(UTILS.NET_STAT.last_block+1)+
+                                    UTILS.CBLOCK.payload_hash+
+                                    UTILS.CBLOCK.signer+
+                                    String.valueOf(UTILS.CBLOCK.signer_balance)+
+                                    String.valueOf(ts)+
+                                    String.valueOf(nonce)+
+                                    String.valueOf(UTILS.NET_STAT.net_dif)+
+                                    UTILS.NET_STAT.getHash("adr")+
+                                    UTILS.NET_STAT.getHash("ads")+
+                                    UTILS.NET_STAT.getHash("domains")+
+                                    UTILS.NET_STAT.getHash("adr")+
+                                    UTILS.NET_STAT.getHash("adr")+
+                                    UTILS.NET_STAT.getHash("adr")+
+                                    UTILS.NET_STAT.getHash("adr")+
+                                    UTILS.NET_STAT.getHash("adr")+
+                                    UTILS.NET_STAT.getHash("adr")+
+                                    UTILS.NET_STAT.getHash("adr"));
               
               ihash=hash;
               
@@ -376,7 +397,6 @@ public class CCPUMiner extends Thread
               // Found solution
               if (num<UTILS.NET_STAT.net_dif) 
               {   
-                  
                   UTILS.CBLOCK.last_tstamp=ts;
                   UTILS.CBLOCK.nonce=nonce;
                   UTILS.CBLOCK.setNonce(nonce);
@@ -384,14 +404,13 @@ public class CCPUMiner extends Thread
                   UTILS.CBLOCK.broadcast();
                   nonce=Math.round(Math.random()*10000000000L);
                   
-                  
               }
             }
           }
         }
         catch (Exception ex) 
        	      {  
-       		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
+       		UTILS.LOG.log("SQLException", ex.getMessage(), "CCPUMiner.java", 57);
               }
         
         System.out.println("CPUMiner has stopped !!!");

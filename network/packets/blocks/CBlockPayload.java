@@ -34,13 +34,13 @@ public class CBlockPayload extends CPayload
         
         
 		
-	public CBlockPayload(String adr, long prev_block_no)  throws Exception
+	public CBlockPayload(String adr)  throws Exception
 	{
             // Constructor
             super(adr);
             
 	    // ID
-	    this.block=prev_block_no+1;
+	    this.block=UTILS.NET_STAT.last_block+1;
             
             // Hash
             this.hash();
@@ -55,12 +55,16 @@ public class CBlockPayload extends CPayload
 		return false;
 	}
 	
-	public void addPacket(CPacket packet)
+	public void addPacket(CBroadcastPacket packet) throws Exception
 	{
             try
             {
 		// Packet exist ?
 		if (this.exist(packet.hash)) return;
+                
+                // Block number
+                if (this.block!=packet.block)
+                   throw new Exception("Invalid bock number");
 		
                 // Data feed packet ?
                 if (packet.tip.equals("ID_FEED_PACKET"))
@@ -160,22 +164,17 @@ public class CBlockPayload extends CPayload
                                     this,
                                     0);
             
-            UTILS.BASIC.clearTrans(hash, "ID_ALL");
+            UTILS.BASIC.clearTrans(hash, "ID_ALL", this.block);
         }
         
         public void delExpired() throws Exception
         {
-            // Expired address options
-            UTILS.DB.executeUpdate("DELETE FROM adr_options WHERE expires<"+this.block);
-            
             // Expired ads
-            UTILS.DB.executeUpdate("DELETE FROM ads WHERE expires<"+this.block);
+            UTILS.DB.executeUpdate("DELETE FROM ads WHERE expire<"+this.block);
             
             // Expired domains
-            UTILS.DB.executeUpdate("DELETE FROM domains WHERE expires<"+this.block);
-            
-            // Expired domains listings
-            UTILS.DB.executeUpdate("UPDATE domains SET market_expires=0, market_bid=0 WHERE expires<"+this.block);
+            UTILS.DB.executeUpdate("DELETE FROM domains WHERE expire<"+this.block);
+           
         }
         
 	// Compare two blocks and returns the accuracy
@@ -213,7 +212,7 @@ public class CBlockPayload extends CPayload
 	{
             try
             {
-            // Start logging
+                // Start logging
                 UTILS.LOG_QUERIES=true;
                 
                 // Delete unconfirmed trans

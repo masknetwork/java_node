@@ -182,7 +182,7 @@ public class CWallet
      
     
      
-      public boolean newAddress(String user, String curve, String description) throws Exception
+      public String newAddress(String user, String curve, String description) throws Exception
       {
          try
          {    
@@ -214,21 +214,23 @@ public class CWallet
                                                    UTILS.BASIC.base64_encode(description)+"')");
         
            // Close
-           rs.close(); s.close();
+           rs.close(); 
+           s.close();
          
            // Save wallet
 	   save();
-	
 				 
 	   // Last generated
 	   this.last_adr=adr;
+           
+           return adr.getPublic();
         }
         catch (SQLException ex) 
        	{  
        		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
         }
 	
-    	 return true;
+    	 throw new Exception("Could not geberate address");
      }
      
      public boolean add(CAddress adr) throws Exception
@@ -281,7 +283,7 @@ public class CWallet
     			 return ad;
     	 }
     	 
-    	 return null;
+    	 throw new Exception("Address doesn't exist");
      }
      
    

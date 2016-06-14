@@ -19,7 +19,6 @@ public class CNewProdPacket extends CBroadcastPacket
 	                      String description,
 	                      String internalID,
 	                      String web_page,
-	                      String esc_1, String esc_2, String esc_3, String esc_4, String esc_5,
 	                      String pic_1, String pic_2, String pic_3, String pic_4, String pic_5,
 	                      String prod_location_town,
 	                      String prod_location_country,
@@ -27,15 +26,15 @@ public class CNewProdPacket extends CBroadcastPacket
 	                      String ships_exceptions,
 	                      String condition,
 	                      String delivery,
-	                      String accept_escrowers,
 	                      String return_policy,
 	                      double postage,
 	                      String carrier,
-	                      double mkt_bid,
 	                      long mkt_days,
 	                      double price,
 	                      String categ,
-	                      String sub_categ) throws Exception
+	                      String sub_categ,
+                              String packet_sign,
+                              String payload_sign) throws Exception
 	{
 		super("ID_NEW_PHYS_PROD_PACKET");
 
@@ -48,18 +47,15 @@ public class CNewProdPacket extends CBroadcastPacket
                                                                 internalID,
                                                                 web_page,
                                                                 pic_1,  pic_2,  pic_3,  pic_4,  pic_5,
-                                                                esc_1,  esc_2,  esc_3,  esc_4,  esc_5,
                                                                 prod_location_town,
                                                                 prod_location_country,
                                                                 ships_to,
                                                                 ships_exceptions,
                                                                 condition,
                                                                 delivery,
-                                                                accept_escrowers,
                                                                 return_policy,
                                                                 postage,
                                                                 carrier,
-                                                                mkt_bid,
                                                                 mkt_days,
                                                                 price,
                                                                 categ,
@@ -69,7 +65,7 @@ public class CNewProdPacket extends CBroadcastPacket
 		this.payload=UTILS.SERIAL.serialize(dec_payload);
 				
 		// Network fee
-		fee=new CFeePayload(fee_adr, mkt_days*mkt_bid);
+		fee=new CFeePayload(fee_adr, mkt_days*0.00001);
 		
 		   
 		// Sign packet

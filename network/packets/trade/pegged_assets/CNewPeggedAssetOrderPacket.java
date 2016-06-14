@@ -16,7 +16,9 @@ public class CNewPeggedAssetOrderPacket extends CBroadcastPacket
                                       String adr,
                                       long mktID, 
                                       String tip, 
-                                      double qty) throws Exception
+                                      double qty,
+                                      String packet_sign,
+                                      String payload_sign) throws Exception
     {
           super("ID_NEW_FEED_MARKET_ORDER_PACKET");
 	  
@@ -33,7 +35,7 @@ public class CNewPeggedAssetOrderPacket extends CBroadcastPacket
 	  fee=new CFeePayload(net_fee_adr, 0.0001);
 			   
 	   // Sign packet
-	   this.sign();
+	   this.sign(payload_sign);
 	}
 		
         // Check 

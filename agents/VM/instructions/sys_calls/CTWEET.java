@@ -100,7 +100,7 @@ public class CTWEET extends CInstruction
                                         + "pic_3='"+UTILS.BASIC.base64_encode(pic_3)+"', "
                                         + "pic_4='"+UTILS.BASIC.base64_encode(pic_4)+"', "
                                         + "pic_5='"+UTILS.BASIC.base64_encode(pic_5)+"', "
-                                        + "block='"+UTILS.NET_STAT.last_block+"', "
+                                        + "block='"+VM.block+"', "
                                         + "received='"+UTILS.BASIC.tstamp()+"'");
        
        // Fee

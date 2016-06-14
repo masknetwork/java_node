@@ -19,7 +19,9 @@ public class CNewRegMarketPacket extends CBroadcastPacket
                                int decimals,
                                String title, 
                                String description,
-                               long days) throws Exception
+                               long days,
+                               String packet_sign,
+                               String payload_sign) throws Exception
     {
           super("ID_NEW_REG_ASSET_MARKET_PACKET");
 	  

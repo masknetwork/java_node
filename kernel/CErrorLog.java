@@ -67,18 +67,23 @@ public class CErrorLog
         {
 			  
 	}
-		  
-	
-       
     }
 	  
    public boolean portBusy() throws Exception
          {
              try 
              {
-               Socket s = new Socket("127.0.0.1", 10000);
-               s.close();
-               return true;
+                 // Connects to local
+                 Socket s = new Socket("127.0.0.1", 10000);
+                 
+                 // Close
+                 s.close();
+                 
+                 // Log
+                 UTILS.LOG.log("ID_CON_ERR", "Port busy", "CErrLog.java", 81);
+                 
+                 // Return
+                 return true;
              }
              catch(Exception e) 
              {

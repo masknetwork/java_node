@@ -15,7 +15,10 @@ import wallet.network.packets.trans.CFeePayload;
 
 public class CFeedPacket extends CBroadcastPacket
 {
-    public CFeedPacket(String fee_adr, String feed_symbol) throws Exception
+    public CFeedPacket(String fee_adr, 
+                       String feed_symbol,
+                       String packet_sign,
+                       String payload_sign) throws Exception
     {
        // Constructor
        super("ID_FEED_PACKET");

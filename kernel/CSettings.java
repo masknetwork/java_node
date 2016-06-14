@@ -52,6 +52,9 @@ public class CSettings
         
         // Wallet pass
         public String pass;
+        
+        // Checkpoint blocks
+        public long chk_blocks=10;
        
 	
   public CSettings() throws Exception
@@ -113,6 +116,10 @@ public class CSettings
 		  // Minimum peers
 		  settings.setProperty("min_peers", "3");
 		  this.min_peers=3;
+                  
+                  // Checlpoint blocks
+		  settings.setProperty("chk_blocks", "10");
+		  this.chk_blocks=10;
                
 		    
                     // Write settings
@@ -193,6 +200,10 @@ public class CSettings
 	      // DB pass
 	      if (this.settings.containsKey("db_pass"))
 	         this.db_pass=(this.settings.getProperty("db_pass"));
+              
+              // Checkpoint blocks
+	      if (this.settings.containsKey("chk_blocks"))
+	         this.db_pass=(this.settings.getProperty("chk_blocks"));
               
 	  }
 	  catch (IOException e) 

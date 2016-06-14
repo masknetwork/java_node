@@ -17,8 +17,6 @@ public class CBroadcastPacket extends CPacket
 	 // Block
 	 public Long block;
          
-         // Signature
-         public String sign;
 	   
 	public CBroadcastPacket(String tip)  throws Exception
 	{
@@ -32,9 +30,9 @@ public class CBroadcastPacket extends CPacket
 	
 	public CResult check(CBlockPayload block) throws Exception
 	{
-	    // Parent check
+            // Parent check
             CResult res_parent=super.check(block);
-            if (res_parent.passed==false) return res_parent;
+            if (res_parent.passed==false) throw new Exception(res_parent.reason);
         
              // Check hash
              String h=UTILS.BASIC.hash(this.tip+
@@ -43,8 +41,13 @@ public class CBroadcastPacket extends CPacket
 				       UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload)));
 	     
              if (!h.equals(this.hash))
-	        return new CResult(false, "Invalid hash", "CBroadcastPacket", 30);
+	        return new CResult(false, "Invalid block number", "CBroadcastPacket", 30);
 	    
+             // Block number
+             if (block!=null)
+               if (this.block!=block.block)
+                 throw new Exception("Invalid block number - CBroadcastPacket.java");
+             
             // Check fee
             CResult res=this.fee.check(block);
             if (!res.passed) 
@@ -76,7 +79,25 @@ public class CBroadcastPacket extends CPacket
 	    return new CResult(true, "Ok", "CBroadcastPacket", 30);
 	}
 	
-	public void sign() throws Exception
+	public void sign(String sig) throws Exception
+	{
+            // Packet hash
+            this.hash=UTILS.BASIC.hash(this.tip+
+				       String.valueOf(this.block)+
+				       UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.fee))+
+				       UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload)));
+		   
+            // Signature address
+            if (sig.equals(""))
+            {
+              CAddress adr=UTILS.WALLET.getAddress(this.fee.target_adr);
+	      this.sign=adr.sign(this.hash);
+            }
+            else 
+                this.sign=sig;
+        }
+        
+        public void sign() throws Exception
 	{
             // Packet hash
             this.hash=UTILS.BASIC.hash(this.tip+
@@ -86,23 +107,10 @@ public class CBroadcastPacket extends CPacket
 		   
             // Signature address
             CAddress adr=UTILS.WALLET.getAddress(this.fee.target_adr);
-	    this.sign=adr.sign(this.hash);
-	}
+	      this.sign=adr.sign(this.hash);
+           
+        }
 	
-	public void sign(String signer) throws Exception
-	{
-		  // Block
-		   this.block=UTILS.BASIC.block(); 
-		   
-		   // Packet hash
-		   this.hash=UTILS.BASIC.hash(this.tip+
-				              UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.fee))+
-				              UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload)));
-		   
-		   // Signature address
-		   CAddress adr=UTILS.WALLET.getAddress(signer);
-		   this.sign=adr.sign(this.hash);
-	}
 	
 	public boolean checkSign() throws Exception
 	{
@@ -110,9 +118,5 @@ public class CBroadcastPacket extends CPacket
 		return (ecc.checkSig(hash, this.sign));
 	}
 	
-	public boolean checkSign(String signer) throws Exception
-	{
-		 CECC ecc=new CECC(signer);
-		 return (ecc.checkSig(hash, this.sign));
-	}
+	
 }

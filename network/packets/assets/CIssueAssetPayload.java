@@ -286,14 +286,14 @@ public class CIssueAssetPayload extends CPayload
                                                        UTILS.BASIC.base64_encode(this.how_sell)+"', '"+
                                                        UTILS.BASIC.base64_encode(this.web_page)+"', '"+
                                                        UTILS.BASIC.base64_encode(this.pic)+"', '"+
-                                                       (UTILS.BASIC.block()+this.mkt_days*1440)+"', '"+
+                                                       ((UTILS.NET_STAT.last_block+1)+this.mkt_days*1440)+"', '"+
                                                        String.valueOf(this.qty)+"', '"+
                                                        this.trans_fee_adr+"', '"+
                                                        UTILS.FORMAT.format(this.trans_fee)+"', '"+
                                                        this.can_increase+"', '"+
                                                        this.interest+"', '"+
                                                        this.interval+"', '"+
-                                                       String.valueOf(UTILS.BASIC.block())+"')");
+                                                       String.valueOf(UTILS.NET_STAT.last_block+1)+"')");
            
            // Update 
            UTILS.DB.executeUpdate("INSERT INTO assets_owners(owner, "

@@ -18,7 +18,9 @@ public class CNewFeedPacket extends CBroadcastPacket
                           String description,
                           String website,
                           String symbol, 
-                          long mkt_days) throws Exception
+                          long mkt_days,
+                          String packet_sign,
+                          String payload_sign) throws Exception
     {
         // Constructor
         super("ID_NEW_FEED_PACKET");
@@ -38,7 +40,7 @@ public class CNewFeedPacket extends CBroadcastPacket
 	fee=new CFeePayload(fee_adr, 0.0001*mkt_days);
 			   
 	// Sign packet
-	this.sign();
+	this.sign(payload_sign);
     }
     
     // Check  

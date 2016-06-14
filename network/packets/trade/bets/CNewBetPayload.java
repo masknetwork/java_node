@@ -84,7 +84,8 @@ public class CNewBetPayload extends CPayload
                          long start_block, 
                          long end_block, 
                          long accept_block, 
-                         String cur)   throws Exception
+                         String cur,
+                         String sig)   throws Exception
    {
        // Constructor
        super(adr);
@@ -141,7 +142,7 @@ public class CNewBetPayload extends CPayload
        this.description=description;
        
        // UID
-       this.UID=Math.round(Math.random()*1000000000000L+UTILS.BASIC.block());
+       this.UID=Math.round(Math.random()*1000000000000L+(UTILS.NET_STAT.last_block+1));
        
        // Hash
        hash=UTILS.BASIC.hash(this.getHash()+
@@ -165,7 +166,7 @@ public class CNewBetPayload extends CPayload
                              this.cur);
        
        // Sign
-       this.sign();
+       this.sign(sig);
    }
    
    public CResult check(CBlockPayload block) throws Exception
@@ -333,7 +334,7 @@ public class CNewBetPayload extends CPayload
                                                     +this.block+"')");
         
         // Do transfer
-        UTILS.BASIC.clearTrans(hash, "ID_ALL");
+        UTILS.BASIC.clearTrans(hash, "ID_ALL", this.block);
         
         // Return
 	return new CResult(true, "Ok", "CNewBetPayload", 67); 

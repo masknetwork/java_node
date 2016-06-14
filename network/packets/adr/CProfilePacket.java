@@ -6,6 +6,7 @@ package wallet.network.packets.adr;
 import wallet.kernel.*;
 import wallet.network.*;
 import wallet.network.packets.*;
+import wallet.network.packets.ads.CNewAdPayload;
 import wallet.network.packets.trans.*;
 import wallet.network.packets.blocks.*;
 
@@ -19,7 +20,9 @@ public class CProfilePacket extends CBroadcastPacket
                          String website, 
                          String pic_back, 
                          String pic, 
-		         long days) throws Exception
+		         long days,
+                         String packet_sign,
+                         String payload_sign) throws Exception
    {
 	   // Super class
 	   super("ID_PROFILE_PACKET");
@@ -32,7 +35,8 @@ public class CProfilePacket extends CBroadcastPacket
                                                            website, 
                                                            pic_back,
                                                            pic,
-		                                           days);
+		                                           days,
+                                                           payload_sign);
 			
 	   // Build the payload
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
@@ -41,7 +45,7 @@ public class CProfilePacket extends CBroadcastPacket
 	   fee=new CFeePayload(fee_adr, 0.0001*days);
 	   
 	   // Sign packet
-	   this.sign();
+           this.sign(packet_sign);
    }
    
      public CResult check(CBlockPayload block) throws Exception
@@ -52,18 +56,14 @@ public class CProfilePacket extends CBroadcastPacket
 		   	
 	// Check type
 	if (!this.tip.equals("ID_PROFILE_PACKET")) 
-	    return new CResult(false, "Invalid packet type", "CProfilePacket", 44);
+	    throw new Exception("Invalid packet type - CProfilePacket.java");
 		  
 	// Deserialize
 	CProfilePayload payload=(CProfilePayload) UTILS.SERIAL.deserialize(this.payload);
 		  
 	// Check fee
 	if (this.fee.amount<payload.days*0.0001)
-	   return new CResult(false, "Invalid fee", "CProfilePacket", 44);
-		  
-	// Check sig
-	if (!this.checkSign())
-	   return new CResult(false, "Invalid signature", "CProfilePacket", 44);
+	   throw new Exception("Invalid fee - CProfilePacket.java");
 		  
 	// Check payload
 	res=payload.check(block);
@@ -94,18 +94,42 @@ public class CProfilePacket extends CBroadcastPacket
 	     
     public CResult commit(CBlockPayload block) throws Exception
     {
+	// Check
+        CResult res=this.check(block);
+                
 	// Superclass
-	CResult res=super.commit(block);
+	res=super.commit(block);
 	if (res.passed==false) return res;
-	   	   
-	// Deserialize
-	CProfilePayload pay=(CProfilePayload) UTILS.SERIAL.deserialize(this.payload);
-	 	  
-	// Commit the payload
-	res=pay.commit(block);
-	if (res.passed==false) return res;
-	       
-	// Return 
-	return new CResult(true, "Ok", "CProfilePacket", 47);
+            
+        try
+        {
+            // Begin
+            UTILS.DB.begin();
+                
+            if (res.passed)
+            {
+                // Deserialize transaction data
+                CProfilePayload dec_payload=(CProfilePayload) UTILS.SERIAL.deserialize(payload);
+                
+	        // Commit
+	        res=dec_payload.commit(block);
+	        if (res.passed==false) throw new Exception(res.reason); 
+            }
+            else throw new Exception(res.reason); 
+                    
+            // Commit
+            UTILS.DB.commit();
+        }
+        catch (Exception ex)
+        {
+            // Rollback
+            UTILS.DB.rollback();
+                
+            // Exception
+            throw new Exception(ex.getMessage());
+        }
+			  
+	    // Return 
+	    return new CResult(true, "Ok", "CProfilePacket.java", 9);
     }
 }

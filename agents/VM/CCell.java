@@ -499,4 +499,13 @@ public class CCell  implements java.io.Serializable
          else
              throw new Exception("Could not evaluate complex expression "+var);
      }
+     
+     public void listAdd(CCell cel)
+     {
+         // Add
+         this.list.add(cel);
+         
+         // Change type
+         this.type="ID_LIST";
+     }
 }

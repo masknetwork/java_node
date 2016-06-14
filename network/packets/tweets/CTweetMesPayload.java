@@ -30,7 +30,8 @@ public class CTweetMesPayload extends CPayload
    public CTweetMesPayload(String adr, 
 		           long tweetID,
                            long comID,
-		           String mes) throws Exception
+		           String mes,
+                           String sig) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -55,15 +56,13 @@ public class CTweetMesPayload extends CPayload
                                  this.mes+
                                  this.rowID);
  	   
- 	   //Sign
- 	   this.sign();
+ 	   // Sign
+ 	   this.sign(sig);
    }
    
    public CResult check(CBlockPayload block) throws Exception
    {
-       try
-       {
-             // Super class
+      // Super class
    	     CResult res=super.check(block);
    	     if (res.passed==false) return res;
              
@@ -131,15 +130,7 @@ public class CTweetMesPayload extends CPayload
    	    if (this.checkSig()==false)
    		return new CResult(false, "Invalid signature", "CTweetMesPayload", 157);
        
-        }
-        catch (SQLException ex) 
-       	{  
-       	    UTILS.LOG.log("SQLException", ex.getMessage(), "CTweetMesPayload.java", 57);
-        }
-        catch (Exception ex) 
-       	{  
-       	    UTILS.LOG.log("SQLException", ex.getMessage(), "CTweetMesPayload.java", 57);
-        }
+       
        
  	// Return
  	return new CResult(true, "Ok", "CTweetMesPayload", 164);
@@ -147,10 +138,7 @@ public class CTweetMesPayload extends CPayload
    
    public CResult commit(CBlockPayload block) throws Exception
    {
-       CResult res=this.check(block);
-       if (res.passed==false) return res;
-	  
-       // Superclass
+      // Superclass
        super.commit(block);
        
        // Status

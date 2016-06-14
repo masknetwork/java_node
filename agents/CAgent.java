@@ -21,7 +21,7 @@ public class CAgent implements java.io.Serializable
    // Parser
    public CParser PARSER;
    
-   public CAgent(long ID, boolean sandbox) throws Exception
+   public CAgent(long ID, boolean sandbox, long block) throws Exception
    {
        // VM utils
        VM=new VM(ID, sandbox);
@@ -32,7 +32,8 @@ public class CAgent implements java.io.Serializable
        // ID
        this.ID=ID;
    
-       
+       // Block
+       VM.block=block;
    }
    
    
@@ -74,7 +75,7 @@ public class CAgent implements java.io.Serializable
                                nonce);
    }
    
-   public void execute(String tag, boolean sandbox) throws Exception
+   public void execute(String tag, boolean sandbox, long block) throws Exception
    {
        try
        {
@@ -123,7 +124,7 @@ public class CAgent implements java.io.Serializable
                                          null, 
                                          0);
                 
-                  UTILS.BASIC.clearTrans(UTILS.BASIC.hash(VM.SYS.getVar("SYS.AGENT.GENERAL.OWNER").val), "ID_ALL");
+                  UTILS.BASIC.clearTrans(UTILS.BASIC.hash(VM.SYS.getVar("SYS.AGENT.GENERAL.OWNER").val), "ID_ALL", block);
                 
                  // Flush storage
                  VM.STOR.flush(sandbox);

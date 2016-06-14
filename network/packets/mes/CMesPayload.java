@@ -190,7 +190,7 @@ public class CMesPayload extends CPayload
                 rs.next();
                      
                 // Load message
-                CAgent AGENT=new CAgent(rs.getLong("aID"), false);
+                CAgent AGENT=new CAgent(rs.getLong("aID"), false, this.block);
                     
                 // Set Message 
                 AGENT.loadMes(this.target_adr,
@@ -199,7 +199,7 @@ public class CMesPayload extends CPayload
                               this.hash);
                     
                 // Execute
-                AGENT.execute("#message#", false);
+                AGENT.execute("#message#", false, this.block);
             }
             
 	    // Return 

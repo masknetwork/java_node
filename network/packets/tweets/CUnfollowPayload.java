@@ -18,7 +18,9 @@ public class CUnfollowPayload extends CPayload
    // Tweet ID
    String unfollow_adr;
    
-   public CUnfollowPayload(String adr, String unfollow_address) throws Exception
+   public CUnfollowPayload(String adr, 
+                           String unfollow_address, 
+                           String sig) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -30,15 +32,13 @@ public class CUnfollowPayload extends CPayload
  	   hash=UTILS.BASIC.hash(this.getHash()+
  			         this.unfollow_adr);
  	   
- 	   //Sign
- 	   this.sign();
+ 	   // Sign
+ 	   this.sign(sig);
    }
    
    public CResult check(CBlockPayload block) throws Exception
    {
-       try
-       {
-             // Super class
+      // Super class
    	     CResult res=super.check(block);
    	     if (res.passed==false) return res;
    	
@@ -72,15 +72,7 @@ public class CUnfollowPayload extends CPayload
             // Close
             rs.close(); s.close();
        
-        }
-        catch (SQLException ex) 
-       	{  
-       	    UTILS.LOG.log("SQLException", ex.getMessage(), "CFollowPayload.java", 57);
-        }
-        catch (Exception ex) 
-       	{  
-       	    UTILS.LOG.log("Exception", ex.getMessage(), "CFollowPayload.java", 57);
-        }
+        
        
        
  	// Return
@@ -89,34 +81,15 @@ public class CUnfollowPayload extends CPayload
    
    public CResult commit(CBlockPayload block) throws Exception
    {
-       try
-       {
-          CResult res=this.check(block);
-          if (res.passed==false) return res;
-	  
-          // Superclass
-          super.commit(block);
+        // Superclass
+        super.commit(block);
           
-          // Unfollow
-          UTILS.DB.executeUpdate("DELETE FROM tweets_follow "
+        // Unfollow
+        UTILS.DB.executeUpdate("DELETE FROM tweets_follow "
                                      + "WHERE adr='"+this.target_adr+"' "
                                        + "AND follows='"+this.unfollow_adr+"'");
           
-           // Increase followers
-          UTILS.DB.executeUpdate("UPDATE adr "
-                                  + "SET followers=followers-1 "
-                                + "WHERE adr='"+this.unfollow_adr+"'");
-          
-          // Increase following
-          UTILS.DB.executeUpdate("UPDATE adr "
-                                  + "SET following=following-1 "
-                                + "WHERE adr='"+this.target_adr+"'");
-       }
-       catch (Exception ex) 
-       {  
-       	    UTILS.LOG.log("SQLException", ex.getMessage(), "CFollowPayload.java", 57);
-       }
-       
+      
    	// Return 
    	return new CResult(true, "Ok", "CFollowPayload", 70);
     }

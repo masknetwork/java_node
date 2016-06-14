@@ -22,7 +22,8 @@ public class CBuyBetPayload extends CPayload
    
    public CBuyBetPayload(String adr, 
                          long bet_uid, 
-                         double amount) throws Exception
+                         double amount,
+                         String sig) throws Exception
    {
       // Address
       super(adr);
@@ -39,7 +40,7 @@ public class CBuyBetPayload extends CPayload
                             String.valueOf(this.amount));
          
       // Sign
-      this.sign();
+      this.sign(sig);
    }
    
    public CResult check(CBlockPayload block) throws Exception
@@ -53,8 +54,8 @@ public class CBuyBetPayload extends CPayload
             ResultSet rs=s.executeQuery("SELECT * "
                                         + "FROM feeds_bets "
                                        + "WHERE mktID='"+this.bet_uid+"'"
-                                         +" AND end_block>"+UTILS.BASIC.block()
-                                         +" AND accept_block>"+UTILS.BASIC.block());
+                                         +" AND end_block>"+(UTILS.NET_STAT.last_block+1)
+                                         +" AND accept_block>"+(UTILS.NET_STAT.last_block+1));
             
             // Has data ?
             if (!UTILS.DB.hasData(rs))
@@ -168,7 +169,7 @@ public class CBuyBetPayload extends CPayload
                                  + "WHERE mktID='"+this.bet_uid+"'");
                    
            // Commit
-           UTILS.BASIC.clearTrans(hash, "ID_ALL");
+           UTILS.BASIC.clearTrans(hash, "ID_ALL", this.block);
         }
         catch (SQLException ex) 
        	{  

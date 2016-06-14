@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package wallet.network.packets.shop.goods;
+package wallet;
 
 /**
  *
  * @author technicalsupport
  */
-public class CStorePayOptionsPayload {
+public class CBlock {
     
 }

@@ -9,8 +9,14 @@ import wallet.kernel.UTILS;
 
 public class CEMAIL extends CInstruction
 {
+    // From address
+    CToken from;
+    
     // Recipient
     CToken rec;
+    
+    // Subject
+    CToken subj;
     
     // Message
     CToken mes;
@@ -20,11 +26,17 @@ public class CEMAIL extends CInstruction
         // Constructor
         super(VM, "EMAIL");
         
+        // From
+        this.from=tokens.get(1);
+        
         // Recipient
-        this.rec=tokens.get(1);
+        this.rec=tokens.get(3);
+        
+        // Subject
+        this.subj=tokens.get(5);
     
         // Message
-        this.mes=tokens.get(5);
+        this.mes=tokens.get(7);
     }
     
     public void execute() throws Exception
@@ -43,11 +55,16 @@ public class CEMAIL extends CInstruction
         if (this.mes.cel.val.length()<2 || this.mes.cel.val.length()>2500)
             throw new Exception("Invalid message length");
         
+        // Subject valid
+        if (this.subj.cel.val.length()<2 || this.subj.cel.val.length()>100)
+            throw new Exception("Invalid message length");
+        
         // Insert email
         UTILS.DB.executeUpdate("INSERT INTO out_emails "
                                      + "SET format='ID_MES', "
+                                         + "from='"+this.from.cel.val+"', "
                                          + "dest='"+this.rec.cel.val+"', "
-                                         + "subject='You have received a new message', "
+                                         + "subject='"+UTILS.BASIC.base64_encode(this.subj.cel.val)+"', "
                                          + "message='"+UTILS.BASIC.base64_encode(this.mes.cel.val)+"', "
                                          + "adr='"+owner+"', "
                                          + "tstamp='"+UTILS.BASIC.tstamp()+"', "

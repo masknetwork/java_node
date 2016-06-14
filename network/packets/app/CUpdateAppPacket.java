@@ -13,7 +13,9 @@ public class CUpdateAppPacket extends CBroadcastPacket
                           String adr, 
                           long appID, 
                           String op, 
-                          long days) throws Exception
+                          long days,
+                          String packet_sign,
+                          String payload_sign) throws Exception
   {
       super("ID_UPDATE_APP_PACKET");
       

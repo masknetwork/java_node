@@ -8,6 +8,7 @@ import wallet.network.*;
 import wallet.network.packets.*;
 import wallet.network.packets.trans.*;
 import wallet.network.packets.blocks.*;
+import wallet.network.packets.shop.goods.CNewStorePayload;
 
 
 public class CNewAdPacket extends CBroadcastPacket 
@@ -19,7 +20,9 @@ public class CNewAdPacket extends CBroadcastPacket
 		       double price, 
 		       String title, 
 		       String mes, 
-		       String link) throws Exception
+		       String link,
+                       String packet_sign,
+                       String payload_sign) throws Exception
    {
 	   // Super class
 	   super("ID_NEW_AD_PACKET");
@@ -31,7 +34,8 @@ public class CNewAdPacket extends CBroadcastPacket
 			                               price, 
 			                               title, 
 			                               mes, 
-			                               link);
+			                               link,
+                                                       payload_sign);
 			
 	   // Build the payload
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
@@ -40,7 +44,7 @@ public class CNewAdPacket extends CBroadcastPacket
 	   fee=new CFeePayload(fee_adr,  price*hours);
 	   
 	   // Sign packet
-	   this.sign();
+           this.sign(packet_sign);
    }
    
    // Check 
@@ -52,18 +56,17 @@ public class CNewAdPacket extends CBroadcastPacket
    	
    	  // Check type
    	  if (!this.tip.equals("ID_NEW_AD_PACKET")) 
-   		return new CResult(false, "Invalid packet type", "CNewAdPacket", 39);
+             return new CResult(false, "Invalid packet type", "CNewAdPacket", 39);
    	  
-   	  // Check sig
-   	  if (this.checkSign()==false)
-   		return new CResult(false, "Invalid signature", "CNewAdPacket", 39);
-          
           // Deserialize transaction data
    	  CNewAdPayload dec_payload=(CNewAdPayload) UTILS.SERIAL.deserialize(payload);
           
           // Check fee
 	  if (this.fee.amount<dec_payload.hours*0.0001)
-	      return new CResult(false, "Invalid fee", "CBlockAdrPacket", 44);
+	      throw new Exception("Invalid fee - CNewAdPacket.java");
+          
+          // Check payload
+          dec_payload.check(block);
           
           // Footprint
           CFootprint foot=new CFootprint("ID_NEW_AD_PACKET", 
@@ -89,18 +92,42 @@ public class CNewAdPacket extends CBroadcastPacket
    
    public CResult commit(CBlockPayload block) throws Exception
    {
-   	  // Superclass
-   	  CResult res=super.commit(block);
-   	  if (res.passed==false) return res;
-   	  
-   	  // Deserialize transaction data
-   	  CNewAdPayload dec_payload=(CNewAdPayload) UTILS.SERIAL.deserialize(payload);
-
-	  // Fee is 0.0001 / day ?
-	  res=dec_payload.commit(block);
-          if (res.passed==false) return res;
-	  
-	  // Return 
-   	  return new CResult(true, "Ok", "CNewAdPacket", 62);
+       // Check
+            CResult res=this.check(block);
+                
+	    // Superclass
+	    res=super.commit(block);
+	    if (res.passed==false) return res;
+            
+            try
+            {
+                // Begin
+                UTILS.DB.begin();
+                
+                if (res.passed)
+                {
+                   // Deserialize transaction data
+                   CNewAdPayload dec_payload=(CNewAdPayload) UTILS.SERIAL.deserialize(payload);
+                
+	           // Commit
+	           res=dec_payload.commit(block);
+	           if (res.passed==false) throw new Exception(res.reason); 
+                }
+                else throw new Exception(res.reason); 
+                    
+                // Commit
+                UTILS.DB.commit();
+            }
+            catch (Exception ex)
+            {
+                // Rollback
+                UTILS.DB.rollback();
+                
+                // Exception
+                throw new Exception(ex.getMessage());
+            }
+			  
+	    // Return 
+	    return new CResult(true, "Ok", "CNewAdPacket.java", 9);
    }
 }

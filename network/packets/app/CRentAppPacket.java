@@ -12,7 +12,9 @@ public class CRentAppPacket extends CBroadcastPacket
    public CRentAppPacket(String net_fee_adr, 
                         String adr, 
                         long appID, 
-                        long days) throws Exception
+                        long days,
+                        String packet_sign,
+                        String payload_sign) throws Exception
   {
       super("ID_RENT_APP_PACKET");
       

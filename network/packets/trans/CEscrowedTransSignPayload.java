@@ -161,7 +161,7 @@ public class CEscrowedTransSignPayload extends CPayload
 	            super.commit(block);
                
                     // Clear transactions
-                    UTILS.BASIC.clearTrans(hash, "ID_ALL");
+                    UTILS.BASIC.clearTrans(hash, "ID_ALL", this.block);
                
                     // Delete transaction
                     UTILS.DB.executeUpdate("DELETE FROM escrowed "

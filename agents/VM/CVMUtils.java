@@ -49,22 +49,13 @@ public class CVMUtils
             case "MATH" : return true;
             case "RAND" : return true;
             case "TOSTRING" : return true;
-            
-            
             case "EXIT" : return true;
             case "GOTO" : return true;
             case "SIZE" : return true;
             case "LOG" : return true;
             case "IF" : return true;
-            
-            // Storage
-            case "STORGET" : return true;
-            case "STORSET" : return true;
-            case "STORDEL" : return true;
-            case "STORADDLINE" : return true;
+            case "LISTADD" : return true;
             case "STORQUERY" : return true;
-            
-            // System calls
             case "DBQUERY" : return true;
             case "MES" : return true;
             case "TWEET" : return true;
@@ -73,8 +64,6 @@ public class CVMUtils
             case "SETFEED" : return true;
             case "TSTAMP" : return true;
             case "DATE" : return true;
-            
-            // String
             case "CONCAT" : return true;
             case "INDEXOF" : return true;
             case "LASTCH" : return true;
@@ -83,14 +72,11 @@ public class CVMUtils
             case "STRLEN" : return true;
             case "SUBSTR" : return true;
             case "TRIM" : return true;
-            
             case "ATPOS" : return true;
             case "REGEX" : return true;
             case "REFUND" : return true;
-            
             case "PUSH" : return true;
             case "POP" : return true;
-            
             case "HASH" : return true;
         }
         

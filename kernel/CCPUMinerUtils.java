@@ -264,7 +264,17 @@ public class CCPUMinerUtils
                              long timestamp, 
                              long nonce,
                              String check_block_hash,
-                             long net_dif) throws Exception
+                             long net_dif,
+                             String tab_1,
+                             String tab_2,
+                             String tab_3,
+                             String tab_4,
+                             String tab_5,
+                             String tab_6,
+                             String tab_7,
+                             String tab_8,
+                             String tab_9,
+                             String tab_10) throws Exception
     {
         String hash=UTILS.BASIC.hash(prev_hash+
                                     "ID_BLOCK"+
@@ -274,8 +284,18 @@ public class CCPUMinerUtils
                                     String.valueOf(Math.round(signer_balance))+
                                     String.valueOf(timestamp)+
                                     String.valueOf(nonce)+
-                                    String.valueOf(net_dif));
-        
+                                    String.valueOf(net_dif)+
+                                    tab_1+
+                                    tab_2+
+                                    tab_3+
+                                    tab_4+
+                                    tab_5+
+                                    tab_6+
+                                    tab_7+
+                                    tab_8+
+                                    tab_9+
+                                    tab_10);
+      
         // Get hash
         hash=this.getHash(prev_hash, hash);
               

@@ -267,7 +267,7 @@ public class CUpdatePosPayload extends CPayload
         if (!res.passed) return res;
         
         // Commit payment
-        UTILS.BASIC.clearTrans(hash, "ID_ALL");
+        UTILS.BASIC.clearTrans(hash, "ID_ALL", this.block);
          
         // Updates
         UTILS.DB.executeUpdate("UPDATE feeds_spec_mkts_pos "

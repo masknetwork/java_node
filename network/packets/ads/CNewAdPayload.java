@@ -36,7 +36,8 @@ public class CNewAdPayload extends CPayload
 		        double market_bid, 
 		        String title, 
 		        String mes, 
-		        String link) throws Exception
+		        String link,
+                        String sig) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -68,13 +69,11 @@ public class CNewAdPayload extends CPayload
  			         this.title+
  			         this.mes+
  			         this.link+
- 			         UTILS.FORMAT.format(this.market_bid)+
-                                 String.valueOf(this.hours));
+ 			         this.market_bid+
+                                 this.hours);
  	   
  	   //Sign
- 	   this.sign();
-           
-           System.out.print(this.block);
+           this.sign(sig);
    }
    
    public CResult check(CBlockPayload block) throws Exception
@@ -84,91 +83,93 @@ public class CNewAdPayload extends CPayload
    	  if (res.passed==false) return res;
    	
    	  // Target address valid
-   	  if (UTILS.BASIC.adressValid(this.target_adr)==false) 
-   		return new CResult(false, "Invalid target address", "CNewAdPayload", 51);
+   	  if (!UTILS.BASIC.canSpend(this.target_adr)) 
+   		throw new Exception("Target address can't spend funds - CNewAdPayload.java");
    	  
    	  // Check country
    	  if (this.country.length()==2 || this.country.equals("XX"))
    	  {
    		  if (UTILS.BASIC.countryExist(this.country)==false)
-   			return new CResult(false, "Invalid target country", "CNewAdPayload", 51); 
+   			throw new Exception("Invalid country - CNewAdPayload.java");
    	  }
    	  else
-   		return new CResult(false, "Invalid target country", "CNewAdPayload", 51);  
+   		throw new Exception("Invalid country - CNewAdPayload.java");
    	  
           // Check hours
   	  if (this.hours<1) 
-  	    return new CResult(false, "Invalid period.", "CNewAdPayload", 77);
-   	  
-      
+  	    throw new Exception("Invalid period - CNewAdPayload.java");
+   	   
+          // Bid
+          if (this.market_bid<0.0001)
+             throw new Exception("Invalid bid - CNewAdPayload.java");
+          
   	  // Check Title 
-          if (this.title.length()<5 || title.length()>30)
-            return new CResult(false, "Invalid title.", "CNewAdPayload", 77);
+          if (!UTILS.BASIC.isString(this.title))
+            throw new Exception("Invalid title - CNewAdPayload.java");
             
-            // Check letters
-            if (!this.title.matches("[A-Za-z0-9\\.,?!$%'\\s]+"))
-                return new CResult(false, "Invalid title.", "CNewAdPayload", 77);
+          // Check title length
+          if (this.title.length()<5 || this.title.length()>30)
+              throw new Exception("Invalid title - CNewAdPayload.java");
    	  
-          // Check Message
-  	  if (this.mes.length()<50 || this.mes.length()>70)
-            return new CResult(false, "Invalid message.", "CNewAdPayload", 77);
-	  
-          if (!this.mes.matches("[A-Za-z0-9\\.,?!$%'\\s]+"))
-               return new CResult(false, "Invalid message.", "CNewAdPayload", 77);
+          // Check message 
+          if (!UTILS.BASIC.isString(this.mes))
+            throw new Exception("Invalid message - CNewAdPayload.java");
+            
+          // Check message length
+          if (this.mes.length()<50 || this.mes.length()>70)
+              throw new Exception("Invalid message - CNewAdPayload.java");
           
 	  // Check link
 	  if (!UTILS.BASIC.isLink(this.link))
-	     return new CResult(false, "Invalid link.", "CNewAdPayload", 77);
+	     throw new Exception("Invalid link - CNewAdPayload.java");
           
-	    // Check Hash
+          // Contract
+          if (UTILS.BASIC.isContractAdr(this.target_adr))
+               throw new Exception("Contract address - CNewAdPayload.java");
+          
+	   // Check Hash
 	   String h=UTILS.BASIC.hash(this.getHash()+
  			             this.country+
  			             this.title+
  			             this.mes+
  			             this.link+
- 			             UTILS.FORMAT.format(this.market_bid)+
-                                     String.valueOf(this.hours));
+ 			             this.market_bid+
+                                     this.hours);
 	  
+          // Hash
    	  if (!h.equals(this.hash)) 
-   		return new CResult(false, "Invalid hash", "CNewAdPayload", 157);
-   	  
-   	  // Check signature
-   	  if (this.checkSig()==false)
-   		return new CResult(false, "Invalid signature", "CNewAdPayload", 157);
- 		  
+             throw new Exception("Invalid hash - CNewAdPayload.java");
+   	 
  	  // Return
  	  return new CResult(true, "Ok", "CNewAdPayload", 164);
    }
    
    public CResult commit(CBlockPayload block) throws Exception
    {
-       CResult res=this.check(block);
-       if (res.passed==false) return res;
-	  
        // Superclass
        super.commit(block);
        
        // Commit
-   	   UTILS.DB.executeUpdate("INSERT INTO ads(adr, "
-   		   		                + "title, "
-   		   		                + "message, "
-   		   		                + "link, "
-                                                + "country, "
-   		   		                + "mkt_bid, "
-   		   		                + "expires, "
-   		   		                + "block)"
-   		   		                + "VALUES('"+
-                                                this.target_adr+"', '"+
-   		   		                UTILS.BASIC.base64_encode(this.title)+"', '"+
-   		   		                UTILS.BASIC.base64_encode(this.mes)+"', '"+
-   		   		                UTILS.BASIC.base64_encode(this.link)+"', '"+
-                                                this.country+"', '"+
-   		   		                UTILS.FORMAT.format(this.market_bid)+"', '"+
-   		   		                (this.block+(this.hours*60))+"', '"+
-   		   		                this.block+"')");
+       UTILS.DB.executeUpdate("INSERT INTO ads(adr, "
+   		   		            + "title, "
+   		   		            + "message, "
+   		   		            + "link, "
+                                            + "country, "
+   		   		            + "mkt_bid, "
+   		   		            + "expire, "
+   		   		            + "block)"
+   		   		            + "VALUES('"+
+                                            this.target_adr+"', '"+
+   		   		            UTILS.BASIC.base64_encode(this.title)+"', '"+
+   		   		            UTILS.BASIC.base64_encode(this.mes)+"', '"+
+   		   		            UTILS.BASIC.base64_encode(this.link)+"', '"+
+                                            this.country+"', '"+
+   		   		            UTILS.FORMAT.format(this.market_bid)+"', '"+
+   		   		            (this.block+(this.hours*60))+"', '"+
+   		   		            this.block+"')");
    	  
           
-   	  // Return 
-   	   return new CResult(true, "Ok", "CReqDataPayload", 70);
+   	// Return 
+   	return new CResult(true, "Ok", "CReqDataPayload", 70);
     }
 }

@@ -60,6 +60,7 @@ public class CDB
                    System.exit(0);
   	   }
      
+           this.executeUpdate("SET GLOBAL group_concat_max_len=10000000000");
 	   UTILS.CONSOLE.write("DB initialized...");
    }
    

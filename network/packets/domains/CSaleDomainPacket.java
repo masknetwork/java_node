@@ -18,7 +18,9 @@ public class CSaleDomainPacket extends CBroadcastPacket
 		            String domain, 
                             double sale_price, 
                             double mkt_bid, 
-                            long mkt_days) throws Exception
+                            long mkt_days,
+                            String packet_sign,
+                            String payload_sign) throws Exception
    {
 	   super("ID_SALE_DOMAIN_PACKET");
            

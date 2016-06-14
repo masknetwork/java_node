@@ -15,7 +15,11 @@ import wallet.network.packets.trans.*;
 
 public class CTransferDomainPacket extends CBroadcastPacket 
 {
-   public CTransferDomainPacket(String fee_adr, String domain, String toAdr) throws Exception
+   public CTransferDomainPacket(String fee_adr, 
+                                String domain, 
+                                String toAdr,
+                                String packet_sign,
+                                String payload_sign) throws Exception
    {
 	super("ID_TRANSFER_DOMAIN_PACKET");
 	

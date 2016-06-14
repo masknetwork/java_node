@@ -19,7 +19,8 @@ public class CFollowPayload extends CPayload
    String follow_adr;
    
    public CFollowPayload(String adr, 
-		         String follow_adr) throws Exception
+		         String follow_adr,
+                         String sig) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -31,114 +32,77 @@ public class CFollowPayload extends CPayload
  	   hash=UTILS.BASIC.hash(this.getHash()+
  			         this.follow_adr);
  	   
- 	   //Sign
- 	   this.sign();
+ 	   // Sign
+           this.sign(sig);
    }
    
    public CResult check(CBlockPayload block) throws Exception
    {
-       try
-       {
-             // Super class
-   	     CResult res=super.check(block);
-   	     if (res.passed==false) return res;
+       // Super class
+       CResult res=super.check(block);
+       if (res.passed==false) return res;
    	
-   	     // Follow address valid
-             if (!UTILS.BASIC.adressValid(this.follow_adr))
-                return new CResult(false, "Invalid hash", "CFollowPayload", 157);
+       // Follow address valid
+       if (!UTILS.BASIC.adressValid(this.follow_adr))
+          throw new Exception("Invalid follow address - CFollowPayload.java");
              
-             // Statement
-             Statement s=UTILS.DB.getStatement();
+       // Statement
+       Statement s=UTILS.DB.getStatement();
              
-             // Address has tweets ?
-             ResultSet rs=s.executeQuery("SELECT * "
-                                         + "FROM tweets "
-                                        + "WHERE adr='"+this.follow_adr+"'");
+       // Address has tweets ?
+       ResultSet rs=s.executeQuery("SELECT * "
+                                   + "FROM tweets "
+                                  + "WHERE adr='"+this.follow_adr+"'");
              
-             if (!UTILS.DB.hasData(rs))
-                return new CResult(false, "Invalid follow address", "CFollowPayload", 157);
+       if (!UTILS.DB.hasData(rs))
+          throw new Exception("Address has no twits - CFollowPayload.java");
              
-             // Check Hash
-	     String h=UTILS.BASIC.hash(this.getHash()+
- 			               this.follow_adr);
+       // Check Hash
+       String h=UTILS.BASIC.hash(this.getHash()+
+ 			         this.follow_adr);
 	  
-   	    if (!h.equals(this.hash)) 
-   		return new CResult(false, "Invalid hash", "CFollowPayload", 157);
-   	  
-   	    // Check signature
-   	    if (this.checkSig()==false)
-   		return new CResult(false, "Invalid signature", "CFollowPayload", 157);
-            
-            // Close
-            rs.close(); s.close();
-       
-        }
-        catch (SQLException ex) 
-       	{  
-       	    UTILS.LOG.log("SQLException", ex.getMessage(), "CFollowPayload.java", 57);
-        }
-        catch (Exception ex) 
-       	{  
-       	    UTILS.LOG.log("Exception", ex.getMessage(), "CFollowPayload.java", 57);
-        }
-       
-       
- 	// Return
- 	return new CResult(true, "Ok", "CFollowPayload", 164);
+       if (!h.equals(this.hash)) 
+   	  return new CResult(false, "Invalid hash", "CFollowPayload", 157);
+   	    
+       // Close
+       s.close();
+      
+       // Return
+       return new CResult(true, "Ok", "CFollowPayload", 164);
    }
    
    public CResult commit(CBlockPayload block) throws Exception
    {
-       try
-       {
-          CResult res=this.check(block);
-          if (res.passed==false) return res;
-	  
-          // Superclass
-          super.commit(block);
+       // Superclass
+       super.commit(block);
        
-          // Statement
-          Statement s=UTILS.DB.getStatement();
+       // Statement
+       Statement s=UTILS.DB.getStatement();
           
-          // Already following
-          ResultSet rs=s.executeQuery("SELECT * "
+       // Already following
+       ResultSet rs=s.executeQuery("SELECT * "
                                       + "FROM tweets_follow "
                                      + "WHERE adr='"+this.target_adr+"' "
                                        + "AND follows='"+this.follow_adr+"'");
           
-          if (UTILS.DB.hasData(rs))
-          UTILS.DB.executeUpdate("UPDATE tweets_follow "
-                                    + "SET block='"+this.block+"' "
-                                  + "WHERE adr='"+this.target_adr+"' "
-                                    + "AND follows='"+this.follow_adr+"'");    
-          else
-          UTILS.DB.executeUpdate("INSERT INTO tweets_follow (adr, "
+       if (UTILS.DB.hasData(rs))
+       UTILS.DB.executeUpdate("UPDATE tweets_follow "
+                                  + "SET block='"+this.block+"' "
+                                + "WHERE adr='"+this.target_adr+"' "
+                                  + "AND follows='"+this.follow_adr+"'");    
+       else
+       UTILS.DB.executeUpdate("INSERT INTO tweets_follow (adr, "
                                                           + "follows, "
                                                           + "block) VALUES('"
                                                           +this.target_adr+"', '"
                                                           +this.follow_adr+"', '"
                                                           +this.block+"')");
+    
           
-          // Increase followers
-          UTILS.DB.executeUpdate("UPDATE adr "
-                                  + "SET followers=followers+1 "
-                                + "WHERE adr='"+this.follow_adr+"'");
-          
-          // Increase following
-          UTILS.DB.executeUpdate("UPDATE adr "
-                                  + "SET following=following+1 "
-                                + "WHERE adr='"+this.target_adr+"'");
-       }
-       catch (SQLException ex) 
-       {  
-       	    UTILS.LOG.log("SQLException", ex.getMessage(), "CFollowPayload.java", 57);
-       }
-       catch (Exception ex) 
-       {  
-       	    UTILS.LOG.log("SQLException", ex.getMessage(), "CFollowPayload.java", 57);
-       }
+       // Close
+       s.close();
        
-   	// Return 
-   	return new CResult(true, "Ok", "CFollowPayload", 70);
+       // Return 
+       return new CResult(true, "Ok", "CFollowPayload", 70);
     }
 }

@@ -20,7 +20,9 @@ public class CNewSpecMarketPosPacket extends CBroadcastPacket
 				   double sl, 
 				   double tp, 
 				   long leverage, 
-				   double qty) throws Exception
+				   double qty,
+                                   String packet_sign,
+                                   String payload_sign) throws Exception
     {
           super("ID_NEW_SPEC_MARKET_POS_PACKET");
 	  
@@ -42,7 +44,7 @@ public class CNewSpecMarketPosPacket extends CBroadcastPacket
 	  fee=new CFeePayload(fee_adr);
 			   
 	   // Sign packet
-	   this.sign();
+	   this.sign(payload_sign);
 	}
 		
         // Check 

@@ -17,7 +17,9 @@ public class CRemoveItemPacket extends CBroadcastPacket
     public CRemoveItemPacket(String fee_adr, 
                              String adr, 
                              String table, 
-                             String rowhash) throws Exception
+                             String rowhash,
+                             String packet_sign,
+                             String payload_sign) throws Exception
     {
        super("ID_REMOVE_ITEM_PACKET");
 	

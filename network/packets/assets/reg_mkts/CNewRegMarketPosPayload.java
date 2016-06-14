@@ -215,7 +215,7 @@ public class CNewRegMarketPosPayload extends CPayload
             String cur_symbol=rs.getString("cur");
             
             // Clear
-            UTILS.BASIC.clearTrans(hash, "ID_ALL");
+            UTILS.BASIC.clearTrans(hash, "ID_ALL", this.block);
             
             // Execute transactions
             if (this.tip.equals("ID_SELL"))

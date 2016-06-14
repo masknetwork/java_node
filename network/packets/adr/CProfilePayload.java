@@ -45,7 +45,8 @@ public class CProfilePayload extends CPayload
                           String website, 
                           String pic_back, 
                           String pic, 
-		          long days) throws Exception
+		          long days,
+                          String sig) throws Exception
    {
 	   // Superclass
 	   super(target_adr);
@@ -82,10 +83,10 @@ public class CProfilePayload extends CPayload
  			         description+
  			         website+
  			         email+
- 			         String.valueOf(days));
+ 			         days);
            
            // Sign
-           this.sign();
+           this.sign(sig);
    }
    
    public CResult check(CBlockPayload block) throws Exception
@@ -94,43 +95,51 @@ public class CProfilePayload extends CPayload
    	  CResult res=super.check(block);
    	  if (res.passed==false) return res;
    	  
-           // Sealed address ?
-           if (UTILS.BASIC.hasAttr(this.target_adr, "ID_SEALED"))
-              return new CResult(false, "Target address is sealed.", "CAddSignPayload", 104);
-           
-   	  // Name
-          if (!this.name.equals(""))
-            if (this.name.length()>50)
-              return new CResult(false, "Invalid name length", "CProfilePayload", 48);
+          // Name
+          if (!UTILS.BASIC.isTitle(this.name))
+              throw new Exception("Invalid name - CProfilePayload.java");
           
           // Description
-          if (this.description.length()>250)
-              return new CResult(false, "Invalid description length", "CProfilePayload", 48);
+          if (!UTILS.BASIC.isDesc(this.description))
+              throw new Exception("Invalid description - CProfilePayload.java");
           
           // Email
-          if (!UTILS.BASIC.emailValid(this.email))
-              return new CResult(false, "Invalid email", "CProfilePayload", 48);
+          if (!this.email.equals(""))
+            if (!UTILS.BASIC.isEmail(this.email))
+              throw new Exception("Invalid email - CProfilePayload.java");
           
           // Website
           if (!this.website.equals(""))
              if (!UTILS.BASIC.isLink(this.website))
-               return new CResult(false, "Invalid website", "CProfilePayload", 48);
-          
+               throw new Exception("Invalid website - CProfilePayload.java");
          
           // Pic back
           if (!this.pic_back.equals(""))
-             if (!UTILS.BASIC.isLink(this.pic_back))
-               return new CResult(false, "Invalid avatar", "CProfilePayload", 48);
+             if (!UTILS.BASIC.isPic(this.pic_back))
+               throw new Exception("Invalid pic - CProfilePayload.java");
           
           // Pic 
           if (!this.pic.equals(""))
-             if (!UTILS.BASIC.isLink(this.pic))
-               return new CResult(false, "Invalid avatar", "CProfilePayload", 48);
+             if (!UTILS.BASIC.isPic(this.pic))
+               throw new Exception("Invalid pic - CProfilePayload.java");
+          
+          // Profile already exist ?
+          Statement s=UTILS.DB.getStatement();
+          ResultSet rs=s.executeQuery("SELECT * "
+                                      + "FROM profiles "
+                                     + "WHERE adr='"+this.target_adr+"'");
+          
+          if (UTILS.DB.hasData(rs))
+              throw new Exception("Profile already exist - CProfilePayload.java");
    	 
 	   // Check days
- 	   if (days<10 || days>36500) 
- 		 return new CResult(false, "Invalid period", "CAddEscrowPayload", 64);
+ 	   if (days<1) 
+ 	      throw new Exception("Invalid days - CProfilePayload.java");
    	   
+           // Can spend
+           if (!UTILS.BASIC.canSpend(this.target_adr))
+               throw new Exception("Can't spend from this address - CProfilePayload.java");
+               
  	    // Check hash
  	    String h=UTILS.BASIC.hash(this.getHash()+
  			              name+
@@ -139,7 +148,7 @@ public class CProfilePayload extends CPayload
  			              description+
  			              website+
  			              email+
- 			              String.valueOf(days));
+ 			              days);
  	    
             if (!this.hash.equals(h)) 
                  return new CResult(false, "Invalid hash", "CPostCommentPayload", 101);
@@ -155,46 +164,12 @@ public class CProfilePayload extends CPayload
 	  
        // Superclass
        super.commit(block);
-       
           
-       // Commit
-       try
-       {
-              // Statement
-              Statement s=UTILS.DB.getStatement();
-   	      
-              // Result Set
-              ResultSet rs=s.executeQuery("SELECT * "
-   	   		                  + "FROM profiles "
-   	   		                 + "WHERE adr='"+this.target_adr+"'");
-   	      if (UTILS.DB.hasData(rs)==true)
-   	      {
-   		    rs.next();
-   		    
-   		    // Obtain expiration time
-   		    long expire=rs.getLong("expire");
-   		    
-   		    // New expiration block
-   		    expire=this.block+(this.days*1440);
-   		    
-   		    // Update
-   		    UTILS.DB.executeUpdate("UPDATE profiles "
-   		    		            + "SET name='"+UTILS.BASIC.base64_encode(this.name)+"', "
-   		    		            + "pic='"+UTILS.BASIC.base64_encode(this.pic)+"', "
-                                            + "pic_back='"+UTILS.BASIC.base64_encode(this.pic_back)+"', "
-   		    		            + "description='"+UTILS.BASIC.base64_encode(this.description)+"', "
-   		    		            + "website='"+UTILS.BASIC.base64_encode(this.website)+"', "
-   		    		            + "email='"+UTILS.BASIC.base64_encode(this.email)+"', "
-   		    		            + "block='"+this.block+"',"
-   		    		            + "expire='"+String.valueOf(expire)+"' "
-   		    		   + "WHERE adr='"+this.target_adr+"'");
-   	      }
-   	      else
-   	      {
-   	    	  // Expires
-   	    	  long expire=this.block+(this.days*1440);
-   	    	
-   	    	  UTILS.DB.executeUpdate("INSERT INTO profiles(adr, "
+       // Statement
+       Statement s=UTILS.DB.getStatement();
+   	    
+       // Insert
+       UTILS.DB.executeUpdate("INSERT INTO profiles(adr, "
    	    	  		                      + "name, "
    	    	  		                      + "pic, "
                                                       + "pic_back, "
@@ -205,23 +180,18 @@ public class CProfilePayload extends CPayload
    	    	  		                      + "expire) "
    	    	  		          + "VALUES('"+this.target_adr+"', '"+
    	    	  		                       UTILS.BASIC.base64_encode(this.name)+"', '"+
-   	    	  		                       UTILS.BASIC.base64_encode(this.pic_back)+"', '"+
-                                                       UTILS.BASIC.base64_encode(this.pic)+"', '"+
+   	    	  		                       this.pic_back+"', '"+
+                                                       this.pic+"', '"+
    	    	  		                       UTILS.BASIC.base64_encode(this.description)+"', '"+
-   	    	  		                       UTILS.BASIC.base64_encode(this.website)+"', '"+
-   	    	  		                       UTILS.BASIC.base64_encode(this.email)+"', '"+
+   	    	  		                       this.website+"', '"+
+   	    	  		                       this.email+"', '"+
    	    	  		                       this.block+"', '"+
-   	    	  		                       String.valueOf(expire)+"')");
+   	    	  		                       UTILS.BASIC.getExpireBlock(days)+"')");
                 
-   	      }
-       }
-       catch (SQLException ex) 
-       { 
-           UTILS.LOG.log("SQLException", ex.getMessage(), "CProfilePayload.java", 249);
-       }
+   	
    		   
-   	   // Return 
-   	   return new CResult(true, "Ok", "CAddEscrowPayload", 82);
+        // Return 
+   	return new CResult(true, "Ok", "CAddEscrowPayload", 82);
     }
   
 }

@@ -22,7 +22,9 @@ public class CNewFeedComponentPacket extends CBroadcastPacket
                                   String symbol, 
                                   String rl_symbol, 
                                   double branch_fee,
-                                  long days) throws Exception
+                                  long days,
+                                  String packet_sign,
+                                  String payload_sign) throws Exception
     {
          // Constructor
         super("ID_NEW_FEED_BRANCH_PACKET");
@@ -62,7 +64,7 @@ public class CNewFeedComponentPacket extends CBroadcastPacket
         }
         
 	// Sign packet
-	this.sign();
+	this.sign(payload_sign);
     }
     
     // Check  

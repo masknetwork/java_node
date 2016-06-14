@@ -14,6 +14,7 @@ import java.util.TimerTask;
 import wallet.network.packets.blocks.CBlockPacket;
 
 import wallet.kernel.UTILS;
+import wallet.network.CPeer;
 import wallet.network.CResult;
 import wallet.network.packets.CPacket;
 import wallet.network.packets.blocks.CBlockPayload;
@@ -49,11 +50,16 @@ public class CDeliverBlocksPacket extends CPacket
         for (long block=start; block<=end; block++)
 	{
 		// Finds the block
-	        File f = new File(UTILS.WRITEDIR+"blocks/block_"+block+".block");
-		if (f.exists())
+                String bhash=this.getHash(block);
+                
+                // File
+	        File f = new File(UTILS.WRITEDIR+"blocks/"+bhash+".block");
+		
+                // Exist
+                if (f.exists())
  		{
-		    // Read image from disk
-		        FileInputStream f_in = new FileInputStream(UTILS.WRITEDIR+"blocks/block_"+block+".block");
+		        // Read image from disk
+		        FileInputStream f_in = new FileInputStream(UTILS.WRITEDIR+"blocks/"+bhash+".block");
 
 		        // Read object using ObjectInputStream
 		        ObjectInputStream obj_in = new ObjectInputStream (f_in);
@@ -72,101 +78,75 @@ public class CDeliverBlocksPacket extends CPacket
 				   this.end+
                                    String.valueOf(UTILS.SERIAL.serialize(this.blocks)));
    }
-	    
+   
+    public String getHash(long block) throws Exception
+    {
+        // Statement
+        Statement s=UTILS.DB.getStatement();
+        
+        // Load block
+        ResultSet rs=s.executeQuery("SELECT * "
+                                    + "FROM blocks "
+                                   + "WHERE block='"+block+"'");
+        
+        // Has data
+        if (UTILS.DB.hasData(rs))
+        {
+            // Next
+            rs.next();
+            
+            // Hash
+            String hash=rs.getString("hash");
+            
+            // Close
+            s.close();
+            
+            // Return
+            return hash;
+        }
+        
+        // Close
+        s.close();
+        
+        // Return
+        return "";
+    }
+    
     public void addBlock(CBlockPacket block) throws Exception
     {
         // Add block
 	blocks.add(block);
     }
 		
-    public CResult commit(CBlockPayload block) throws Exception
+    public void process(CPeer sender) throws Exception
     { 
-        // Start timer
-	timer = new Timer();  
-	timer.schedule(new RemindTask(this.start, this.end, this.blocks), 0, 1000);
+        CResult res=null;
         
-        // Return 
-        return new CResult(true, "Ok", "CNewFeedPayload", 67);
-    }
-	   
-    class RemindTask extends TimerTask  
-    {    
-	// Start
-        long start;
-		   
-	// End
-        long end;
-        
-        // Blocks
-        ArrayList blocks;
-		   
-	public RemindTask(long start, long end, ArrayList blocks)
+        for (int a=0; a<=this.blocks.size()-1; a++)
         {
-            // Start
-	    this.start=start;
-            
-            // End
-            this.end=end;
-            
-            // Blocks
-	    this.blocks=blocks;
-	}
-		   
-	@Override
-	public void run() 
-        {  
-            try
-            {    
-	    	// Resultset
-                ResultSet rs;
-                   
-                // Statement
-                Statement s=UTILS.DB.getStatement();
-	    	   
-	    	// Smallest start ?
-	    	rs=s.executeQuery("SELECT * "
-				  + "FROM sync "
-			         + "WHERE type='ID_BLOCKS' "
-				   + "AND start<"+this.start);
-	    	     
-	    	   
-	    		   
-			// No data
-                        if (!UTILS.DB.hasData(rs))
-		        {
-                             // Stop timer
-			    this.cancel();
-                            
-		            // Commit
-			    for (int a=0; a<=this.blocks.size()-1; a++)
-			    {
-				CBlockPacket block=(CBlockPacket)this.blocks.get(a);
-				CResult res=block.commit();
+	    CBlockPacket block=(CBlockPacket)this.blocks.get(a);
+	    if (UTILS.SYNC.blockchain.commited(block.hash)) 
+                res=block.commit();
 				
-                                // Report error
-                                if (!res.passed) res.report();
+            // Report error
+            if (!res.passed) res.report();
 			        
-                               UTILS.DB.executeUpdate("UPDATE status "
-                                                        + "SET last_blocks_block='"+(this.start+a)+"'");
+            UTILS.DB.executeUpdate("UPDATE status "
+                                    + "SET last_blocks_block='"+(this.start+a)+"'");
                                
-                               System.out.print(".");
-                            }
+            System.out.println(".");
+        }
 				   
-		            // Delete from sync
-			    UTILS.DB.executeUpdate("DELETE FROM sync "
-					 	       + "WHERE type='ID_BLOCKS' "
-					 		 + "AND start='"+this.start+"'");
+	// Delete from sync
+	UTILS.DB.executeUpdate("DELETE FROM sync "
+	                           + "WHERE type='ID_BLOCKS' "
+			             + "AND start='"+this.start+"'");
                             
-                            System.out.println("");
-                            System.out.println("Done.");
-					 
-			}
-	       }
-               catch (Exception ex) 
-       	       {  
-       		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
-               }
-	   }
+                            
+        System.out.println("Done.");
     }
+    
+    
+   
 }
 		

@@ -14,14 +14,17 @@ public class CFollowPacket extends CBroadcastPacket
 {
    public CFollowPacket(String fee_adr,
                         String adr, 
-		        String follow_adr) throws Exception
+		        String follow_adr,
+                        String packet_sign,
+                        String payload_sign) throws Exception
    {
 	   // Super class
 	   super("ID_FOLLOW_PACKET");
 	   
 	   // Builds the payload class
 	   CFollowPayload dec_payload=new CFollowPayload(adr, 
-		                                         follow_adr);
+		                                         follow_adr,
+                                                         payload_sign);
 			
 	   // Build the payload
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
@@ -30,7 +33,7 @@ public class CFollowPacket extends CBroadcastPacket
 	   fee=new CFeePayload(fee_adr,  0.0001);
 	   
 	   // Sign packet
-	   this.sign();
+           this.sign(packet_sign);
    }
    
    // Check 
@@ -42,22 +45,18 @@ public class CFollowPacket extends CBroadcastPacket
    	
    	  // Check type
    	  if (!this.tip.equals("ID_FOLLOW_PACKET")) 
-   		return new CResult(false, "Invalid packet type", "CFollowPayload", 39);
+             throw new Exception("Invalid packet type - CFollowPacket.java");
    	  
-   	  // Check sig
-   	  if (this.checkSign()==false)
-   		return new CResult(false, "Invalid signature", "CFollowPayload", 39);
-          
-          // Deserialize transaction data
+   	  // Deserialize transaction data
    	  CFollowPayload dec_payload=(CFollowPayload) UTILS.SERIAL.deserialize(payload);
           
           // Check fee
 	  if (this.fee.amount<0.0001)
-	      return new CResult(false, "Invalid fee", "CFollowPayload", 44);
+	      throw new Exception("Invalid fee - CFollowPacket.java");
           
           // Check payload
           res=dec_payload.check(block);
-          if (!res.passed) return new CResult(false, res.reason, "CTweetMesPacket", 44);
+          if (!res.passed) throw new Exception(res.reason);
           
           // Footprint
           CFootprint foot=new CFootprint("ID_FOLLOW_PACKET", 
@@ -78,18 +77,42 @@ public class CFollowPacket extends CBroadcastPacket
    
    public CResult commit(CBlockPayload block) throws Exception
    {
-   	  // Superclass
-   	  CResult res=super.commit(block);
-   	  if (res.passed==false) return res;
-   	  
-   	  // Deserialize transaction data
-   	  CFollowPayload dec_payload=(CFollowPayload) UTILS.SERIAL.deserialize(payload);
-
-	  // Fee is 0.0001 / day ?
-	  res=dec_payload.commit(block);
-          if (res.passed==false) return res;
-	  
-	  // Return 
-   	  return new CResult(true, "Ok", "CFollowPayload", 62);
+   	// Check
+        CResult res=this.check(block);
+                
+	// Superclass
+	res=super.commit(block);
+	if (res.passed==false) return res;
+            
+        try
+        {
+            // Begin
+            UTILS.DB.begin();
+                
+            if (res.passed)
+            {
+                // Deserialize transaction data
+                CFollowPayload dec_payload=(CFollowPayload) UTILS.SERIAL.deserialize(payload);
+                
+	        // Commit
+	        res=dec_payload.commit(block);
+	        if (res.passed==false) throw new Exception(res.reason); 
+            }
+            else throw new Exception(res.reason); 
+                    
+            // Commit
+            UTILS.DB.commit();
+        }
+        catch (Exception ex)
+        {
+            // Rollback
+            UTILS.DB.rollback();
+                
+            // Exception
+            throw new Exception(ex.getMessage());
+        }
+			  
+	// Return 
+	return new CResult(true, "Ok", "CNewTweetPacket.java", 9);
    }
 }

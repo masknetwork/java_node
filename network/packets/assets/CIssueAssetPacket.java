@@ -26,7 +26,9 @@ public class CIssueAssetPacket extends CBroadcastPacket
                             double trans_fee,
                             String can_issue,
                             double interest,
-                            long interval) throws Exception
+                            long interval,
+                            String packet_sign,
+                            String payload_sign) throws Exception
    {
 	   super("ID_NEW_ASSET_PACKET");
 

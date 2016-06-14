@@ -9,6 +9,6 @@ package wallet.network.packets.shop.goods;
  *
  * @author technicalsupport
  */
-public class CStoreCategPacket {
+public class CNewStoreCategPacket {
     
 }

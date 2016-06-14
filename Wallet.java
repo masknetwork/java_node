@@ -14,18 +14,25 @@ import java.util.regex.Pattern;
 import wallet.agents.CAgent;
 import wallet.agents.VM.CCell;
 import wallet.kernel.*;
-import wallet.kernel.net_stat.CAdrTable;
+import wallet.kernel.net_stat.consensus.CConsensus;
+import wallet.kernel.net_stat.tables.CAdrTable;
 import wallet.kernel.x34.SHA256;
 import wallet.network.*;
+import wallet.network.packets.CPacket;
 import wallet.network.packets.CPayload;
+import wallet.network.packets.adr.CProfilePacket;
+import wallet.network.packets.ads.CNewAdPacket;
 import wallet.network.packets.assets.CIssueAssetPacket;
 import wallet.network.packets.blocks.CBlockPayload;
 import wallet.network.packets.domains.CBuyDomainPacket;
-import wallet.network.packets.domains.CRenewDomainPacket;
+
+import wallet.network.packets.domains.CRentDomainPacket;
 import wallet.network.packets.domains.CTransferDomainPacket;
-import wallet.network.packets.domains.CUpdatePriceDomainPacket;
+
+import wallet.network.packets.shop.goods.CNewStorePacket;
 import wallet.network.packets.sync.CBlockchain;
 import wallet.network.packets.sync.CDeliverBlocksPacket;
+import wallet.network.packets.sync.CDeliverTablePacket;
 import wallet.network.packets.trans.CTransPacket;
 import wallet.network.packets.tweets.CLikePacket;
 import wallet.network.packets.tweets.CNewTweetPacket;
@@ -55,7 +62,7 @@ public class Wallet
         // DB
         CDB db=new CDB();
         UTILS.DB=db;
-        //UTILS.DB.reset();
+        //UTILS.DB.reset(); System.exit(0);
         
         // Utils
         CUtils utils=new CUtils();
@@ -78,23 +85,25 @@ public class Wallet
         // ECC
         UTILS.ECC=new CECC();
         
+        // Net stat
+        UTILS.NET_STAT=new CNetStat();
+        UTILS.NET_STAT.start(); 
+        
         // Network
         UTILS.NETWORK=new CNetwork();
         UTILS.NETWORK.start();
         
         // Wallet
         UTILS.WALLET=new CWallet();
-       
-         // Net stat
-         UTILS.NET_STAT=new CNetStat();
-         UTILS.NET_STAT.refreshTables(0);
         
         // Current block
         CCurBlock block=new CCurBlock();
         UTILS.CBLOCK=block;
         
-        UTILS.CBLOCK.startMiner(1);
+        //UTILS.CBLOCK.startMiner(1);
         //UTILS.CBLOCK.startMiner(2);
+        //UTILS.CBLOCK.startMiner(3);
+        //UTILS.CBLOCK.startMiner(4);
         
         // Web operations
         UTILS.WEB_OPS=new CWebOps();
@@ -103,15 +112,27 @@ public class Wallet
         
         // Binary Options Engine
         UTILS.CRONS=new CCrons();
+        
+        // Blocks
+        UTILS.CONSENSUS=new CConsensus();
+        UTILS.CONSENSUS.start();
+        
+        // Sync
+        UTILS.SYNC=new CSync();
+        //UTILS.SYNC.start();
+        
        
-        //CDeliverBlocksPacket packet=new CDeliverBlocksPacket(1, 139);
-        //packet.commit(null);
-       
-        //CTestBattery bat=new CTestBattery();
+        CTestBattery bat=new CTestBattery();
         //bat.start();
         
-        
-       
+        CSyntaxGen sg=new CSyntaxGen("ID_INS-DIV", 2);
+        sg.par_1.add("ID_REG");
+        sg.par_1.add("ID_VAR");
+        sg.par_2.add("ID_REG");
+        sg.par_2.add("ID_VAR");
+        sg.par_2.add("ID_LONG");
+        sg.par_2.add("ID_DOUBLE");
+        sg.generate();
       }
       catch (Exception e) 
       { 

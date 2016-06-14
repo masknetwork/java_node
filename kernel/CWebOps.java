@@ -13,6 +13,7 @@ import wallet.kernel.x34.SHA256;
 import wallet.kernel.x34.SHA512;
 import wallet.network.CPeer;
 import wallet.network.CResult;
+import wallet.network.packets.CPacket;
 import wallet.network.packets.adr.CProfilePacket;
 import wallet.network.packets.ads.CNewAdPacket;
 import wallet.network.packets.app.CDeployAppNetPacket;
@@ -23,17 +24,13 @@ import wallet.network.packets.app.CUpdateSettingsPacket;
 import wallet.network.packets.assets.CIssueAssetPacket;
 import wallet.network.packets.assets.CIssueAssetPayload;
 import wallet.network.packets.domains.CBuyDomainPacket;
-import wallet.network.packets.domains.CRenewDomainPacket;
 import wallet.network.packets.domains.CRentDomainPacket;
 import wallet.network.packets.domains.CSaleDomainPacket;
 import wallet.network.packets.domains.CTransferDomainPacket;
-import wallet.network.packets.domains.CUpdatePriceDomainPacket;
 import wallet.network.packets.trade.feeds.CFeedPacket;
 import wallet.network.packets.trade.feeds.CFeedPayload;
 import wallet.network.packets.trade.feeds.CNewFeedComponentPacket;
 import wallet.network.packets.trade.feeds.CNewFeedPacket;
-import wallet.network.packets.assets.auto_mkts.CNewAutoMarketPacket;
-import wallet.network.packets.assets.auto_mkts.CNewAutoMarketTradePacket;
 import wallet.network.packets.assets.reg_mkts.CCloseRegMarketPosPacket;
 import wallet.network.packets.assets.reg_mkts.CNewRegMarketTradePacket;
 import wallet.network.packets.assets.reg_mkts.CNewRegMarketPacket;
@@ -51,7 +48,7 @@ import wallet.network.packets.mes.CMesPacket;
 import wallet.network.packets.misc.CIncreaseMktBidPacket;
 import wallet.network.packets.misc.CRemoveItemPacket;
 import wallet.network.packets.shop.escrowers.CNewEscrowerPacket;
-import wallet.network.packets.shop.goods.CStorePacket;
+import wallet.network.packets.shop.goods.CNewStorePacket;
 import wallet.network.packets.trade.exchangers.CNewExchangerPacket;
 import wallet.network.packets.trade.exchangers.CNewExchangerPayload;
 import wallet.network.packets.trans.CEscrowedTransSignPacket;
@@ -60,7 +57,6 @@ import wallet.network.packets.tweets.CFollowPacket;
 import wallet.network.packets.tweets.CLikePacket;
 import wallet.network.packets.tweets.CNewTweetPacket;
 import wallet.network.packets.tweets.CRemoveTweetPacket;
-import wallet.network.packets.tweets.CResponseRewardPacket;
 import wallet.network.packets.tweets.CTweetMesPacket;
 import wallet.network.packets.tweets.CTweetMesStatusPacket;
 import wallet.network.packets.tweets.CUnfollowPacket;
@@ -81,8 +77,7 @@ public class CWebOps
      { 
          String op;
          
-       
-         
+          
        try
         {
            // Broadcast
@@ -136,7 +131,9 @@ public class CWebOps
 			                                       1, 
 			                                       "MSK",
 			                                       "Welcome to MaskNetwork",
-                                                               "", "");
+                                                               "", "",
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                         
                            UTILS.NETWORK.broadcast(packet);
                        }
@@ -162,8 +159,7 @@ public class CWebOps
                    if (op.equals("ID_NEW_TWEET"))
                    {
                        CNewTweetPacket packet=new CNewTweetPacket(rs.getString("fee_adr"),
-                                                                  rs.getString("target_adr"),
-		                                                  rs.getString("par_1"), 
+                                                                  rs.getString("par_1"), 
 		                                                  UTILS.BASIC.base64_decode(rs.getString("par_2")), 
                                                                   rs.getLong("par_3"),
 		                                                  UTILS.BASIC.base64_decode(rs.getString("par_4")),
@@ -172,23 +168,12 @@ public class CWebOps
                                                                   UTILS.BASIC.base64_decode(rs.getString("par_7")),
                                                                   UTILS.BASIC.base64_decode(rs.getString("par_8")),
                                                                   UTILS.BASIC.base64_decode(rs.getString("par_9")),
-                                                                  rs.getFloat("par_10"),
-                                                                  rs.getString("par_11"),
-                                                                  rs.getLong("par_12"));
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
-                   // New tweet reward
-                   if (op.equals("ID_NEW_TWEET_REWARD"))
-                   {
-                       CResponseRewardPacket packet=new CResponseRewardPacket(rs.getString("fee_adr"),
-                                                                              rs.getString("target_adr"),
-		                                                              rs.getLong("par_1"), 
-                                                                              rs.getDouble("par_2"));
-                       
-                       UTILS.NETWORK.broadcast(packet);
-                   }
                    
                    // New tweet
                    if (op.equals("ID_NEW_TWEET_COMMENT"))
@@ -197,7 +182,9 @@ public class CWebOps
                                                                    rs.getString("target_adr"),
 		                                                   rs.getLong("par_1"),
                                                                    rs.getLong("par_2"),
-                                                                   rs.getString("par_3"));
+                                                                   rs.getString("par_3"),
+                                                                   rs.getString("packet_sign"),
+                                                                   rs.getString("payload_sign"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -208,7 +195,9 @@ public class CWebOps
                        CTweetMesStatusPacket packet=new  CTweetMesStatusPacket(rs.getString("fee_adr"),
                                                                                rs.getString("target_adr"),
 		                                                               rs.getLong("par_1"),
-                                                                               rs.getString("par_2"));
+                                                                               rs.getString("par_2"),
+                                                                               rs.getString("packet_sign"),
+                                                                               rs.getString("payload_sign"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -218,7 +207,9 @@ public class CWebOps
                    {
                        CLikePacket packet=new CLikePacket(rs.getString("fee_adr"),
                                                           rs.getString("target_adr"),
-		                                          rs.getLong("par_1"));
+		                                          rs.getLong("par_1"),
+                                                          rs.getString("packet_sign"),
+                                                          rs.getString("payload_sign"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -227,8 +218,10 @@ public class CWebOps
                    if (op.equals("ID_FOLLOW"))
                    {
                        CFollowPacket packet=new CFollowPacket(rs.getString("fee_adr"),
-                                                            rs.getString("target_adr"),
-		                                            rs.getString("par_1"));
+                                                              rs.getString("target_adr"),
+		                                              rs.getString("par_1"),
+                                                              rs.getString("packet_sign"),
+                                                              rs.getString("payload_sign"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -238,7 +231,9 @@ public class CWebOps
                    {
                        CUnfollowPacket packet=new CUnfollowPacket(rs.getString("fee_adr"),
                                                                   rs.getString("target_adr"),
-		                                                  rs.getString("par_1"));
+		                                                  rs.getString("par_1"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -248,7 +243,9 @@ public class CWebOps
                    {
                        CRemoveTweetPacket packet=new CRemoveTweetPacket(rs.getString("fee_adr"),
                                                                         rs.getString("target_adr"),
-		                                                        rs.getLong("par_1"));
+		                                                        rs.getLong("par_1"),
+                                                                        rs.getString("packet_sign"),
+                                                                        rs.getString("payload_sign"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -265,7 +262,9 @@ public class CWebOps
                                                              rs.getString("par_4"),
                                                              rs.getString("par_5"),
                                                              rs.getString("par_6"),
-                                                             rs.getString("par_7"));
+                                                             rs.getString("par_7"),
+                                                             rs.getString("packet_sign"),
+                                                             rs.getString("payload_sign"));
                         
                         UTILS.NETWORK.broadcast(packet);
                    }
@@ -280,7 +279,9 @@ public class CWebOps
                                                                 UTILS.BASIC.base64_decode(rs.getString("par_4")),
                                                                 UTILS.BASIC.base64_decode(rs.getString("par_5")), 
                                                                 UTILS.BASIC.base64_decode(rs.getString("par_6")), 
-                                                                rs.getLong("days"));
+                                                                rs.getLong("days"),
+                                                                rs.getString("packet_sign"),
+                                                                rs.getString("payload_sign"));
                        
                      
                        UTILS.NETWORK.broadcast(packet);
@@ -307,7 +308,9 @@ public class CWebOps
                                                                           rs.getString("par_15"), 
                                                                           rs.getString("par_16"), 
                                                                           rs.getString("par_17"), 
-		                                                          rs.getLong("days"));
+		                                                          rs.getLong("days"),
+                                                                          rs.getString("packet_sign"),
+                                                                          rs.getString("payload_sign"));
                        
                         UTILS.NETWORK.broadcast(packet);
                    }
@@ -337,8 +340,10 @@ public class CWebOps
                     {
                         CEscrowedTransSignPacket packet=new CEscrowedTransSignPacket(rs.getString("fee_adr"),
                                                                                      rs.getString("par_1"),
-                                                                                      rs.getString("par_2"),
-                                                                                      rs.getString("par_3"));
+                                                                                     rs.getString("par_2"),
+                                                                                     rs.getString("par_3"),
+                                                                                     rs.getString("packet_sign"),
+                                                                                     rs.getString("payload_sign"));
                         
                         UTILS.NETWORK.broadcast(packet);
                     }
@@ -367,31 +372,20 @@ public class CWebOps
                       CRentDomainPacket packet=new CRentDomainPacket(rs.getString("fee_adr"), 
                                                                      rs.getString("target_adr"), 
                                                                      rs.getString("par_1"), 
-                                                                     rs.getLong("days"));     
+                                                                     rs.getLong("days"),
+                                                                     rs.getString("packet_sign"),
+                                                                     rs.getString("payload_sign"));     
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
-                   if (op.equals("ID_RENEW_DOMAIN"))
-                   {
-                      CRenewDomainPacket packet=new CRenewDomainPacket(rs.getString("fee_adr"),
-		                                                       rs.getString("par_1"), 
-                                                                       rs.getLong("days"));   
-                       UTILS.NETWORK.broadcast(packet);
-                   }
-                   
+                    
                    if (op.equals("ID_TRANSFER_DOMAIN"))
                    {
                       CTransferDomainPacket packet=new CTransferDomainPacket(rs.getString("fee_adr"),
 		                                                             rs.getString("par_1"), 
-                                                                             rs.getString("par_2"));   
-                       UTILS.NETWORK.broadcast(packet);
-                   }
-                   
-                   if (op.equals("ID_UPDATE_DOMAIN_PRICE"))
-                   {
-                      CUpdatePriceDomainPacket packet=new CUpdatePriceDomainPacket(rs.getString("fee_adr"),
-		                                                                   rs.getString("par_1"),
-                                                                                   rs.getDouble("par_2"));
+                                                                             rs.getString("par_2"),
+                                                                             rs.getString("packet_sign"),
+                                                                             rs.getString("payload_sign"));   
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
@@ -401,7 +395,9 @@ public class CWebOps
 		                                                     rs.getString("par_1"),
                                                                      rs.getDouble("par_2"),
                                                                      rs.getDouble("bid"),
-                                                                     rs.getLong("days"));
+                                                                     rs.getLong("days"),
+                                                                     rs.getString("packet_sign"),
+                                                                     rs.getString("payload_sign"));
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
@@ -410,7 +406,9 @@ public class CWebOps
                       CBuyDomainPacket packet=new CBuyDomainPacket(rs.getString("fee_adr"),
 		                                                   rs.getString("target_adr"),
                                                                    rs.getString("par_1"),
-                                                                   rs.getString("par_2"));
+                                                                   rs.getString("par_2"),
+                                                                   rs.getString("packet_sign"),
+                                                                   rs.getString("payload_sign"));
                                                                    
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -424,7 +422,9 @@ public class CWebOps
 		                                           rs.getDouble("bid"), 
 		                                           UTILS.BASIC.base64_decode(rs.getString("par_1")), 
 		                                           UTILS.BASIC.base64_decode(rs.getString("par_2")), 
-		                                           UTILS.BASIC.base64_decode(rs.getString("par_3")));
+		                                           rs.getString("par_3"),
+                                                           rs.getString("packet_sign"),
+                                                           rs.getString("payload_sign"));
                                                 
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -435,7 +435,9 @@ public class CWebOps
                       CRemoveItemPacket packet=new CRemoveItemPacket(rs.getString("fee_adr"), 
                                                                      rs.getString("target_adr"), 
                                                                      rs.getString("par_1"), 
-                                                                     rs.getString("par_2"));
+                                                                     rs.getString("par_2"),
+                                                                     rs.getString("packet_sign"),
+                                                                     rs.getString("payload_sign"));
                       UTILS.NETWORK.broadcast(packet);
                    }  
                    
@@ -446,7 +448,9 @@ public class CWebOps
                                                                              rs.getString("target_adr"), 
                                                                              rs.getDouble("par_3"), 
                                                                              rs.getString("par_1"), 
-                                                                             rs.getString("par_2"));
+                                                                             rs.getString("par_2"),
+                                                                             rs.getString("packet_sign"),
+                                                                             rs.getString("payload_sign"));
                                  
                       UTILS.NETWORK.broadcast(packet);
                    }  
@@ -458,7 +462,9 @@ public class CWebOps
                                                        rs.getString("target_adr"),
 		                                       rs.getString("par_1"), 
                                                        UTILS.BASIC.base64_decode(rs.getString("par_2")), 
-                                                       UTILS.BASIC.base64_decode(rs.getString("par_3")));
+                                                       UTILS.BASIC.base64_decode(rs.getString("par_3")),
+                                                       rs.getString("packet_sign"),
+                                                       rs.getString("payload_sign"));
                                  
                       UTILS.NETWORK.broadcast(packet);
                    }  
@@ -480,7 +486,9 @@ public class CWebOps
                                                                        rs.getDouble("par_9"),
                                                                        rs.getString("par_11"),
                                                                        rs.getDouble("par_12"),
-                                                                       rs.getLong("par_13"));    
+                                                                       rs.getLong("par_13"),
+                                                                       rs.getString("packet_sign"),
+                                                                       rs.getString("payload_sign"));    
                         
                         UTILS.NETWORK.broadcast(packet);
                    }
@@ -510,7 +518,9 @@ public class CWebOps
 				                                                  rs.getString("par_17"),
                                                                                   rs.getString("par_18"),
                                                                                   rs.getString("par_19"),
-                                                                                  rs.getLong("days"));
+                                                                                  rs.getLong("days"),
+                                                                                  rs.getString("packet_sign"),
+                                                                                  rs.getString("payload_sign"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -522,7 +532,9 @@ public class CWebOps
                                                                                        rs.getString("target_adr"),
                                                                                        rs.getLong("par_1"), 
                                                                                        rs.getString("par_2"), 
-				                                                       rs.getDouble("par_3"));
+				                                                       rs.getDouble("par_3"),
+                                                                                       rs.getString("packet_sign"),
+                                                                                       rs.getString("payload_sign"));
                       
                       UTILS.NETWORK.broadcast(packet);
                    }
@@ -536,7 +548,9 @@ public class CWebOps
                                                                UTILS.BASIC.base64_decode(rs.getString("par_2")),
                                                                UTILS.BASIC.base64_decode(rs.getString("par_3")),
                                                                rs.getString("par_5"),
-                                                               rs.getLong("days"));
+                                                               rs.getLong("days"),
+                                                               rs.getString("packet_sign"),
+                                                               rs.getString("payload_sign"));
                                  
                       UTILS.NETWORK.broadcast(packet);
                    }  
@@ -552,7 +566,9 @@ public class CWebOps
                                                                                  rs.getString("par_2"),
                                                                                  rs.getString("par_6"),
                                                                                  rs.getDouble("par_7"),
-                                                                                 rs.getLong("days"));
+                                                                                 rs.getLong("days"),
+                                                                                 rs.getString("packet_sign"),
+                                                                                 rs.getString("payload_sign"));
                                  
                       UTILS.NETWORK.broadcast(packet);
                    }
@@ -572,7 +588,9 @@ public class CWebOps
        
                        // Build packet
                        CFeedPacket packet=new CFeedPacket(rs.getString("fee_adr"),
-                                                          rs.getString("par_1"));
+                                                          rs.getString("par_1"),
+                                                          rs.getString("packet_sign"),
+                                                          rs.getString("payload_sign"));
         
                        // Add to packet
                        packet.addPayload(payload);
@@ -591,32 +609,13 @@ public class CWebOps
                                                                             rs.getInt("par_5"),
                                                                             rs.getString("par_3"), 
                                                                             rs.getString("par_4"),
-                                                                            rs.getLong("days"));
+                                                                            rs.getLong("days"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
-                   
-                   // New auto asset market
-                   if (op.equals("ID_NEW_AUTO_ASSET_MARKET")) 
-                   {
-                       CNewAutoMarketPacket packet=new CNewAutoMarketPacket(rs.getString("fee_adr"), 
-                                                                            rs.getString("target_adr"),
-                                                                            rs.getString("par_1"),
-                                                                            rs.getString("par_2"), 
-                                                                            rs.getString("par_3"),
-                                                                            UTILS.BASIC.base64_decode(rs.getString("par_4")),
-                                                                            UTILS.BASIC.base64_decode(rs.getString("par_5")),
-                                                                            rs.getString("par_6"),
-                                                                            rs.getDouble("par_7"),
-                                                                            rs.getDouble("par_8"),
-                                                                            rs.getDouble("par_9"),
-                                                                            rs.getInt("par_10"),
-                                                                            rs.getDouble("bid"), 
-                                                                            rs.getLong("days"));
-                       
-                       
-                       UTILS.NETWORK.broadcast(packet);
-                   }
+                  
                    
                    // New regular asset market
                    if (op.equals("ID_NEW_REGULAR_MKT_POS"))
@@ -627,7 +626,9 @@ public class CWebOps
                                                                                 rs.getString("par_2"),
                                                                                 rs.getDouble("par_4"),
                                                                                 rs.getDouble("par_3"),
-                                                                                rs.getLong("days"));
+                                                                                rs.getLong("days"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -638,7 +639,9 @@ public class CWebOps
                        CNewRegMarketTradePacket packet=new CNewRegMarketTradePacket(rs.getString("fee_adr"), 
                                                                                     rs.getString("target_adr"),
                                                                                     rs.getString("par_1"), 
-                                                                                    rs.getDouble("par_2"));
+                                                                                    rs.getDouble("par_2"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -648,7 +651,9 @@ public class CWebOps
                    {
                        CCloseRegMarketPosPacket packet=new CCloseRegMarketPosPacket(rs.getString("fee_adr"), 
                                                                                     rs.getString("target_adr"),
-                                                                                    rs.getLong("par_1"));
+                                                                                    rs.getLong("par_1"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -679,7 +684,9 @@ public class CWebOps
 			                                                     UTILS.BASIC.base64_decode(rs.getString("par_19")),
 				                                             UTILS.BASIC.base64_decode(rs.getString("par_20")),
 				                                             rs.getDouble("par_21"),
-				                                             rs.getLong("days"));
+				                                             rs.getLong("days"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -696,7 +703,9 @@ public class CWebOps
 				                                                  rs.getDouble("par_5"), 
 				                                                  rs.getDouble("par_6"), 
 				                                                  rs.getLong("par_7"),
-				                                                  rs.getDouble("par_8"));
+				                                                  rs.getDouble("par_8"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
@@ -706,7 +715,9 @@ public class CWebOps
                        CClosePosPacket packet=new CClosePosPacket(rs.getString("fee_adr"), 
                                                                   rs.getString("target_adr"),
 		                                                  rs.getLong("par_1"),
-                                                                  rs.getLong("par_2"));
+                                                                  rs.getLong("par_2"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
@@ -717,7 +728,9 @@ public class CWebOps
                                                                     rs.getString("target_adr"),
 		                                                    rs.getLong("par_1"),
                                                                     rs.getDouble("par_2"),
-                                                                    rs.getDouble("par_3"));
+                                                                    rs.getDouble("par_3"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
@@ -730,22 +743,12 @@ public class CWebOps
                                                                         rs.getString("par_2"),
                                                                         rs.getString("par_3"),
                                                                         rs.getDouble("par_4"),
-                                                                        rs.getLong("days"));
+                                                                        rs.getLong("days"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        UTILS.NETWORK.broadcast(packet);
                    }
-                   
-                   // New asset automated market position
-                   if (op.equals("ID_NEW_AUTO_ASSET_MKT_POS"))
-                   {
-                       CNewAutoMarketTradePacket packet=new CNewAutoMarketTradePacket(rs.getString("fee_adr"), 
-                                                                                      rs.getString("target_adr"),
-                                                                                      rs.getString("par_1"),
-                                                                                      rs.getString("par_2"),
-			                                                              rs.getDouble("par_3"));
-                        
-                        UTILS.NETWORK.broadcast(packet);
-                   }
-                   
+                  
                    // New bet packet 
                    if (op.equals("ID_NEW_BET"))
                    {
@@ -767,7 +770,9 @@ public class CWebOps
                                                              rs.getLong("par_17"),
                                                              rs.getLong("par_9"),
                                                              rs.getLong("par_10"),
-                                                             rs.getString("par_5"));
+                                                             rs.getString("par_5"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                       UTILS.NETWORK.broadcast(packet);
                    }
                    
@@ -777,7 +782,9 @@ public class CWebOps
                        CBuyBetPacket packet=new CBuyBetPacket(rs.getString("fee_adr"), 
                                                               rs.getString("target_adr"),
                                                               rs.getLong("par_1"), 
-                                                              rs.getDouble("par_2"));
+                                                              rs.getDouble("par_2"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -785,13 +792,16 @@ public class CWebOps
                    // New store
                    if (op.equals("ID_NEW_STORE"))
                    {
-                       CStorePacket packet=new CStorePacket(rs.getString("fee_adr"), 
-                                                            rs.getString("target_adr"),
-                                                            rs.getString("par_1"), 
-                                                            rs.getString("par_2"),
-                                                            rs.getString("par_3"),
-                                                            rs.getString("par_4"),
-                                                            rs.getLong("days"));
+                       CNewStorePacket packet=new CNewStorePacket(rs.getString("fee_adr"), 
+                                                                  rs.getString("target_adr"),
+                                                                  rs.getString("par_1"), 
+                                                                  rs.getString("par_2"),
+                                                                  rs.getString("par_3"),
+                                                                  rs.getString("par_4"),
+                                                                  rs.getString("par_5"),
+                                                                  rs.getLong("days"), 
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
@@ -803,7 +813,9 @@ public class CWebOps
                                                                           rs.getString("target_adr"),
                                                                           rs.getLong("par_1"), 
                                                                           rs.getLong("par_2"),
-                                                                          rs.getLong("days"));
+                                                                          rs.getLong("days"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        UTILS.NETWORK.broadcast(packet);
                    }    
                  
@@ -821,7 +833,9 @@ public class CWebOps
                                                                       rs.getString("par_7"),
                                                                       rs.getString("par_8"),
                                                                       rs.getString("par_9"),
-                                                                      rs.getDouble("par_10"));
+                                                                      rs.getDouble("par_10"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        UTILS.NETWORK.broadcast(packet);
                    }   
                    
@@ -831,7 +845,9 @@ public class CWebOps
                        CRentAppPacket packet=new CRentAppPacket(rs.getString("fee_adr"), 
                                                                 rs.getString("target_adr"),
                                                                 rs.getLong("par_1"), 
-                                                                rs.getLong("days"));
+                                                                rs.getLong("days"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        UTILS.NETWORK.broadcast(packet);
                    }  
                    
@@ -844,7 +860,9 @@ public class CWebOps
                                                                     rs.getString("target_adr"),
                                                                     rs.getLong("par_1"),
                                                                     rs.getString("par_2"),
-                                                                    rs.getLong("days"));
+                                                                    rs.getLong("days"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
                        UTILS.NETWORK.broadcast(packet);
                    }  
                    
@@ -855,7 +873,21 @@ public class CWebOps
                        CUpdateSettingsPacket packet=new  CUpdateSettingsPacket(rs.getString("fee_adr"), 
                                                                                rs.getString("target_adr"),
                                                                                rs.getLong("par_1"),
-                                                                               rs.getString("par_2"));
+                                                                               rs.getString("par_2"),
+                                                                  rs.getString("packet_sign"),
+                                                                  rs.getString("payload_sign"));
+                       UTILS.NETWORK.broadcast(packet);
+                   }  
+                   
+                   // Raaw packet
+                   if (op.equals("ID_RAW_PACKET"))
+                   {
+                       // Load data
+                       String data=rs.getString("par_1");
+                       byte[] decoded=UTILS.BASIC.base64_decode_data(data);
+                       CPacket packet=(CPacket) UTILS.SERIAL.deserialize(decoded);
+                       
+                       // Broadcast
                        UTILS.NETWORK.broadcast(packet);
                    }  
                    

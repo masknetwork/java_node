@@ -18,7 +18,9 @@ public class CIncreaseMktBidPacket extends CBroadcastPacket
                                  String adr,
                                  double mkt_bid, 
                                  String table, 
-                                 String rowhash) throws Exception
+                                 String rowhash,
+                                 String packet_sign,
+                                 String payload_sign) throws Exception
     {
         super("ID_INCREASE_MKT_BID_PACKET");
         

@@ -64,7 +64,8 @@ public class CFEEDSET extends CInstruction
         
         // Set data feed
         UTILS.DB.executeUpdate("UPDATE feeds_branches "
-                                + "SET val='"+val+"' "
+                                + "SET val='"+val+"', "
+                                    + "block='"+VM.block+"' "
                               + "WHERE feed_symbol='"+this.feed.cel.val+"' "
                                 + "AND symbol='"+this.feed.cel+"' "
                                 + "AND adr='"+owner+"'");

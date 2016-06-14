@@ -114,7 +114,7 @@ public class CTRANS extends CInstruction
                                 "Outgoing transaction", 
                                 this.cur.cel.val, 
                                 hash, 
-                                UTILS.NET_STAT.last_block,
+                                VM.block,
                                 null, 
                                 0);
         
@@ -124,7 +124,7 @@ public class CTRANS extends CInstruction
                               + "WHERE hash='"+hash+"'");
         
         // Clear
-        UTILS.BASIC.clearTrans(hash, "ID_ALL");
+        UTILS.BASIC.clearTrans(hash, "ID_ALL", UTILS.NET_STAT.last_block+1);
         
         // Fee
         VM.CODE.fee=VM.CODE.fee+0.0001;

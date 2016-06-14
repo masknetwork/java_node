@@ -18,7 +18,9 @@ public class CIncreaseMktDaysPacket extends CBroadcastPacket
                                   String adr, 
                                   long days, 
                                   String table, 
-                                  String rowhash) throws Exception
+                                  String rowhash,
+                                  String packet_sign,
+                                  String payload_sign) throws Exception
     {
        super("ID_INCREASE_MKT_DAYS_PACKET");
        

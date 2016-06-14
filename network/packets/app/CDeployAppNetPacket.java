@@ -14,7 +14,9 @@ public class CDeployAppNetPacket extends CBroadcastPacket
                                 String adr, 
                                 long appID, 
                                 long run_period, 
-                                long days) throws Exception
+                                long days,
+                                String packet_sign,
+                                String payload_sign) throws Exception
   {
       super("ID_DEPLOY_APP_NET_PACKET");
       
@@ -22,7 +24,8 @@ public class CDeployAppNetPacket extends CBroadcastPacket
      CDeployAppNetPayload dec_payload=new CDeployAppNetPayload(adr, 
                                                                appID, 
                                                                run_period, 
-                                                               days);
+                                                               days,
+                                                               payload_sign);
 			
      // Build the payload
      this.payload=UTILS.SERIAL.serialize(dec_payload);
@@ -31,7 +34,7 @@ public class CDeployAppNetPacket extends CBroadcastPacket
      fee=new CFeePayload(fee_adr, days*0.0001);
 	   
      // Sign packet
-     this.sign();
+     this.sign(packet_sign);
   }
   
   // Check 

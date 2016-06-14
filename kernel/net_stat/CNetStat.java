@@ -2,16 +2,38 @@
 // Contact : vcris@gmx.com
 
 package wallet.kernel.net_stat;
+import wallet.kernel.net_stat.tables.CProfilesTable;
+import wallet.kernel.net_stat.tables.CAdsTable;
+import wallet.kernel.net_stat.tables.CAdrTable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 import wallet.kernel.UTILS;
+import wallet.kernel.net_stat.tables.CDomainsTable;
+import wallet.kernel.net_stat.tables.CTweetsTable;
 
-public class CNetStat
+public class CNetStat extends Thread
 {
     // Tables
     public ArrayList<String> tables=new ArrayList<String>();
+    
+    // Addresses
+    public CAdrTable table_adr;
+    
+    // Ads
+    public CAdsTable table_ads;
+    
+    // Domains
+    public CDomainsTable table_domains;
+    
+    // Profiles
+    public CProfilesTable table_profiles;
+    
+    // Tweets
+    public CTweetsTable table_tweets;
     
     // Last block
     public long last_block;
@@ -29,37 +51,40 @@ public class CNetStat
     String sql_log_status;
     
     // Addresses
-    public String adr;
+    String adr;
     
     // Addresses Options
-    public String options;
+    String options;
     
     // Ads
-    public String ads;
+    String ads;
+    
+    // Ads
+    String agents;
     
     // Assets
-    public String assets;
+    String assets;
     
     // Assets owners
-    public String assets_owners;
+    String assets_owners;
     
     // Blocks
-    public String blocks;
+    String blocks;
     
     // Domains
-    public String domains;
+    String domains;
     
     // Escrowed
-    public String escrowed;
+    String escrowed;
     
     // Feeds
-    public String feeds;
+    String feeds;
     
     // Bets
-    public String feeds_bets;
+    String feeds_bets;
     
     // Bets pos
-    public String feeds_bets_pos;
+    String feeds_bets_pos;
     
     // Branches
     public String feeds_branches;
@@ -88,8 +113,25 @@ public class CNetStat
     // Blocks per day
     public long blocks_per_day=4320;
     
+    // Block confirmation minimum baalance
+    public double block_conf_min_balance=1;
     
-    public CNetStat() throws Exception
+    // Network time
+    public long net_time;
+    
+    // Process blocks ?
+    public boolean consensus=true;
+    
+    // Timer
+    Timer timer;
+    
+    
+    public CNetStat()
+    {
+        
+    }
+    
+    public void run()
     {
         try
         {
@@ -98,6 +140,7 @@ public class CNetStat
            this.tables.add("adr_options");
            this.tables.add("ads");
            this.tables.add("assets");
+           this.tables.add("agents");
            this.tables.add("assets_owners");
            this.tables.add("blocks");
            this.tables.add("domains");
@@ -134,6 +177,9 @@ public class CNetStat
            
            // SQL log status
            this.sql_log_status=rs.getString("sql_log_status");
+           
+           // Confirm min balance
+           this.block_conf_min_balance=rs.getDouble("block_confirm_min_balance");
            
            // Addresses
            this.adr=rs.getString("adr");
@@ -191,77 +237,118 @@ public class CNetStat
     
            // Tweets Links
            this.tweets_likes=rs.getString("tweets_likes");
-       }
-        catch (SQLException ex)
-        {
-               UTILS.LOG.log("SQLException", ex.getMessage(), "CNetStat.java", 84);
+      
+           // Addresses
+           this.table_adr=new CAdrTable();
+           
+           // Ads
+           this.table_ads=new CAdsTable();
+           
+           // Domains
+           this.table_domains=new CDomainsTable();
+           
+           // Profiles
+           this.table_profiles=new CProfilesTable();
+           
+           // Tweets
+           this.table_tweets=new CTweetsTable();
+           
+           // Network time
+           this.net_time=UTILS.BASIC.tstamp();
+  
+           
+             // Timer
+            timer = new Timer();
+            RemindTask task=new RemindTask();
+            timer.schedule(task, 0, 1000);
         }
-       
+        catch (Exception ex)
+        {
+            
+        }
     }
     
-    public void addQuery(String query) throws Exception
-    {
-        String table="";
         
-       for (int a=0; a<=this.tables.size()-1; a++)
-       {
-           // Table
-           table=this.tables.get(a);
-           
-           // Inserts
-           if (query.indexOf("INSERT INTO "+table+" ")==0 || 
-               query.indexOf("INSERT INTO "+table+"(")==0) 
-           this.add(query);
-           
-           // Updates
-           if (query.indexOf("UPDATE "+table+" ")==0) 
-           this.add(query);
-           
-           // Deletes
-           if (query.indexOf("DELETE FROM "+table+" ")==0) 
-           this.add(query);
-       }
-    }
-    
-    public void add(String query) throws Exception
-    {
-        // Query hash
-        String query_hash=UTILS.BASIC.hash(UTILS.BASIC.base64_encode(query));
-        
-        // New hash
-        String hash=UTILS.BASIC.hash(this.sql_log_status+String.valueOf(this.last_block)+query_hash);
-        
-        // Insert
-        UTILS.DB.executeUpdate("INSERT INTO sql_log(query, block, hash) "
-                                 + "VALUES('"+UTILS.BASIC.base64_encode(query)+"', '"+this.last_block+"', '"+hash+"')");
-        
-        // Update
-        UTILS.DB.executeUpdate("UPDATE net_stat SET sql_log_status='"+hash+"'");
-        
-        // Update
-        this.sql_log_status=hash;
-    }
-    
     public void refreshTables(long block) throws Exception
     {
         // Init
         UTILS.DB.executeUpdate("SET group_concat_max_len = 1000000000000000");
         
         // Adr
-        UTILS.DB.executeUpdate("UPDATE adr SET rowhash=SHA2(CONCAT(adr, "
-                                                                     + "balance, "
-                                                                     + "block, "
-                                                                     + "total_received, "
-                                                                     + "total_spent, "
-                                                                     + "trans_no, "
-                                                                     + "tweets, "
-                                                                     + "following, "
-                                                                     + "followers, "
-                                                                     + "created, "
-                                                                     + "last_interest), 256) where block='"+block+"'");
+        this.table_adr.refresh(block);
         
-        UTILS.DB.executeUpdate("UPDATE net_stat SET adr=(SELECT SHA2(GROUP_CONCAT(rowhash), 256) AS st FROM adr)");
+        // Ads
+        this.table_ads.refresh(block);
+        
+        // Domains
+        this.table_domains.refresh(block);
+        
+        // Profiles
+        this.table_profiles.refresh(block);
+        
+        // Tweets
+        this.table_tweets.refresh(block);
     }
     
-   
+    
+    public void setHash(String tab, String hash) throws Exception
+    {
+        UTILS.DB.executeUpdate("UPDATE net_stat SET "+tab+"='"+hash+"'");
+        
+        switch (tab)
+        {
+            case "adr" : this.adr=hash; break;
+            case "ads" : this.ads=hash; break;
+            case "domains" : this.domains=hash; break;
+        }
+    }
+    
+    public String getHash(String tab) throws Exception
+    {
+        if (tab=="adr") return this.adr;
+        if (tab=="ads") return this.ads;
+        if (tab=="domains") return this.domains;
+        
+        return "";
+    }
+    
+    public void tick()
+    {
+        this.net_time++;
+    }
+    
+    public void setTime(long new_time)
+    {
+        this.net_time=new_time;
+        System.out.println("New net time : "+new_time);
+    }
+    
+    
+     class RemindTask extends TimerTask 
+     {  
+       @Override
+       public void run()
+       {  
+           try
+           {
+               tick();
+           }
+           catch (Exception ex)
+           {
+               System.out.println(ex.getMessage());
+           }
+       }
+     }
+     
+     public void setDifficulty(long dif)
+     {
+        // Minimum dif
+        if (dif>20000000000000L) dif=20000000000000L;
+       
+        // Set
+        this.net_dif=dif;
+         
+        // Debug
+        System.out.println("New difficulty : "+dif);
+     }
 }

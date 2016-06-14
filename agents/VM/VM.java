@@ -41,6 +41,9 @@ public class VM  implements java.io.Serializable
    
    // Run log
    public CRunLog RUNLOG;
+   
+   // Block
+   public long block;
     
    public VM(long agentID, boolean sandbox) throws Exception
    {

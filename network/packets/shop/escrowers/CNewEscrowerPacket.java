@@ -17,7 +17,9 @@ public class CNewEscrowerPacket extends CBroadcastPacket
                              String description,
                              String web_page,
                              double fee,
-                             long days) throws Exception
+                             long days,
+                             String packet_sign,
+                             String payload_sign) throws Exception
    {
 	   // Constructs the broadcast packet
 	   super("ID_NEW_ESCROWER_PACKET");

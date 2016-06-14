@@ -19,7 +19,9 @@ public class CTransPacket extends CBroadcastPacket
 			    String cur,
 			    String mes,
                             String escrower,
-                            String sign) throws Exception
+                            String sign,
+                            String packet_sign,
+                            String payload_sign) throws Exception
 	{
 		// Super class
 		super("ID_TRANS_PACKET");
@@ -42,7 +44,7 @@ public class CTransPacket extends CBroadcastPacket
                   fee=new CFeePayload(fee_adr,  amount*0.0001);
                 
 		// Sign packet
-		this.sign();
+		this.sign(payload_sign);
                
 	}
 	

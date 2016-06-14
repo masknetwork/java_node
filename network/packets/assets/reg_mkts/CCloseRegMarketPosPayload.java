@@ -126,7 +126,7 @@ public class CCloseRegMarketPosPayload  extends CPayload
         if (!res.passed) return res;
         
         // Position type
-          UTILS.BASIC.clearTrans(hash, "ID_ALL");
+          UTILS.BASIC.clearTrans(hash, "ID_ALL", this.block);
            
           // Remove
           UTILS.DB.executeUpdate("DELETE FROM assets_mkts_pos "

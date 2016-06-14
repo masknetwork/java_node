@@ -72,7 +72,7 @@ public class CPayload  implements java.io.Serializable
     	   this.target_adr=adr;
     	
 	   // Block
-	   this.block=UTILS.BASIC.block();
+	   this.block=UTILS.NET_STAT.last_block+1;
 	   
 	   // Hash
 	   this.hash=this.getHash();
@@ -83,27 +83,41 @@ public class CPayload  implements java.io.Serializable
         {
            // Hash
            if (!UTILS.BASIC.isSHA256(this.hash)) 
-                return new CResult(false, "Invalid hash format", "CPayload", 183);
+                throw new Exception("Invalid hash - CPayload");
             
            // Target adr
             if (!this.target_adr.equals(""))
                if (!UTILS.BASIC.adressValid(this.target_adr))
-                  return new CResult(false, "Invalid target address", "CPayload", 183);
+                  throw new Exception("Invalid target address - CPayload");
             
            // Check sig
            if (!this.checkSig())
-              return new CResult(false, "Invalid signature", "CPayload", 183);
+              throw new Exception("Invalid signature - CPayload");
            
  	   return new CResult(true, "Ok", "CPayload", 183);
         }
         
         
+        public void sign(String sig) throws Exception
+        {
+            if (!this.target_adr.equals(""))
+            {
+                if (sig.equals(""))
+                {
+    	           CAddress adr=UTILS.WALLET.getAddress(this.target_adr);
+    	           this.sign=adr.sign(this.hash);
+                }
+                else this.sign=sig;
+            }
+        }
+        
         public void sign() throws Exception
         {
             if (!this.target_adr.equals(""))
             {
-    	      CAddress adr=UTILS.WALLET.getAddress(this.target_adr);
-    	      this.sign=adr.sign(this.hash);
+               CAddress adr=UTILS.WALLET.getAddress(this.target_adr);
+    	       this.sign=adr.sign(this.hash);
+                
             }
         }
     

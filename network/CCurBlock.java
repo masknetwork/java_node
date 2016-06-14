@@ -88,13 +88,16 @@ public class CCurBlock
        this.setSigner();
        
        // Payload
-       payload=new CBlockPayload(this.signer, UTILS.NET_STAT.last_block);
+       payload=new CBlockPayload(this.signer);
        
        // New hash
        this.payload_hash=UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload));
        
+       // Net dif
+       UTILS.NET_STAT.setDifficulty(this.getNewDif(UTILS.NET_STAT.last_block_hash));
+       
        // Close
-       rs.close(); s.close();
+       s.close();
    }
  
    public void startMiner(int miner)
@@ -135,7 +138,7 @@ public class CCurBlock
        }
    }
    
-   public void addPacket(CPacket packet) throws Exception
+   public void addPacket(CBroadcastPacket packet) throws Exception
    {
        if (this.nonce==0) 
        {
@@ -237,10 +240,11 @@ public class CCurBlock
    
    public void newBlock(long block, 
                         String prev_hash,
+                        String hash,
                         long last_tstamp) throws Exception
    {
        // New block
-       UTILS.NET_STAT.last_block_hash=prev_hash;
+       UTILS.NET_STAT.last_block_hash=hash;
                 
        // New block number
        UTILS.NET_STAT.last_block=block;
@@ -251,38 +255,9 @@ public class CCurBlock
        // Payload hash
        this.payload_hash=UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload));
        
-       // Difficulty
-       Statement s=UTILS.DB.getStatement();
+       // Block tstamp
+       UTILS.NET_STAT.setDifficulty(this.getNewDif(hash));
        
-       // Load
-       ResultSet rs=s.executeQuery("SELECT *  "
-                                   + "FROM blocks "
-                                  + "WHERE block="+(UTILS.NET_STAT.last_block-this.retarget)+" ORDER BY block ASC");
-       
-       // Tstamp
-       long tstamp=0;
-       
-       if (UTILS.DB.hasData(rs))
-       {
-          // Next
-          rs.next();
-       
-          // Total
-          tstamp=rs.getLong("tstamp");
-       }
-       else tstamp=0; 
-       
-       
-       // Change dificulty ?
-       if (tstamp>last_tstamp-(this.retarget*20))
-           UTILS.NET_STAT.net_dif=UTILS.NET_STAT.net_dif-UTILS.NET_STAT.net_dif/100;
-      
-       else if (tstamp<last_tstamp-(this.retarget*20))
-         UTILS.NET_STAT.net_dif=UTILS.NET_STAT.net_dif+UTILS.NET_STAT.net_dif/100;
-       
-       // Minimum dif
-       if (UTILS.NET_STAT.net_dif>20000000000000L) UTILS.NET_STAT.net_dif=20000000000000L;
-           
        // Update net stat
        UTILS.DB.executeUpdate("UPDATE net_stat "
                                + "SET last_block='"+UTILS.NET_STAT.last_block + "', "
@@ -290,15 +265,103 @@ public class CCurBlock
                                     + "net_dif='"+UTILS.NET_STAT.net_dif+"'");
        
        // New block
-       this.payload=new CBlockPayload(this.signer, UTILS.NET_STAT.last_block+1);
+       this.payload=new CBlockPayload(this.signer);
        
       
        // Nonce
        this.nonce=0;
        
-       // Close
-       rs.close(); s.close();
+       // Reset consensus
+       if (UTILS.STATUS.engine_status.equals("ID_ONLINE"))
+           UTILS.CONSENSUS.newBlock();
+      
    }
    
+   public long getNewDif(String hash) throws Exception
+   {
+       // Tstamp
+       long tstamp=0;
+            
+       // Difficulty
+       Statement s=UTILS.DB.getStatement();
+       
+       // Last hash
+       String last_hash=hash;
+       
+       // Load
+       ResultSet rs=s.executeQuery("SELECT *  "
+                                   + "FROM blocks "
+                                  + "WHERE hash='"+last_hash+"' "
+                               + "ORDER BY block ASC");
+       
+       // Next
+       rs.next();
+       
+       // Difficulty
+       long last_dif=rs.getLong("net_dif");
+       
+       // Last tstamp
+       long last_tstamp=rs.getLong("tstamp");
+       tstamp=last_tstamp;
+       
+       // Number of blocks generated in the last 100 minutes 
+       long no=0;
+       
+       while (tstamp>last_tstamp-6000 && !last_hash.equals("0000000000000000000000000000000000000000000000000000000000000000"))
+       {
+            // Load
+            rs=s.executeQuery("SELECT *  "
+                              + "FROM blocks "
+                             + "WHERE hash='"+last_hash+"' "
+                          + "ORDER BY block ASC");
+       
+            if (UTILS.DB.hasData(rs))
+            {
+                // Next
+                rs.next();
+       
+                // Tstamp
+                tstamp=rs.getLong("tstamp");
+                
+                // Valid tstamp
+                if (tstamp>last_tstamp-6000)
+                    no++;
+                
+                // Last hash
+                last_hash=rs.getString("prev_hash");
+            } 
+       }
+       
+       // Number
+       if (no==0) no=1;
+       System.out.println("Generated blocks "+no);
+       
+       // New dif
+       long new_dif=0;
+       
+       // Change dificulty ?
+       if (no>100)
+       {
+           double d=(double)no/100;
+           new_dif=last_dif-last_dif/100;
+       }
+       else if (no<100)
+       {
+           double d=(double)100/no;
+           new_dif=last_dif+last_dif/100;
+       }
+       
+       else
+         new_dif=last_dif;
+       
+       // Dif
+       if (new_dif>20000000000000L) new_dif=20000000000000L;
+       
+       // Close
+       s.close();
+       
+       // Return
+       return new_dif;
+   }
    
 }

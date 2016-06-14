@@ -19,7 +19,8 @@ public class CLikePayload extends CPayload
    long tweetID;
    	
    public CLikePayload(String adr, 
-		       long tweetID) throws Exception
+		       long tweetID,
+                       String sig) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -31,89 +32,64 @@ public class CLikePayload extends CPayload
  	   hash=UTILS.BASIC.hash(this.getHash()+
  			         this.tweetID);
  	   
- 	   //Sign
- 	   this.sign();
+           // Sign
+ 	   this.sign(sig);
    }
    
    public CResult check(CBlockPayload block) throws Exception
    {
-       try
-       {
-             // Super class
-   	     CResult res=super.check(block);
-   	     if (res.passed==false) return res;
+       // Super class
+       CResult res=super.check(block);
+       if (res.passed==false) return res;
    	
-             // Statement
-             Statement s=UTILS.DB.getStatement();
+       // Statement
+       Statement s=UTILS.DB.getStatement();
              
-   	     // Load tweet data
-             ResultSet rs=s.executeQuery("SELECT * "
-                                         + "FROM tweets "
-                                        + "WHERE tweetID='"+this.tweetID+"'");
+       // Load tweet data
+       ResultSet rs=s.executeQuery("SELECT * "
+                                   + "FROM tweets "
+                                  + "WHERE tweetID='"+this.tweetID+"'");
             
-             // Like tweet exist ?
-             if (!UTILS.DB.hasData(rs))
-                return new CResult(false, "Invalid tweet.", "CTweetMesStatusPayload", 77);
+        // Like tweet exist ?
+        if (!UTILS.DB.hasData(rs))
+           throw new Exception("Invalid tweetID  - CLikePayload.java");
             
-            // Already liked ?
-            rs=s.executeQuery("SELECT * "
-                                      + "FROM tweets_likes "
-                                     + "WHERE tweetID='"+this.tweetID+"' "
-                                       + "AND adr='"+this.target_adr+"'");
+        // Already liked ?
+        rs=s.executeQuery("SELECT * "
+                          + "FROM tweets_likes "
+                         + "WHERE tweetID='"+this.tweetID+"' "
+                           + "AND adr='"+this.target_adr+"'");
             
-             if (UTILS.DB.hasData(rs))
-                 return new CResult(false, "Already liked", "CTweetMesStatusPayload", 77);
+        if (UTILS.DB.hasData(rs))
+           throw new Exception("Already liked  - CLikePayload.java");
                  
-             // Check Hash
-	     String h=UTILS.BASIC.hash(this.getHash()+
+        // Check Hash
+	String h=UTILS.BASIC.hash(this.getHash()+
                                        this.tweetID);
 	  
-   	    if (!h.equals(this.hash)) 
-   		return new CResult(false, "Invalid hash", "CTweetMesStatusPayload", 157);
+   	if (!h.equals(this.hash)) 
+   	    throw new Exception("Invalid hash  - CLikePayload.java");
    	  
-   	    // Check signature
-   	    if (this.checkSig()==false)
-   		return new CResult(false, "Invalid signature", "CTweetMesStatusPayload", 157);
-       
-        }
-        catch (SQLException ex) 
-       	{  
-       	    UTILS.LOG.log("SQLException", ex.getMessage(), "CTweetMesStatusPayload.java", 57);
-        }
-        catch (Exception ex) 
-       	{  
-       	    UTILS.LOG.log("Exception", ex.getMessage(), "CTweetMesStatusPayload.java", 57);
-        }
-       
- 	// Return
+   	// Return
  	return new CResult(true, "Ok", "CTweetMesStatusPayload", 164);
    }
    
    public CResult commit(CBlockPayload block) throws Exception
    {
-       try
-       {
-          CResult res=this.check(block);
-          if (res.passed==false) return res;
-	  
-          // Superclass
-          super.commit(block);
+        // Superclass
+        super.commit(block);
        
-          // Like
-          UTILS.DB.executeUpdate("INSERT INTO tweets_likes "
+        // Like
+        UTILS.DB.executeUpdate("INSERT INTO tweets_likes "
                                        + "SET adr='"+this.target_adr+"', "
                                            + "tweetID='"+this.tweetID+"', "
                                            + "block='"+this.block+"'");
           
-          // Update likes
-          UTILS.DB.executeUpdate("UPDATE tweets "
-                                  + "SET likes=likes+1 "
+        // Update likes
+        UTILS.DB.executeUpdate("UPDATE tweets "
+                                  + "SET likes=likes+1, "
+                                      + "block='"+this.block+"' "
                                 + "WHERE tweetID='"+this.tweetID+"'");
-       }  
-       catch (Exception ex) 
-       {  
-       	    UTILS.LOG.log("SQLException", ex.getMessage(), "CTweetMesStatusPayload.java", 57);
-       }
        
    	// Return 
    	return new CResult(true, "Ok", "CTweetMesStatusPayload", 70);

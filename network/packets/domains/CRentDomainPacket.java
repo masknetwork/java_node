@@ -6,6 +6,7 @@ package wallet.network.packets.domains;
 import wallet.kernel.*;
 import wallet.network.*;
 import wallet.network.packets.*;
+import wallet.network.packets.ads.CNewAdPayload;
 import wallet.network.packets.blocks.CBlockPayload;
 import wallet.network.packets.trans.*;
 
@@ -14,13 +15,15 @@ public class CRentDomainPacket extends CBroadcastPacket
    public CRentDomainPacket(String fee_adr, 
                             String adr, 
                             String domain, 
-                            long days)  throws Exception
+                            long days,
+                            String packet_sign,
+                            String payload_sign)  throws Exception
    {
        // Constructs the broadcast packet
        super("ID_RENT_DOMAIN_PACKET");
 		  
        // Builds the payload class
-       CRentDomainPayload dec_payload=new CRentDomainPayload(adr, domain, days);
+       CRentDomainPayload dec_payload=new CRentDomainPayload(adr, domain, days, payload_sign);
 				
        // Build the payload
        this.payload=UTILS.SERIAL.serialize(dec_payload);
@@ -29,7 +32,7 @@ public class CRentDomainPacket extends CBroadcastPacket
        fee=new CFeePayload(fee_adr, (days*0.0001));
 		   
        // Sign packet
-       this.sign();
+       this.sign(packet_sign);
    }
 	
 	// Check 
@@ -78,18 +81,42 @@ public class CRentDomainPacket extends CBroadcastPacket
 	   
 	public CResult commit(CBlockPayload block) throws Exception
 	{
+	    // Check
+            CResult res=this.check(block);
+                
 	    // Superclass
-	    CResult res=super.commit(block);
+	    res=super.commit(block);
 	    if (res.passed==false) return res;
-	   	  
-	    // Deserialize transaction data
-	    CRentDomainPayload dec_payload=(CRentDomainPayload) UTILS.SERIAL.deserialize(payload);
-
-	    // Commit payload
-	    res=dec_payload.commit(block);
-	    if (res.passed==false) return res;
-		  
+            
+            try
+            {
+                // Begin
+                UTILS.DB.begin();
+                
+                if (res.passed)
+                {
+                   // Deserialize transaction data
+                   CRentDomainPayload dec_payload=(CRentDomainPayload) UTILS.SERIAL.deserialize(payload);
+                
+	           // Commit
+	           res=dec_payload.commit(block);
+	           if (res.passed==false) throw new Exception(res.reason); 
+                }
+                else throw new Exception(res.reason); 
+                    
+                // Commit
+                UTILS.DB.commit();
+            }
+            catch (Exception ex)
+            {
+                // Rollback
+                UTILS.DB.rollback();
+                
+                // Exception
+                throw new Exception(ex.getMessage());
+            }
+			  
 	    // Return 
-	    return new CResult(true, "Ok", "CNewAssetPacket", 9);
+	    return new CResult(true, "Ok", "CRentDomainPacket.java", 9);
 	}
 }

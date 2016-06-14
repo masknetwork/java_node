@@ -363,10 +363,7 @@ public class CUtils
 	
 	
 	
-	public boolean isEmail(String email) throws Exception
-	{
-		return true;
-	}
+	
 	
 	public String base64_encode(String s) throws Exception
 	{
@@ -403,7 +400,7 @@ public class CUtils
 		return null;
 	}
 	
-        public void clearTrans(String hash, String tip) throws Exception
+        public void clearTrans(String hash, String tip, long block) throws Exception
         {
              try
             {
@@ -427,11 +424,13 @@ public class CUtils
                                          rs_trans.getDouble("amount"), 
                                          rs_trans.getString("cur"),
                                          hash, 
-                                         rs_trans.getDouble("invested"));
+                                         rs_trans.getDouble("invested"),
+                                         block);
                       else
                         this.doTrans(rs_trans.getString("src"), 
                                    rs_trans.getDouble("amount"), 
-                                   hash);
+                                   hash,
+                                   block);
                     }
                 }
                 
@@ -774,7 +773,8 @@ public class CUtils
                                     double amount, 
                                     String cur,
                                     String hash,
-                                    double inv) throws Exception
+                                    double inv,
+                                    long block) throws Exception
         {
             double balance=0;
             double new_balance=0;
@@ -865,7 +865,7 @@ public class CUtils
 		     UTILS.DB.executeUpdate("UPDATE assets_owners "
 		   		                + "SET qty="+new_balance+", "
                                                     + "invested=invested+"+invested+", "
-		   		                    + "block='"+UTILS.BASIC.block()+
+		   		                    + "block='"+(UTILS.NET_STAT.last_block+1)+
                                                 "' WHERE owner='"+adr+"' "
                                                   + "AND symbol='"+cur+"'");
                      
@@ -883,7 +883,7 @@ public class CUtils
             return new CResult(true, "Ok", "CUtils.java", 130);
         }
         
-        public CResult doTrans(String adr, double amount, String hash) throws Exception
+        public CResult doTrans(String adr, double amount, String hash, long block) throws Exception
         {
             double balance;
             double new_balance;
@@ -903,20 +903,14 @@ public class CUtils
                                                               + "balance, "
                                                               + "block, "
                                                               + "created, "
-                                                              + "total_received, "
-                                                              + "total_spent, "
-                                                              + "trans_no, "
                                                               + "rowhash, "
                                                               + "last_interest) "
                                                      + "VALUES('"+adr+"', "+
                                                                   "'0', '"+
-                                                                  UTILS.BASIC.block()+"', '"+
-                                                                  UTILS.BASIC.block()+"', "
-                                                                  + "'0', "
-                                                                  + "'0', "
-                                                                  + "'0', "
+                                                                  block+"', '"+
+                                                                  block+"', "
                                                                   + "'', "
-                                                                  + "'"+UTILS.NET_STAT.last_block+"')");
+                                                                  + "'"+block+"')");
                         // New balance
                         new_balance=Double.parseDouble(UTILS.FORMAT.format(amount));
                      }
@@ -938,19 +932,9 @@ public class CUtils
 		     // Source balance update
 		     UTILS.DB.executeUpdate("UPDATE adr "
 		   		                + "SET balance="+UTILS.FORMAT_8.format(new_balance)+", "
-		   		                    + "block='"+UTILS.BASIC.block()+
+		   		                    + "block='"+block+
                                                 "' WHERE adr='"+adr+"'");
                         
-                     if (amount>0)
-                        UTILS.DB.executeUpdate("UPDATE adr "
-                                                   + "SET total_received=total_received+"+UTILS.FORMAT_8.format(amount)+", "
-                                                       + "trans_no=trans_no+1 "
-                                                 + "WHERE adr='"+adr+"'");
-                     else
-                        UTILS.DB.executeUpdate("UPDATE adr "
-                                                   + "SET total_spent=total_spent+"+UTILS.FORMAT_8.format(Math.abs(amount))+", "
-                                                       + "trans_no=trans_no+1 "
-                                                 + "WHERE adr='"+adr+"'");
                      
                     
                      // Close
@@ -964,33 +948,8 @@ public class CUtils
             // Return
             return new CResult(true, "Ok", "CUtils.java", 130);
         }
-        
-	public boolean isLink(String link) throws Exception
-	{
-		if (link.matches("^(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]"))
-                    return true;
-                else 
-                    return false;
-	}
-        
-        public boolean isPic(String link) throws Exception
-	{    
-            return true;
-	}
+       
 	
-	
-	public long block() throws Exception
-	{
-	    if (UTILS.CBLOCK!=null) 
-                return UTILS.NET_STAT.last_block+1;
-            else
-                return 0;
-	}
-	
-	public long daysFromBlock(long block) throws Exception
-	{
-		return Math.round((block-this.block())/1440);
-	}
 	
 	public long blocskFromDays(long days) throws Exception
 	{
@@ -1701,7 +1660,7 @@ public class CUtils
        return found;
     }
     
-    public boolean isFreeAdr(String adr) throws Exception
+    public boolean canSpend(String adr) throws Exception
     {
         if (this.isAssetAdr(adr)==false && 
             this.isContractAdr(adr)==false && 
@@ -1753,7 +1712,7 @@ public class CUtils
 	
     public boolean isString(String str) throws Exception
     {
-	String vals="1234567890-=!@#$%^&*()_+qwertyuiop[]QWERTYUIOP{}asdfghjkl;'\\ASDFGHJKL:\"|'zxcvbnm,./~ZXCVBNM<>?";
+	String vals=" 1234567890-=!@#$%^&*()_+qwertyuiop[]QWERTYUIOP{}asdfghjkl;'\\ASDFGHJKL:\"|'zxcvbnm,./~ZXCVBNM<>?";
 	
         for (int a=0; a<=str.length()-1; a++)
 	    if (vals.indexOf(str.charAt(a))==-1)
@@ -1765,7 +1724,7 @@ public class CUtils
     public boolean isSymbol(String symbol) throws Exception
     {
         // Check letters
-        if (!symbol.matches("[A-Z]{6}"))
+        if (!symbol.matches("[A-Z0-9]{6}"))
            return false;
         else
            return true;
@@ -1799,4 +1758,129 @@ public class CUtils
            
            return false;
         }
+    
+    public boolean isTitle(String title) throws Exception
+    {
+        // String ?
+        if (!this.isString(title))
+            return false;
+        
+        // Length
+        if (title.length()<2 || title.length()>100)
+            return false;
+        
+        // Passed
+        return true;
+    }
+    
+    public boolean isDesc(String desc) throws Exception
+    {
+        // String ?
+        if (!this.isString(desc))
+            return false;
+        
+        // Length
+        if (desc.length()<5 || desc.length()>1000)
+            return false;
+        
+        // Passed
+        return true;
+    }
+    
+    public boolean isLink(String link) throws Exception
+    {
+        // Lnegth
+        if (link.length()>250)
+           return false;
+                
+	if (link.matches("^(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]"))
+           return true;
+        else 
+           return false;
+    }
+    
+    public boolean isPic(String link) throws Exception
+    {   
+        // Is link
+        if (this.isLink(link)==false)
+            return false;
+        
+        // Length
+        if (link.endsWith(".jpg")==false && 
+            link.endsWith(".jpeg")==false &&
+            link.indexOf("/")>0)
+        return false;
+        
+        return true;
+    }
+    
+    public boolean isEmail(String email) throws Exception
+    {
+	 // Lnegth
+        if (email.length()>250)
+           return false;
+                
+	if (email.matches("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"))
+           return true;
+        else 
+           return false;
+    }
+    
+    public String zeros(String num)
+    {
+        String[] a=num.split("\\.");
+        
+        if (a.length==1) 
+        {
+            num=num+".00000000";
+        }
+        else
+        {
+            if (a[1].length()==1) num=num+"0000000";
+            if (a[1].length()==2) num=num+"000000";
+            if (a[1].length()==3) num=num+"00000";
+            if (a[1].length()==4) num=num+"0000";
+            if (a[1].length()==5) num=num+"000";
+            if (a[1].length()==6) num=num+"00";
+            if (a[1].length()==7) num=num+"0";
+        }
+        
+        return num;
+    }
+    
+    public String zeros_4(String num)
+    {
+        String[] a=num.split("\\.");
+        
+        if (a.length==1) 
+        {
+            num=num+".0000";
+        }
+        else
+        {
+            if (a[1].length()==1) num=num+"000";
+            if (a[1].length()==2) num=num+"00";
+            if (a[1].length()==3) num=num+"0";
+        }
+        
+        return num;
+    }
+    
+    public boolean isSync() throws Exception
+    {
+        Statement s=UTILS.DB.getStatement();
+        ResultSet rs=s.executeQuery("SELECT * FROM sync");
+        if (UTILS.DB.hasData(rs)) 
+        {
+            s.close();
+            return true;
+        }
+        else
+        {
+            s.close();
+            return false;
+        }
+    }
+    
+    
 }

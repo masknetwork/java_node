@@ -14,7 +14,9 @@ public class CBuyDomainPacket extends CBroadcastPacket
   public CBuyDomainPacket(String fee_adr,
 		          String buyer_adr, 
                           String attach_adr, 
-                          String domain) throws Exception
+                          String domain,
+                          String packet_sign,
+                          String payload_sign) throws Exception
   {
 	  super("ID_BUY_DOMAIN_PACKET");
 	  

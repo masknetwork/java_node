@@ -74,7 +74,7 @@ public class CTransferDomainPayload extends CPayload
                 return new CResult(false, "Invalid domain owner", "CTransferDomainPayload.java", 61);
 	    }
 			
-	    rs.close(); s.close();
+	    s.close();
         }
         catch (SQLException ex)
         {

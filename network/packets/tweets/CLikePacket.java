@@ -14,14 +14,17 @@ public class CLikePacket extends CBroadcastPacket
 {
    public CLikePacket(String fee_adr,
                       String adr, 
-		      long tweetID) throws Exception
+		      long tweetID,
+                      String packet_sign,
+                      String payload_sign) throws Exception
    {
 	   // Super class
 	   super("ID_TWEET_LIKE");
 	   
 	   // Builds the payload class
 	   CLikePayload dec_payload=new CLikePayload(adr, 
-		                                     tweetID);
+		                                     tweetID,
+                                                     payload_sign);
 			
 	   // Build the payload
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
@@ -30,7 +33,7 @@ public class CLikePacket extends CBroadcastPacket
 	   fee=new CFeePayload(fee_adr,  0.0001);
 	   
 	   // Sign packet
-	   this.sign();
+           this.sign(packet_sign);
    }
    
    // Check 
@@ -78,18 +81,42 @@ public class CLikePacket extends CBroadcastPacket
    
    public CResult commit(CBlockPayload block) throws Exception
    {
-   	  // Superclass
-   	  CResult res=super.commit(block);
-   	  if (res.passed==false) return res;
-   	  
-   	  // Deserialize transaction data
-   	  CLikePayload dec_payload=(CLikePayload) UTILS.SERIAL.deserialize(payload);
-
-	  // Fee is 0.0001 / day ?
-	  res=dec_payload.commit(block);
-          if (res.passed==false) return res;
-	  
-	  // Return 
-   	  return new CResult(true, "Ok", "CLikePacket", 62);
+   	// Check
+        CResult res=this.check(block);
+                
+	// Superclass
+	res=super.commit(block);
+	if (res.passed==false) return res;
+            
+        try
+        {
+            // Begin
+            UTILS.DB.begin();
+                
+            if (res.passed)
+            {
+                // Deserialize transaction data
+                CLikePayload dec_payload=(CLikePayload) UTILS.SERIAL.deserialize(payload);
+                
+	        // Commit
+	        res=dec_payload.commit(block);
+	        if (res.passed==false) throw new Exception(res.reason); 
+            }
+            else throw new Exception(res.reason); 
+                    
+            // Commit
+            UTILS.DB.commit();
+        }
+        catch (Exception ex)
+        {
+            // Rollback
+            UTILS.DB.rollback();
+                
+            // Exception
+            throw new Exception(ex.getMessage());
+        }
+			  
+	// Return 
+	return new CResult(true, "Ok", "CNewTweetPacket.java", 9);
    }
 }

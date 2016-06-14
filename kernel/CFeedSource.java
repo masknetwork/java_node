@@ -85,7 +85,7 @@ public class CFeedSource  extends Thread
                                       + "WHERE feed_symbol='"+this.feed_symbol+"'");
            
            // Create packet
-           packet=new CFeedPacket(this.adr, this.feed_symbol);
+           packet=new CFeedPacket(this.adr, this.feed_symbol, "", "");
                
            // Payload
            payload=new CFeedPayload(this.adr, this.feed_symbol);

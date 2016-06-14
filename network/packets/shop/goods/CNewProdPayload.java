@@ -43,21 +43,6 @@ public class CNewProdPayload extends CPayload
     // Pic 5
     String pic_5;
     
-    // Escrower 1
-    String esc_1;
-    
-    // Escrower 2
-    String esc_2;
-    
-    // Escrower 3        
-    String esc_3;
-    
-    // Escrower 4
-    String esc_4;
-    
-    // Escrower 5
-    String esc_5;
-    
     // Location town
     String prod_location_town;
     
@@ -76,9 +61,6 @@ public class CNewProdPayload extends CPayload
     // Delivery
     String delivery;
     
-    // Buyer protection
-    String accept_escrowers;
-    
     // Return policy
     String return_policy;
     
@@ -88,8 +70,6 @@ public class CNewProdPayload extends CPayload
     // Carrier
     String carrier;
     
-    // Market Bid
-    double mkt_bid;
     
     // Market expires
     long mkt_days;
@@ -112,19 +92,16 @@ public class CNewProdPayload extends CPayload
                           String internalID,
                           String web_page,
                           String pic_1, String pic_2, String pic_3, String pic_4, String pic_5,
-                          String desc_1, String desc_2, String desc_3, String desc_4, String desc_5,
                           String prod_location_town,
                           String prod_location_country,
                           String ships_to,
                           String ships_exceptions,
                           String condition,
                           String delivery,
-                          String accept_escrowers,
                           String return_policy,
                           double postage,
                           String carrier,
-                          double mkt_bid,
-                          long mkt_days,
+                          long days,
                           double price,
                           String categ,
                           String sub_categ) throws Exception
@@ -149,9 +126,6 @@ public class CNewProdPayload extends CPayload
 	  
 	  // Delivery
 	  this.delivery=delivery;
-	  
-	  // Buyer protection
-	  this.accept_escrowers=accept_escrowers;
 	  
 	  // Return policy
 	  this.return_policy=return_policy;

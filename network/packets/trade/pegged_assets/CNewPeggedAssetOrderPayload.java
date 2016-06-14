@@ -227,7 +227,7 @@ public class CNewPeggedAssetOrderPayload extends CPayload
               price=rs.getDouble("last_price");
            
            // Commit transactions
-           UTILS.BASIC.clearTrans(hash, "ID_ALL");
+           UTILS.BASIC.clearTrans(hash, "ID_ALL", this.block);
            
            // Insert transaction
            UTILS.DB.executeUpdate("INSERT INTO feeds_assets_mkts_trans(adr, "

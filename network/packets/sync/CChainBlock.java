@@ -3,34 +3,67 @@ package wallet.network.packets.sync;
 import wallet.kernel.UTILS;
 import wallet.network.CResult;
 
-public class CChainBlock 
+public class CChainBlock implements java.io.Serializable
 {
     // Prev hash
-    String prev_hash;
+    public String prev_hash;
     
     // Block
-    long block;
+    public long block;
     
     // Block hash
-    String block_hash;
+    public String block_hash;
     
     // Signer
-    String signer;
+    public String signer;
     
     // Signer balance
-    long signer_balance;
+    public long signer_balance;
     
     // Timestamp
-    long tstamp;
+    public long tstamp;
     
     // Nonce
-    long nonce;
+    public long nonce;
     
     // Payload hash
-    String payload_hash;
+    public String payload_hash;
     
     // Net dif
-    long net_dif;
+    public long net_dif;
+    
+    // Commited
+    public long commited;
+    
+    // Tab 1
+    public String tab_1="";
+    
+    // Tab 2
+    public String tab_2="";
+    
+    // Tab 3
+    public String tab_3="";
+    
+    // Tab 4
+    public String tab_4="";
+    
+    // Tab 5
+    public String tab_5="";
+    
+    // Tab 6
+    public String tab_6="";
+    
+    // Tab 7
+    public String tab_7="";
+    
+    // Tab 8
+    public String tab_8="";
+    
+    // Tab 9
+    public String tab_9="";
+    
+    // Tab 10
+    public String tab_10="";
     
     public CChainBlock(String prev_block_hash,
                        String block_hash,
@@ -40,7 +73,18 @@ public class CChainBlock
                        long tstamp, 
                        long nonce, 
                        String payload_hash,
-                       long net_dif) throws Exception
+                       long net_dif,
+                       long commited,
+                       String tab_1,
+                       String tab_2,
+                       String tab_3,
+                       String tab_4,
+                       String tab_5,
+                       String tab_6,
+                       String tab_7,
+                       String tab_8,
+                       String tab_9,
+                       String tab_10) throws Exception
     {
         // Prev hash
         this.prev_hash=prev_block_hash;
@@ -68,6 +112,39 @@ public class CChainBlock
         
         // Net dif
         this.net_dif=net_dif;
+        
+        // Commited
+        this.commited=commited;
+        
+        // Tab 1
+        this.tab_1=tab_1;
+        
+        // Tab 2
+        this.tab_2=tab_2;
+        
+        // Tab 3
+        this.tab_3=tab_3;
+        
+        // Tab 4
+        this.tab_4=tab_4;
+        
+        // Tab 5
+        this.tab_5=tab_5;
+        
+        // Tab 6
+        this.tab_6=tab_6;
+        
+        // Tab 7
+        this.tab_7=tab_7;
+        
+        // Tab 8
+        this.tab_8=tab_8;
+        
+        // Tab 9
+        this.tab_9=tab_9;
+        
+        // Tab 10
+        this.tab_10=tab_10;
     }
     
     public CResult check() throws Exception
@@ -80,7 +157,17 @@ public class CChainBlock
                                         this.tstamp, 
                                         this.nonce,
                                         this.block_hash,
-                                        this.net_dif))
+                                        this.net_dif,
+                                        this.tab_1,
+                                        this.tab_2, 
+                                        this.tab_3, 
+                                        this.tab_4, 
+                                        this.tab_5, 
+                                        this.tab_6,
+                                        this.tab_7,
+                                        this.tab_8,
+                                        this.tab_9,
+                                        this.tab_10))
             return new CResult(true, "Ok", "CChainBlock", 67);
         else
             return new CResult(false, "Invalid block", "CChainBlock", 67);
