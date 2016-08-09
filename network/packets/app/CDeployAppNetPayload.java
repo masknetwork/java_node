@@ -91,13 +91,8 @@ public class CDeployAppNetPayload extends CPayload
          // Super class
          super.check(block);
         
-         // Result
-         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                     + "FROM agents "
-                                    + "WHERE aID='"+this.appID+"'");
-         
          // Already exist
-         if (UTILS.DB.hasData(rs))
+         if (!UTILS.BASIC.validID(this.appID))
              throw new Exception ("Invalid app ID (CDeployAppNetPayload.java)");
          
          // Sealed address ?
@@ -164,11 +159,10 @@ public class CDeployAppNetPayload extends CPayload
                                             + "adr='"+this.target_adr+"', "
                                             + "owner='"+this.target_adr+"', "
                                             + "globals='"+UTILS.BASIC.base64_encode(this.globals)+"', "
-                                            + "interface='"+UTILS.BASIC.base64_encode(this.iface)+"', "
-                                            + "signals='"+UTILS.BASIC.base64_encode(this.signals)+"', "
+                                            + "interface='', "
+                                            + "signals='', "
                                             + "code='"+UTILS.BASIC.base64_encode(this.code)+"', "
                                             + "exec_log='', "
-                                            + "storage='', "
                                             + "name='"+UTILS.BASIC.base64_encode(this.name)+"', "
                                             + "block='"+this.block+"', "
                                             + "expire='"+(this.block+this.days*1440)+"', "

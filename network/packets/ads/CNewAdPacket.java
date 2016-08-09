@@ -19,9 +19,7 @@ public class CNewAdPacket extends CBroadcastPacket
 		       double price, 
 		       String title, 
 		       String mes, 
-		       String link,
-                       String packet_sign,
-                       String payload_sign) throws Exception
+		       String link) throws Exception
    {
 	   // Super class
 	   super("ID_NEW_AD_PACKET");
@@ -33,8 +31,7 @@ public class CNewAdPacket extends CBroadcastPacket
 			                               price, 
 			                               title, 
 			                               mes, 
-			                               link,
-                                                       payload_sign);
+			                               link);
 			
 	   // Build the payload
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
@@ -43,7 +40,7 @@ public class CNewAdPacket extends CBroadcastPacket
 	   fee=new CFeePayload(fee_adr,  price*hours);
 	   
 	   // Sign packet
-           this.sign(packet_sign);
+           this.sign();
    }
    
    // Check 

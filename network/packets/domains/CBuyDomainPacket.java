@@ -55,7 +55,6 @@ public class CBuyDomainPacket extends CBroadcastPacket
             
            // Footprint
            CPackets foot=new CPackets(this);
-           
            foot.add("Buyer", dec_payload.target_adr);
            foot.add("Domain", dec_payload.domain);
            foot.write();

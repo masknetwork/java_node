@@ -45,6 +45,7 @@ public class CAssetsTable extends CTable
     public void create() throws Exception
     {
         UTILS.DB.executeUpdate("CREATE TABLE assets(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                             +"assetID BIGINT DEFAULT 0, "
                                                              +"adr VARCHAR(250) DEFAULT '', "
                                                              +"symbol VARCHAR(10) DEFAULT '', "
                                                              +"title VARCHAR(250) DEFAULT '', "
@@ -62,6 +63,7 @@ public class CAssetsTable extends CTable
                                                              +"block BIGINT DEFAULT 0)");
              
         UTILS.DB.executeUpdate("CREATE INDEX assets_adr ON assets(adr)");
+        UTILS.DB.executeUpdate("CREATE INDEX assets_ID ON assets(assetID)");
         UTILS.DB.executeUpdate("CREATE INDEX assets_symbol ON assets(symbol)");
         UTILS.DB.executeUpdate("CREATE INDEX assets_block ON assets(block)");
         UTILS.DB.executeUpdate("CREATE INDEX assets_linked_mktID ON assets(linked_mktID)");    
@@ -72,6 +74,7 @@ public class CAssetsTable extends CTable
     {
         // Adr
         UTILS.DB.executeUpdate("UPDATE assets SET rowhash=SHA2(CONCAT(adr, "
+                                                                 + "assetID, "
                                                                  + "symbol, "
                                                                  + "title, "
                                                                  + "description, "
@@ -123,6 +126,9 @@ public class CAssetsTable extends CTable
             // Address
             String adr=row.getString("adr");
             
+            // Asset ID
+            long assetID=row.getLong("assetID");
+            
             // Symbol
             String symbol=row.getString("symbol");
                
@@ -167,6 +173,7 @@ public class CAssetsTable extends CTable
             
             // Hash
             String hash=UTILS.BASIC.hash(adr+
+                                         assetID+
                                          symbol+
                                          title+
                                          description+
@@ -209,10 +216,6 @@ public class CAssetsTable extends CTable
        // Init
        int a=0;
        
-       
-       // Statement
-       
-       
        // Load data
        ResultSet rs=UTILS.DB.executeQuery("SELECT * FROM assets ORDER BY ID ASC");
        
@@ -232,6 +235,9 @@ public class CAssetsTable extends CTable
                
                // Adr
                this.addRow("adr", rs.getString("adr"));
+               
+               // Asset ID
+               this.addRow("assetID", rs.getLong("assetID"));
                
                // Symbol
                this.addRow("symbol", rs.getString("symbol"));
@@ -309,6 +315,7 @@ public class CAssetsTable extends CTable
             
             UTILS.DB.executeUpdate("INSERT INTO assets "
                                          + "SET adr='"+row.getString("adr")+"', "
+                                             + "assetID='"+row.getLong("assetID")+"', "
                                              + "symbol='"+row.getString("symbol")+"', "
                                              + "title='"+row.getString("title")+"', "
                                              + "description='"+row.getString("description")+"', "

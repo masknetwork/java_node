@@ -54,12 +54,6 @@ public class CREJECT extends CInstruction
             // Reject close order
             case "ASSET_MKT_CLOSE_ORDER" : VM.SYS.EVENT.CLOSE_ORDER.reject(); break;
             
-            // Reject speculative market open
-            case "NEW_SPEC_MARKET" : VM.SYS.EVENT.OPEN_SPEC_MARKET.reject(); break;
-            
-            // Reject speculative market order open
-            case "NEW_SPEC_MARKET_ORDER" : VM.SYS.EVENT.OPEN_SPEC_MARKET_ORDER.reject(); break;
-            
             // Reject bet open
             case "NEW_BET" : VM.SYS.EVENT.BET_OPEN.reject(); break;
             

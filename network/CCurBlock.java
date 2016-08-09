@@ -165,6 +165,7 @@ public class CCurBlock
                                              + "JOIN adr ON adr.adr=ma.adr "
                                             + "WHERE mine>0 AND last_mine<"+(UTILS.NET_STAT.last_block-1000)+" "
                                          + "ORDER BY adr.balance DESC LIMIT 0,1");
+          
        
           // Next
           if (UTILS.DB.hasData(rs)) 
@@ -266,6 +267,10 @@ public class CCurBlock
        // Reset consensus
        if (UTILS.STATUS.engine_status.equals("ID_ONLINE"))
            UTILS.CONSENSUS.newBlock();
+       
+       // Set block data
+       UTILS.NET_STAT.actual_block_hash="";
+       UTILS.NET_STAT.actual_block_no=0;
       
    }
    

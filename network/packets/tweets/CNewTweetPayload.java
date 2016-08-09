@@ -55,7 +55,7 @@ public class CNewTweetPayload extends CPayload
            this.retweet_tweet_ID=retweet_tweet_ID;
            
            // Tweet ID
-           this.tweetID=Math.round(Math.random()*1000000000+this.block);
+           this.tweetID=UTILS.BASIC.getID();
            
 	   // Hash
  	   hash=UTILS.BASIC.hash(this.getHash()+
@@ -73,7 +73,11 @@ public class CNewTweetPayload extends CPayload
    {
         // Super class
    	super.check(block);
-   	
+        
+        // Check tweetID
+   	if (!UTILS.BASIC.validID(this.tweetID))
+           throw new Exception ("Invalid tweet ID - CNewTweetPayload.java");
+        
         // Not a retweet
         if (this.retweet_tweet_ID==0)
         {
@@ -94,35 +98,24 @@ public class CNewTweetPayload extends CPayload
         {
             // Title or pic
             if (!this.pic.equals("") || 
-                !this.title.equals("") ||
-                !this.mes.equals(""))
+                !this.title.equals(""))
             throw new Exception ("Invalid entry data - CNewTweetPayload.java");
         }
         
-        // Check if tweetID exist
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                           + "FROM tweets "
-                                          + "WHERE tweetID='"+this.tweetID+"'");
-            
-        if (UTILS.DB.hasData(rs))
-           throw new Exception ("Invalid tweet ID - CNewTweetPayload.java");
+        
             
         // Check if retweet ID exist
         if (this.retweet_tweet_ID>0)
         {
                 // Retweet
-                rs=UTILS.DB.executeQuery("SELECT * "
-                                         + "FROM tweets "
-                                        + "WHERE tweetID='"+this.retweet_tweet_ID+"'");
+                ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                                   + "FROM tweets "
+                                                  + "WHERE tweetID='"+this.retweet_tweet_ID+"'");
                 
                 // Has data
                 if (!UTILS.DB.hasData(rs))
                    throw new Exception ("Invalid retweet ID - CNewTweetPayload.java");
         }
-        
-        // Invalid ID ?
-        if (this.retweet_tweet_ID<0)
-            throw new Exception ("Invalid retweet ID - CNewTweetPayload.java");
         
             
 	// Check Hash

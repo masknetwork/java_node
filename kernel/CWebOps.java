@@ -16,6 +16,7 @@ import wallet.network.CPeer;
 import wallet.network.CResult;
 import wallet.network.packets.CPacket;
 import wallet.network.packets.adr.CProfilePacket;
+import wallet.network.packets.adr.CSealPacket;
 import wallet.network.packets.ads.CNewAdPacket;
 import wallet.network.packets.app.CDeployAppNetPacket;
 import wallet.network.packets.app.CPublishAppPacket;
@@ -32,6 +33,7 @@ import wallet.network.packets.assets.reg_mkts.CCloseRegMarketPosPacket;
 import wallet.network.packets.assets.reg_mkts.CNewRegMarketPacket;
 import wallet.network.packets.assets.reg_mkts.CNewRegMarketPosPacket;
 import wallet.network.packets.mes.CMesPacket;
+import wallet.network.packets.misc.CRenewPacket;
 import wallet.network.packets.trade.bets.CBuyBetPacket;
 import wallet.network.packets.trade.bets.CNewBetPacket;
 import wallet.network.packets.trade.feeds.CNewFeedComponentPacket;
@@ -388,6 +390,16 @@ public class CWebOps
                        UTILS.CBLOCK.setSigner();
                    }
                    
+                   if (op.equals("ID_RENEW"))
+                   {
+                       CRenewPacket packet=new CRenewPacket(rs.getString("fee_adr"), 
+                                                            rs.getString("target_adr"), 
+                                                            rs.getString("par_1"), 
+                                                            rs.getLong("days"),
+                                                            rs.getString("par_2"));
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
                    if (op.equals("ID_SHUTDOWN"))
                    {
                        UTILS.DB.executeUpdate("UPDATE web_ops SET status='ID_EXECUTED' WHERE ID='"+rs.getLong("ID")+"'"); 
@@ -399,9 +411,7 @@ public class CWebOps
                       CRentDomainPacket packet=new CRentDomainPacket(rs.getString("fee_adr"), 
                                                                      rs.getString("target_adr"), 
                                                                      rs.getString("par_1"), 
-                                                                     rs.getLong("days"),
-                                                                     rs.getString("packet_sign"),
-                                                                     rs.getString("payload_sign"));     
+                                                                     rs.getLong("days"));     
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
@@ -410,17 +420,17 @@ public class CWebOps
                    {
                       CTransferDomainPacket packet=new CTransferDomainPacket(rs.getString("fee_adr"),
 		                                                             rs.getString("target_adr"), 
-                                                                             rs.getString("par_2"),
-                                                                             rs.getString("par_3"));   
+                                                                             rs.getString("par_1"),
+                                                                             rs.getString("par_2"));   
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
                    if (op.equals("ID_SALE_DOMAIN"))
                    {
                       CSaleDomainPacket packet=new CSaleDomainPacket(rs.getString("fee_adr"),
+                                                                     rs.getString("target_adr"),
 		                                                     rs.getString("par_1"),
-                                                                     rs.getString("par_2"),
-                                                                     rs.getDouble("par_3"));
+                                                                     rs.getDouble("par_2"));
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
@@ -429,6 +439,15 @@ public class CWebOps
                       CBuyDomainPacket packet=new CBuyDomainPacket(rs.getString("fee_adr"),
 		                                                   rs.getString("target_adr"),
                                                                    rs.getString("par_1"));
+                                                                   
+                       UTILS.NETWORK.broadcast(packet);
+                   }
+                   
+                   if (op.equals("ID_SEAL_ADR"))
+                   {
+                      CSealPacket packet=new  CSealPacket(rs.getString("fee_adr"),
+		                                          rs.getString("target_adr"),
+                                                          rs.getLong("days"));
                                                                    
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -442,9 +461,7 @@ public class CWebOps
 		                                           rs.getDouble("bid"), 
 		                                           UTILS.BASIC.base64_decode(rs.getString("par_1")), 
 		                                           UTILS.BASIC.base64_decode(rs.getString("par_2")), 
-		                                           rs.getString("par_3"),
-                                                           rs.getString("packet_sign"),
-                                                           rs.getString("payload_sign"));
+		                                           UTILS.BASIC.base64_decode(rs.getString("par_3")));
                                                 
                        UTILS.NETWORK.broadcast(packet);
                    }
@@ -493,8 +510,8 @@ public class CWebOps
                                                                             rs.getString("par_1"),
                                                                             rs.getString("par_2"), 
                                                                             rs.getInt("par_5"),
-                                                                            rs.getString("par_3"), 
-                                                                            rs.getString("par_4"),
+                                                                            UTILS.BASIC.base64_decode(rs.getString("par_3")), 
+                                                                            UTILS.BASIC.base64_decode(rs.getString("par_4")),
                                                                             rs.getLong("days"));
                        
                        UTILS.NETWORK.broadcast(packet);
@@ -552,12 +569,12 @@ public class CWebOps
                                                                       rs.getString("par_1"), 
                                                                       rs.getLong("par_2"),
                                                                       rs.getString("par_3"),
-                                                                      rs.getString("par_4"),
-                                                                      rs.getString("par_5"),
+                                                                      UTILS.BASIC.base64_decode(rs.getString("par_4")),
+                                                                      UTILS.BASIC.base64_decode(rs.getString("par_5")),
                                                                       rs.getString("par_6"),
-                                                                      rs.getString("par_7"),
-                                                                      rs.getString("par_8"),
-                                                                      rs.getString("par_9"),
+                                                                      UTILS.BASIC.base64_decode(rs.getString("par_7")),
+                                                                      UTILS.BASIC.base64_decode(rs.getString("par_8")),
+                                                                      UTILS.BASIC.base64_decode(rs.getString("par_9")),
                                                                       rs.getDouble("par_10"));
                        UTILS.NETWORK.broadcast(packet);
                    }   

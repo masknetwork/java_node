@@ -19,9 +19,7 @@ public class CSTDomains extends CStressTest
         CRentDomainPacket packet=new CRentDomainPacket(this.randomAdr(), 
                                                        this.randomAdr(), 
                                                        "teste"+String.valueOf(Math.round(Math.random()*1000000)), 
-                                                       100,
-                                                       "",
-                                                       "");
+                                                       100);
          UTILS.NETWORK.broadcast(packet);
     }
     

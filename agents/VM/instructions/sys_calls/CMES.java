@@ -63,21 +63,14 @@ public class CMES extends CInstruction
         
         // Insert message
         if (UTILS.WALLET.isMine(this.dest.cel.val)==true)
-             UTILS.DB.executeUpdate("INSERT INTO mes(from_adr, "
-    	   		                          + "to_adr, "
-    	   		                          + "subject, "
-    	   		                          + "mes, "
-    	   		                          + "status, "
-    	   		                          + "tstamp, "
-                                                  + "tgt)"
-    	   		                       + "VALUES ('"+
-    	   		                             owner.val+"', '"+
-    	   		                             this.dest.cel.val+"', '"+
-    	   		                             UTILS.BASIC.base64_encode(this.subject.cel.val)+"', '"+
-    	   		                             UTILS.BASIC.base64_encode(this.mes.cel.val)+"', '"+
-                                                     "0', '"+
-    	   		                             String.valueOf(UTILS.BASIC.tstamp())+"', "
-                                                     + "'0')");
+             UTILS.DB.executeUpdate("INSERT INTO mes "
+                                          + "SET from_adr='"+owner.val+"', "
+    	   		                       + "to_adr='"+this.dest.cel.val+"'', "
+    	   		                       + "subject='"+UTILS.BASIC.base64_encode(this.subject.cel.val)+"', "
+    	   		                       + "mes='"+UTILS.BASIC.base64_encode(this.mes.cel.val)+"', "
+    	   		                       + "status='0', "
+    	   		                       + "block='"+VM.block+"', "
+                                               + "tgt='0'");
         
         // Cost
         VM.CODE.fee=VM.CODE.fee+0.0001;

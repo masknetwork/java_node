@@ -17,7 +17,7 @@ public class CFeedsBetsTable extends CTable
     public void create() throws Exception
     {
          UTILS.DB.executeUpdate("CREATE TABLE feeds_bets(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                            +"mktID BIGINT DEFAULT 0, "
+                                                            +"betID BIGINT DEFAULT 0, "
                                                             +"adr VARCHAR(250) DEFAULT '', "
                                                             +"feed_1 VARCHAR(10) DEFAULT '', "
                                                             +"branch_1 VARCHAR(10) DEFAULT '', "
@@ -43,7 +43,7 @@ public class CFeedsBetsTable extends CTable
                                                             +"rowhash VARCHAR(100) DEFAULT '', "
                                                             +"block BIGINT DEFAULT 0)");
              
-             UTILS.DB.executeUpdate("CREATE INDEX feeds_bets_uid ON feeds_bets(mktID)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_bets_uid ON feeds_bets(betID)");
              UTILS.DB.executeUpdate("CREATE INDEX feeds_bets_block ON feeds_bets(block)");
     }
     
@@ -93,7 +93,7 @@ public class CFeedsBetsTable extends CTable
     {
         // Adr
         UTILS.DB.executeUpdate("UPDATE feeds_bets "
-                                + "SET rowhash=SHA2(CONCAT(mktID, "
+                                + "SET rowhash=SHA2(CONCAT(betID, "
                                                           + "adr, "
                                                           + "feed_1, branch_1, "
                                                           + "feed_2, branch_2, "
@@ -153,7 +153,7 @@ public class CFeedsBetsTable extends CTable
             JSONObject row=rows.getJSONObject(a);
             
             // MktID
-            long mktID=row.getLong("mktID");
+            long betID=row.getLong("betID");
 
             // Adr
             String adr=row.getString("adr");
@@ -228,7 +228,7 @@ public class CFeedsBetsTable extends CTable
             long block=row.getLong("block");
 
             // Hash
-            String hash=UTILS.BASIC.hash(mktID
+            String hash=UTILS.BASIC.hash(betID
                                          +adr
                                          +feed_1
                                          +branch_1
@@ -300,7 +300,7 @@ public class CFeedsBetsTable extends CTable
                    this.json=this.json+", {";
                
                // MktID
-               this.addRow("mktID", rs.getString("mktID"));
+               this.addRow("betID", rs.getLong("betID"));
 
                // Adr
                this.addRow("adr", rs.getString("adr"));
@@ -409,7 +409,7 @@ public class CFeedsBetsTable extends CTable
             
             UTILS.DB.executeUpdate("INSERT INTO feeds_bets "
                                          + "SET ID='"+row.getString("ID")+"', "
-                                             + "mktID='"+row.getString("mktID")+"', "
+                                             + "betID='"+row.getLong("betID")+"', "
                                              + "adr='"+row.getString("adr")+"', "
                                              + "feed_1='"+row.getString("feed_1")+"', "
                                              + "branch_1='"+row.getString("branch_1")+"', "

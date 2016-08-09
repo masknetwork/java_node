@@ -132,6 +132,10 @@ public class Wallet
         UTILS.CONSENSUS=new CConsensus();
         UTILS.CONSENSUS.start();
         
+        // Delegates
+        UTILS.DELEGATES=new CDelegates();
+        UTILS.DELEGATES.refresh();
+        
         // Feeds sources
         CFeedsSources feed_src=new CFeedsSources();
         
@@ -146,7 +150,6 @@ public class Wallet
         CTestBattery bat=new CTestBattery();
         //bat.start();
         //bat.runFeeds();
-        
         
         
         }

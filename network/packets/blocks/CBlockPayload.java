@@ -169,15 +169,7 @@ public class CBlockPayload extends CPayload
             UTILS.ACC.clearTrans(hash, "ID_ALL", this.block);
         }
         
-        public void delExpired() throws Exception
-        {
-            // Expired ads
-            UTILS.DB.executeUpdate("DELETE FROM ads WHERE expire<"+this.block);
-            
-            // Expired domains
-            UTILS.DB.executeUpdate("DELETE FROM domains WHERE expire<"+this.block);
-           
-        }
+        
         
 	// Compare two blocks and returns the accuracy
 	public int compare(CBlockPayload block)
@@ -230,8 +222,7 @@ public class CBlockPayload extends CPayload
                 // Pay block reward
                 this.payReward(this.target_adr);
                  
-                // Delete expired items
-                this.delExpired();
+                
                 
                 // Check options
                 UTILS.CRONS.runCrons(block, this);

@@ -27,8 +27,7 @@ public class CRentDomainPayload extends CPayload
 	
 	public CRentDomainPayload(String adr, 
                                   String domain, 
-                                  long days,
-                                  String payload_sign)  throws Exception
+                                  long days)  throws Exception
 	{
             // Constructor
             super(adr);
@@ -45,11 +44,14 @@ public class CRentDomainPayload extends CPayload
 			          String.valueOf(days));
 		
 	    // Signature
-	    this.sign(payload_sign);
+	    this.sign();
 	}
     
 	public void check(CBlockPayload block) throws Exception
 	{
+           // Parent
+           super.check(block);
+           
            // Domain valid
            if (!UTILS.BASIC.isDomain(this.domain))
                  throw new Exception("Invalid domain name - CRentDomainPayload.java");
@@ -76,10 +78,7 @@ public class CRentDomainPayload extends CPayload
            // Days
            if (this.days<100)
                throw new Exception("Invalid rent period - CRentDomainPayload.java");
-           
-           // Close
-           
-           
+          
 	}
 	
 	public void commit(CBlockPayload block) throws Exception
@@ -90,8 +89,8 @@ public class CRentDomainPayload extends CPayload
              // Update
              UTILS.DB.executeUpdate("INSERT INTO domains "
                                           + "SET adr='"+this.target_adr+"', "
-                                              + "domain='"+this.domain+"', "
-                                              + "expire='"+this.block+this.days*1440+"', "
+                                              + "domain='"+this.domain.toLowerCase()+"', "
+                                              + "expire='"+(this.block+this.days*1440)+"', "
                                               + "sale_price='0', "
                                               + "block='"+this.block+"'");
    }

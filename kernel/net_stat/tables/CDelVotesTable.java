@@ -1,58 +1,50 @@
 package wallet.kernel.net_stat.tables;
 
 import java.sql.ResultSet;
-import java.sql.Statement;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import wallet.kernel.UTILS;
 import wallet.kernel.net_stat.CTable;
 
-public class CVotesTable extends CTable
+public class CDelVotesTable extends CTable
 {
-    public CVotesTable()
+    public CDelVotesTable()
     {
-        super("votes");
+        super("del_votes");
     }
     
-    public void removeByAdr(String adr) throws Exception
-    {
-        UTILS.DB.executeUpdate("DELETE FROM votes "
-                                   + "WHERE adr='"+adr+"'");
-    }
-    
+    // Create
     public void create() throws Exception
     {
-        UTILS.DB.executeUpdate("CREATE TABLE votes(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                          +"target_type BIGINT DEFAULT '0', "
-                                                          +"targetID BIGINT DEFAULT '0', "
-                                                          +"adr VARCHAR(250) DEFAULT '', "
-                                                          +"power FLOAT(9,2) DEFAULT 0, "
-                                                          +"block BIGINT DEFAULT '0', "
-                                                          +"rowhash VARCHAR(100) DEFAULT '')");
-             
-        UTILS.DB.executeUpdate("CREATE INDEX votes_tweetID ON votes(tweetID)");
-        UTILS.DB.executeUpdate("CREATE INDEX votes_adr ON votes(adr)");
-        UTILS.DB.executeUpdate("CREATE INDEX votes_block ON votes(block)");
-        UTILS.DB.executeUpdate("CREATE INDEX votes_rowhash ON votes(rowhash)");
+        UTILS.DB.executeUpdate("CREATE TABLE del_votes(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                    + "delegate VARCHAR(500) DEFAULT '', "
+                                                    + "adr VARCHAR(500) DEFAULT '', "
+				  	            + "type VARCHAR(25) DEFAULT 'ID_UP', "
+				    	            + "block BIGINT DEFAULT 0,"
+				     	            + "rowhash VARCHAR(100) DEFAULT '')");
+				    
+	UTILS.DB.executeUpdate("CREATE INDEX del_votes_delegate ON del_votes(delegate)");
+        UTILS.DB.executeUpdate("CREATE INDEX del_votes_adr ON del_votes(adr)");
+        UTILS.DB.executeUpdate("CREATE INDEX del_votes_rowhash ON del_votes(rowhash)");
+        UTILS.DB.executeUpdate("CREATE INDEX del_votes_block ON del_votes(block)");    
     }
     
- // Address
+    // Address
     public void refresh(long block) throws Exception
     {
         // Adr
-        UTILS.DB.executeUpdate("UPDATE votes "
-                                + "SET rowhash=SHA2(CONCAT(target_type, "
-                                                        + "targetID,"
-                                                        + "adr, "
-                                                        + "power,"
-                                                        + "block), 256) "
+        UTILS.DB.executeUpdate("UPDATE del_votes "
+                                + "SET rowhash=SHA2(CONCAT(delegate, "
+                                                         + "adr, "
+                                                         + "type, "
+                                                         + "block), 256) "
                               + "WHERE block='"+block+"'");
         
         // Table hash
-        if (UTILS.BASIC.hasRecords("votes"))
+        if (UTILS.BASIC.hasRecords("ads"))
         {
-            UTILS.DB.executeUpdate("UPDATE net_stat "
-                                    + "SET votes=(SELECT SHA2(GROUP_CONCAT(rowhash ORDER BY ID ASC), 256) AS st FROM votes)"); 
+            UTILS.DB.executeUpdate("UPDATE del_votes "
+                                    + "SET del_votes=(SELECT SHA2(GROUP_CONCAT(rowhash ORDER BY ID ASC), 256) AS st FROM del_votes)"); 
         
             // Refresh
             super.refresh(block);
@@ -82,17 +74,14 @@ public class CVotesTable extends CTable
             // Load row
             JSONObject row=rows.getJSONObject(a);
             
-            // Target type
-            String target_type=row.getString("target_type");
+            // Delegate
+            String delegate=row.getString("delegate");
             
-            // Target ID
-            long targetID=row.getLong("targetID");
-            
-            // Adr
+            // Address
             String adr=row.getString("adr");
-            
-            // Power
-            double power=row.getDouble("power");
+               
+            // Type
+            String type=row.getString("type");
                
             // Block
             long block=row.getLong("block");
@@ -101,15 +90,15 @@ public class CVotesTable extends CTable
             String rowhash=row.getString("rowhash");
             
             // Hash
-            String hash=UTILS.BASIC.hash(target_type+
-                                         targetID+
+            String hash=UTILS.BASIC.hash(delegate+
                                          adr+
-                                         power+
+                                         type+
                                          block);
-                    
+         
+          
             // Check hash
             if (!rowhash.equals(hash))
-                throw new Exception("Invalid hash - CTweetsLikesTable.java");
+                throw new Exception("Invalid hash - CDelVotesTable.java " + hash);
             
             // Total hash
             if (a>0) 
@@ -123,7 +112,7 @@ public class CVotesTable extends CTable
          
         // Check grand hash
         if (!ghash.equals(crc))
-            throw new Exception("Invalid grand hash - CTweetsLikesTable.java");
+            throw new Exception("Invalid grand hash - CDelVotesTable.java");
     }
     
     public void fromDB() throws Exception
@@ -134,13 +123,8 @@ public class CVotesTable extends CTable
        // Init
        int a=0;
        
-       // Statement
-       
-       
        // Load data
-       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                          + "FROM votes "
-                                      + "ORDER BY ID ASC");
+       ResultSet rs=UTILS.DB.executeQuery("SELECT * FROM del_votes ORDER BY ID ASC");
        
        // Parse
        if (UTILS.DB.hasData(rs))
@@ -156,17 +140,14 @@ public class CVotesTable extends CTable
                else
                    this.json=this.json+", {";
                
-               // Target type
-               this.addRow("target_type", rs.getString("target_type"));
-               
-               // Target ID
-               this.addRow("targetID", rs.getLong("targetID"));
+               // Delegate
+               this.addRow("delegate", rs.getString("delegate"));
                
                // Adr
                this.addRow("adr", rs.getString("adr"));
                
-               // Power
-               this.addRow("power", rs.getDouble("power"));
+               // Type
+               this.addRow("type", rs.getString("type"));
                
                // Block
                this.addRow("block", rs.getLong("block"));
@@ -185,6 +166,7 @@ public class CVotesTable extends CTable
        // Close json
        this.json=this.json+"]}";
        
+       // Close
        
        
     }
@@ -206,31 +188,27 @@ public class CVotesTable extends CTable
             // Load row
             JSONObject row=rows.getJSONObject(a);
             
-            UTILS.DB.executeUpdate("INSERT INTO votes "
-                                         + "SET target_type='"+row.getString("target_type")+"', "
-                                             + "targetID='"+row.getLong("targetID")+"', "
+            UTILS.DB.executeUpdate("INSERT INTO del_votes "
+                                         + "SET delegate='"+row.getString("delegate")+"', "
                                              + "adr='"+row.getString("adr")+"', "
-                                             + "power='"+row.getDouble("adr")+"', "
+                                             + "type='"+row.getString("type")+"', "
                                              + "block='"+row.getLong("block")+"', "
                                              + "rowhash='"+row.getString("rowhash")+"'");
         }
         
         // Clear table from sync
-        UTILS.SYNC.removeTable("votes");
+        UTILS.SYNC.removeTable("del_votes");
     }
     
     public void loadCheckpoint(String hash, String crc) throws Exception
     {
         // Drop table
-        UTILS.DB.executeUpdate("DROP TABLE votes");
+        UTILS.DB.executeUpdate("DROP TABLE del_votes");
         
         // Create table
         this.create();
         
         // From file
-        this.fromFile(hash, "votes.table", crc);
+        this.fromFile(hash, "del_votes.table", crc);
     }
-    
-   
 }
-

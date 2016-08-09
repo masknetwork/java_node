@@ -88,10 +88,10 @@ public class CAssetsOwnersTable extends CTable
             String symbol=row.getString("symbol");
                
             // Qty
-            String qty=UTILS.BASIC.zeros(UTILS.FORMAT_8.format(row.getDouble("qty")));
+            String qty=UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(row.getDouble("qty")));
                
             // Invested
-            String invested=UTILS.BASIC.zeros(UTILS.FORMAT_8.format(row.getDouble("invested")));
+            String invested=UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(row.getDouble("invested")));
                
             // Block
             long block=row.getLong("block");
@@ -161,10 +161,10 @@ public class CAssetsOwnersTable extends CTable
                this.addRow("symbol", rs.getString("symbol"));
                
                // Qty
-               this.addRow("qty", UTILS.BASIC.zeros(UTILS.FORMAT_8.format(rs.getDouble("qty"))));
+               this.addRow("qty", UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(rs.getDouble("qty"))));
                
                // Invested
-               this.addRow("invested", UTILS.BASIC.zeros(UTILS.FORMAT_8.format(rs.getDouble("invested"))));
+               this.addRow("invested", UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(rs.getDouble("invested"))));
                
                // Block
                this.addRow("block", rs.getLong("block"));
@@ -207,8 +207,8 @@ public class CAssetsOwnersTable extends CTable
             UTILS.DB.executeUpdate("INSERT INTO assets_owners "
                                          + "SET owner='"+row.getString("owner")+"', "
                                              + "symbol='"+row.getString("symbol")+"', "
-                                             + "qty='"+UTILS.BASIC.zeros(UTILS.FORMAT_8.format(row.getDouble("qty")))+"', "
-                                             + "invested='"+UTILS.BASIC.zeros(UTILS.FORMAT_8.format(row.getDouble("invested")))+"', "
+                                             + "qty='"+UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(row.getDouble("qty")))+"', "
+                                             + "invested='"+UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(row.getDouble("invested")))+"', "
                                              + "block='"+row.getLong("block")+"', "
                                              + "rowhash='"+row.getString("rowhash")+"'");
         }

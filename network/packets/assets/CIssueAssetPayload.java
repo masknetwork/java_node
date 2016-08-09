@@ -13,52 +13,55 @@ import wallet.network.*;
 
 public class CIssueAssetPayload extends CPayload 
 {
-	// Symbol
-        String symbol;
+    // Asset ID
+    long assetID;
+    
+    // Symbol
+    String symbol;
         
-        // Title
-        String title;
+    // Title
+    String title;
         
-        // Description
-        String description;
+    // Description
+    String description;
         
-        // How to buy
-        String how_buy;
+    // How to buy
+    String how_buy;
         
-        // How to sell
-        String how_sell;
+    // How to sell
+    String how_sell;
         
-        // Web page
-        String web_page;
+    // Web page
+    String web_page;
         
-        // Pic
-        String pic;
+    // Pic
+    String pic;
         
-         // Market days
-        double days;
+    // Market days
+    double days;
         
-        // Qty
-        long qty;
+    // Qty
+    long qty;
         
-        // Transaction fee address
-        String trans_fee_adr;
+    // Transaction fee address
+    String trans_fee_adr;
         
-        // Transaction fee
-        double trans_fee;
+    // Transaction fee
+    double trans_fee;
         
 	
-        public CIssueAssetPayload(String adr,
-                                  String symbol,
-                                  String title,
-                                  String description,
-                                  String how_buy,
-                                  String how_sell,
-                                  String web_page,
-                                  String pic,
-                                  long days,
-                                  long qty,
-                                  String trans_fee_adr,
-                                  double trans_fee) throws Exception
+    public CIssueAssetPayload(String adr,
+                              String symbol,
+                              String title,
+                              String description,
+                              String how_buy,
+                              String how_sell,
+                              String web_page,
+                              String pic,
+                              long days,
+                              long qty,
+                              String trans_fee_adr,
+                              double trans_fee) throws Exception
         {
 	    super(adr);
 	   
@@ -95,19 +98,23 @@ public class CIssueAssetPayload extends CPayload
             // Transaction fee
             this.trans_fee=trans_fee;
             
+            // Asset ID
+            this.assetID=UTILS.BASIC.getID();
+            
 	    // Hash
  	    hash=UTILS.BASIC.hash(this.getHash()+
-                                 this.symbol+
-                                 this.title+
-                                 this.description+
-                                 this.how_buy+
-                                 this.how_sell+
-                                 this.web_page+
-                                 this.pic+
-                                 this.days+
-                                 this.qty+
-                                 this.trans_fee_adr+
-                                 UTILS.FORMAT_2.format(this.trans_fee));
+                                  this.assetID+             
+                                  this.symbol+
+                                  this.title+
+                                  this.description+
+                                  this.how_buy+
+                                  this.how_sell+
+                                  this.web_page+
+                                  this.pic+
+                                  this.days+
+                                  this.qty+
+                                  this.trans_fee_adr+
+                                  UTILS.FORMAT_2.format(this.trans_fee));
         
         // Sign
         this.sign();
@@ -117,6 +124,10 @@ public class CIssueAssetPayload extends CPayload
     {
         // Super class
         super.check(block);
+        
+        // Valid asset ID
+        if (!UTILS.BASIC.validID(this.assetID))
+           throw new Exception("Invalid asset ID - CIssueAssetPayload.java");
         
         // Symbol length
         if (!UTILS.BASIC.isSymbol(this.symbol))
@@ -186,6 +197,7 @@ public class CIssueAssetPayload extends CPayload
             
         // Calculates hash
         String h=UTILS.BASIC.hash(this.getHash()+
+                                 this.assetID+
                                  this.symbol+
                                  this.title+
                                  this.description+
@@ -211,6 +223,7 @@ public class CIssueAssetPayload extends CPayload
         // Insert asset
         UTILS.DB.executeUpdate("INSERT INTO assets "
                                      + "SET adr='"+this.target_adr+"', "
+                                         + "assetID='"+this.assetID+"', "
                                          + "symbol='"+this.symbol+"', "
                                          + "title='"+UTILS.BASIC.base64_encode(this.title)+"', "
                                          + "description='"+UTILS.BASIC.base64_encode(this.description)+"', "

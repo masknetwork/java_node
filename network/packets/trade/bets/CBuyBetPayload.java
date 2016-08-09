@@ -15,27 +15,27 @@ import wallet.network.packets.trans.CTransPayload;
 public class CBuyBetPayload extends CPayload
 {
    // Bet UID
-   long bet_uid;
+   long betID;
    
    // Amount
    double amount;
    
    public CBuyBetPayload(String adr, 
-                         long bet_uid, 
+                         long betID, 
                          double amount) throws Exception
    {
       // Address
       super(adr);
       
       // Bet UID
-      this.bet_uid=bet_uid;
+      this.betID=betID;
       
       // Amount
       this.amount=amount;
       
       // Hash
       hash=UTILS.BASIC.hash(this.getHash()+
-                            this.bet_uid+
+                            this.betID+
                             String.valueOf(this.amount));
          
       // Sign
@@ -47,7 +47,7 @@ public class CBuyBetPayload extends CPayload
         // Check bet uid
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                            + "FROM feeds_bets "
-                                          + "WHERE mktID='"+this.bet_uid+"'"
+                                          + "WHERE mktID='"+this.betID+"'"
                                             +" AND end_block>"+(this.block+1)
                                             +" AND accept_block>"+(this.block+1));
             
@@ -82,7 +82,7 @@ public class CBuyBetPayload extends CPayload
                            -Double.parseDouble(UTILS.FORMAT_4.format(this.amount)),
                            true,
                            rs.getString("cur"), 
-                           "You have invested in a binary option / bet ("+String.valueOf(this.bet_uid)+")", 
+                           "You have invested in a binary option / bet ("+String.valueOf(this.betID)+")", 
                            "", 
                            this.hash, 
                            this.block,
@@ -91,7 +91,7 @@ public class CBuyBetPayload extends CPayload
             
         // Hash
         String h=UTILS.BASIC.hash(this.getHash()+
-                                  this.bet_uid+
+                                  this.betID+
                                   String.valueOf(this.amount));
             
         if (!this.hash.equals(h))
@@ -107,21 +107,21 @@ public class CBuyBetPayload extends CPayload
            ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                               + "FROM feeds_bets_pos "
                                              + "WHERE adr='"+this.target_adr+"' "
-                                               + "AND bet_uid='"+this.bet_uid+"'");
+                                               + "AND betID='"+this.betID+"'");
         
            // Insert position
            if (!UTILS.DB.hasData(rs))
            {
                // Insert position
                UTILS.DB.executeUpdate("INSERT INTO feeds_bets_pos SET adr='"+this.target_adr+"', "
-                                                               + "bet_uid='"+this.bet_uid+"', "
+                                                               + "betID='"+this.betID+"', "
                                                                + "amount='"+UTILS.FORMAT_4.format(this.amount)+"', "
                                                                + "block='"+this.block+"'");
                
                // Increase bets amount
                UTILS.DB.executeUpdate("UPDATE feeds_bets "
                                        + "SET bets=bets+1 "
-                                     + "WHERE mktID='"+this.bet_uid+"'");
+                                     + "WHERE mktID='"+this.betID+"'");
            }
            else
            {
@@ -130,13 +130,13 @@ public class CBuyBetPayload extends CPayload
                                        + "SET amount=amount+"+UTILS.FORMAT_4.format(this.amount)+", "
                                            + "block='"+this.block+"' "
                                      + "WHERE adr='"+this.target_adr+"' "
-                                       + "AND bet_uid='"+this.bet_uid+"'");
+                                       + "AND betID='"+this.betID+"'");
            }
            
            // Increase invested value
            UTILS.DB.executeUpdate("UPDATE feeds_bets "
                                    + "SET invested=invested+"+UTILS.FORMAT_4.format(this.amount)+" "
-                                 + "WHERE mktID='"+this.bet_uid+"'");
+                                 + "WHERE mktID='"+this.betID+"'");
                    
            // Commit
            UTILS.ACC.clearTrans(hash, "ID_ALL", this.block);

@@ -21,9 +21,7 @@ public class CRentAppPayload extends CPayload
     
     // New appID
     long new_appID;
-    
-    // Transaction
-    CTransPayload payment=null;
+   
     
     public CRentAppPayload(String adr, 
                           long appID,
@@ -35,40 +33,17 @@ public class CRentAppPayload extends CPayload
        // App ID
        this.appID=appID;
        
-       // Days
-       this.days=days;
-       
        // New appID
        this.new_appID=UTILS.BASIC.getID();
        
-       // Statement
+       // Days
+       this.days=days;
        
-       
-       // Load app data
-       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                          + "FROM agents "
-                                         + "WHERE aID='"+this.appID+"'");
-       
-       // Next
-       rs.next();
-       
-       // Price
-       this.price=rs.getDouble("price");
-       
-       // Payment to owner
-       this.payment=new CTransPayload(this.target_adr, 
-                                      rs.getString("pay_adr"), 
-                                      price*days, 
-                                      "MSK", 
-                                      "",
-                                      ""); 
-       
-       // Hash
+        // Hash
        this.hash=UTILS.BASIC.hash(this.getHash()+
                                   this.appID+
-                                  this.price+
-                                  this.days+
-                                  this.payment.hash);
+                                  this.new_appID+
+                                  this.days);
        
        // Sign
        this.sign();
@@ -81,31 +56,21 @@ public class CRentAppPayload extends CPayload
  	
         // Days
         if (this.days<1)
-            throw new Exception("Invalid agent ID (CRentAppPayload.java)");
+            throw new Exception("Invalid days (CRentAppPayload.java)");
         
         // New App ID
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                           + "FROM agents "
-                                          + "WHERE aID='"+this.new_appID+"'");
+        if (!UTILS.BASIC.validID(this.new_appID))
+            throw new Exception("Invalid agent ID (CRentAppPayload.java)");
         
-        // Has data
-        if (UTILS.DB.hasData(rs))
-           throw new Exception("Invalid agent new ID (CRentAppPayload.java)");
-        
-        // Already an agent installed on address ?
-        rs=UTILS.DB.executeQuery("SELECT * "
-                                 + "FROM agents "
-                                + "WHERE adr='"+this.target_adr+"'");
-        
-        // Has data
-        if (UTILS.DB.hasData(rs))
-           throw new Exception("An agent is already installed (CRentAppPayload.java)");
+        // Sealed address ?
+        if (UTILS.BASIC.isSealed(this.target_adr))
+           throw new Exception("Sealed address (CRentAppPayload.java)");
         
         // Load data
-        rs=UTILS.DB.executeQuery("SELECT * "
-                                 + "FROM agents "
-                                + "WHERE aID='"+this.appID+"' "
-                                  + "AND price>0");
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM agents "
+                                          + "WHERE aID='"+this.appID+"' "
+                                            + "AND price>0");
         
         // Has data
         if (!UTILS.DB.hasData(rs))
@@ -117,72 +82,69 @@ public class CRentAppPayload extends CPayload
         // Price
         double price=this.days*rs.getDouble("price");
         
-        // Balance
-        if (UTILS.ACC.getBalance(this.target_adr, "MSK", block)<price)
-            throw new Exception("Innsufficient funds (CRentAppPayload.java)");
+        // Non free ?
+        if (price>0)
+        {
+            // Balance
+            if (UTILS.ACC.getBalance(this.target_adr, "MSK", block)<price)
+               throw new Exception("Innsufficient funds (CRentAppPayload.java)");
         
-        // Check payload destination and price
-        if (this.payment.amount<price || 
-            !this.payment.cur.equals("MSK") || 
-            !this.payment.dest.equals(rs.getString("pay_adr")))
-        throw new Exception("Innsufficient payment (CRentAppPayload.java)");
+           // Transfer
+           UTILS.ACC.newTransfer(this.target_adr,
+                                 rs.getString("pay_adr"), 
+                                 price,
+                                 true,
+                                 "MSK", 
+                                 "App payment", 
+                                 "", 
+                                 this.hash, 
+                                 this.block,
+                                 block,
+                                 0);
+        }
         
-        // Check payment
-        this.payment.check(block);
+        // Hash
+        String h=UTILS.BASIC.hash(this.getHash()+
+                                  this.appID+
+                                  this.new_appID+
+                                  this.days);
         
-       
+        if (!this.hash.equals(h))   
+            throw new Exception("Invalid hash (CRentAppPayload.java)");
      }
      
      public void commit(CBlockPayload block) throws Exception
      {
         // Commit parent
  	super.commit(block);
- 	
-        // Statement
-        
-        
+ 	 
         // Load data
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                    + "FROM agents "
-                                    + "WHERE aID='"+this.appID+"'");
+                                           + "FROM agents "
+                                          + "WHERE aID='"+this.appID+"'");
         
         // Next
         rs.next();
         
-        // Commit payment
-        this.payment.commit(block);
-        
         // Install
-        UTILS.DB.executeUpdate("INSERT INTO agents (owner, "
-                                                 + "adr, "
-                                                 + "aID, "
-                                                 + "categ, "
-                                                 + "name, "
-                                                 + "description, "
-                                                 + "globals, "
-                                                 + "interface, "
-                                                 + "signals, "
-                                                 + "code, "
-                                                 + "exec_log, "
-                                                 + "pay_adr, "
-                                                 + "storage, "
-                                                 + "run_period, "
-                                                 + "expire, "
-                                                 + "block) VALUES('"
-                                                 +rs.getString("owner")+"', '"
-                                                 +this.target_adr+"', '"
-                                                 +this.new_appID+"', '"
-                                                 +rs.getString("categ")+"', '"
-                                                 +rs.getString("name")+"', '"
-                                                 +rs.getString("description")+"', '"
-                                                 +rs.getString("globals")+"', '"
-                                                 +rs.getString("interface")+"', '"
-                                                 +rs.getString("signals")+"', '"
-                                                 +rs.getString("code")+"', '', '', "
-                                                 +"'', '"
-                                                 +rs.getLong("run_period")+"', '"
-                                                 +(this.block+this.days*1440)+"', '"
-                                                 +this.block+"')");
-
+        UTILS.DB.executeUpdate("INSERT INTO agents "
+                                     + "SET owner='"+rs.getString("owner")+"', "
+                                          + "adr='"+this.target_adr+"', "
+                                          + "aID='"+this.new_appID+"', "
+                                          + "categ='"+rs.getString("categ")+"', "
+                                          + "name='"+rs.getString("name")+"', "
+                                          + "description='"+rs.getString("description")+"', "
+                                          + "globals='"+rs.getString("globals")+"', "
+                                          + "interface='"+rs.getString("interface")+"', "
+                                          + "signals='"+rs.getString("signals")+"', "
+                                          + "code='"+rs.getString("code")+"', "
+                                          + "exec_log='', "
+                                          + "pay_adr='', "
+                                          + "run_period='"+rs.getLong("run_period")+"', "
+                                          + "expire='"+(this.block+this.days*1440)+"', "
+                                          + "block='"+this.block+"'");
+        
+        // Clear
+        UTILS.ACC.clearTrans(this.hash, "ID_ALL", this.block);
      }
 }

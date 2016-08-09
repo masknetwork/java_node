@@ -46,8 +46,8 @@ public class CSEAL extends CInstruction
         
         // Load data
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                    + "FROM adr "
-                                   + "WHERE adr='"+owner.val+"'");
+                                           + "FROM adr "
+                                          + "WHERE adr='"+owner.val+"'");
         
         // Next
         rs.next();
@@ -72,11 +72,10 @@ public class CSEAL extends CInstruction
         
         // Seal
         UTILS.DB.executeUpdate("UPDATE adr "
-                                + "SET sealed='"+sealed+"' "
+                                + "SET sealed='"+sealed+"', "
+                                    + "block='"+VM.block+"' "
                               + "WHERE adr='"+owner.val+"'");
             
-        // Close
-        
         
         // Fee
         VM.CODE.fee=VM.CODE.fee+(0.0001*days.cel.getLong());

@@ -36,8 +36,7 @@ public class CNewAdPayload extends CPayload
 		        double market_bid, 
 		        String title, 
 		        String mes, 
-		        String link,
-                        String sig) throws Exception
+		        String link) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -73,7 +72,7 @@ public class CNewAdPayload extends CPayload
                                  this.hours);
  	   
  	   //Sign
-           this.sign(sig);
+           this.sign();
    }
    
    public void check(CBlockPayload block) throws Exception
@@ -118,9 +117,6 @@ public class CNewAdPayload extends CPayload
 	  if (!UTILS.BASIC.isLink(this.link))
 	     throw new Exception("Invalid link - CNewAdPayload.java");
           
-          // Contract
-          if (UTILS.BASIC.isContractAdr(this.target_adr))
-               throw new Exception("Contract address - CNewAdPayload.java");
           
 	   // Check Hash
 	   String h=UTILS.BASIC.hash(this.getHash()+
@@ -144,23 +140,14 @@ public class CNewAdPayload extends CPayload
        super.commit(block);
        
        // Commit
-       UTILS.DB.executeUpdate("INSERT INTO ads(adr, "
-   		   		            + "title, "
-   		   		            + "message, "
-   		   		            + "link, "
-                                            + "country, "
-   		   		            + "mkt_bid, "
-   		   		            + "expire, "
-   		   		            + "block)"
-   		   		            + "VALUES('"+
-                                            this.target_adr+"', '"+
-   		   		            UTILS.BASIC.base64_encode(this.title)+"', '"+
-   		   		            UTILS.BASIC.base64_encode(this.mes)+"', '"+
-   		   		            UTILS.BASIC.base64_encode(this.link)+"', '"+
-                                            this.country+"', '"+
-   		   		            UTILS.FORMAT_8.format(this.market_bid)+"', '"+
-   		   		            (this.block+(this.hours*60))+"', '"+
-   		   		            this.block+"')");
-   	
+       UTILS.DB.executeUpdate("INSERT INTO ads "
+                                    + "SET adr='"+this.target_adr+"', "
+   		   		        + "title='"+UTILS.BASIC.base64_encode(this.title)+"', "
+   		                        + "message='"+UTILS.BASIC.base64_encode(this.mes)+"', "
+   		   	                + "link='"+UTILS.BASIC.base64_encode(this.link)+"', "
+                                        + "country='"+this.country+"', "
+   		      	                + "mkt_bid='"+UTILS.FORMAT_4.format(this.market_bid)+"', "
+   		   	                + "expire='"+(this.block+(this.hours*60))+"', "
+   		      	                + "block='"+this.block+"'");
     }
 }

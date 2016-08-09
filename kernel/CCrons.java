@@ -38,7 +38,7 @@ public class CCrons
            ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                        + "FROM feeds_bets "
                                       + "WHERE status='ID_PENDING' "
-                                        + "AND mktID='"+uid+"'");
+                                        + "AND betID='"+uid+"'");
            
            // Load data
            rs.next();
@@ -81,7 +81,7 @@ public class CCrons
               // Close option
               UTILS.DB.executeUpdate("UPDATE feeds_bets "
                                       + "SET status='ID_WIN' "
-                                    + "WHERE mktID='"+uid+"'");
+                                    + "WHERE betID='"+uid+"'");
            }
            else
            {
@@ -127,7 +127,7 @@ public class CCrons
               // Close option
               UTILS.DB.executeUpdate("UPDATE feeds_bets "
                                       + "SET status='ID_LOST' "
-                                    + "WHERE mktID='"+uid+"'");
+                                    + "WHERE betID='"+uid+"'");
            }
            
           
@@ -166,7 +166,7 @@ public class CCrons
                double price=rs.getDouble("last_price");
                
                // Bet ID
-               long betID=rs.getLong("mktID");
+               long betID=rs.getLong("betID");
                
                switch (tip)
                {
@@ -377,7 +377,7 @@ public class CCrons
                    
                    UTILS.DB.executeUpdate("UPDATE "+table
                                        + " SET last_price='"+rs.getDouble("p1")
-                                    +"' WHERE mktID='"+rs.getLong("mktID")+"'");
+                                    +"' WHERE betID='"+rs.getLong("betID")+"'");
                }
                
                // Two feeds
@@ -388,7 +388,7 @@ public class CCrons
                                        + " SET last_price='"+this.getPrice(rs.getDouble("p1"), 
                                                                           rs.getDouble("p2"), 
                                                                           5)
-                                    +"' WHERE mktID='"+rs.getLong("mktID")+"'");
+                                    +"' WHERE betID='"+rs.getLong("betID")+"'");
                      
                      // Set price
                      price=this.getPrice(rs.getDouble("p1"), 
@@ -404,7 +404,7 @@ public class CCrons
                                                                           rs.getDouble("p2"), 
                                                                           rs.getDouble("p3"), 
                                                                           5)
-                                    +"' WHERE mktID='"+rs.getLong("mktID")+"'");
+                                    +"' WHERE betID='"+rs.getLong("betID")+"'");
                     
                     // Set price
                     price=this.getPrice(rs.getDouble("p1"), 
@@ -421,292 +421,8 @@ public class CCrons
            
        
     }
+   
     
-    public void checkSpecPos(long block, CBlockPayload block_payload) throws Exception
-    {
-         // Load positions
-            ResultSet rs=UTILS.DB.executeQuery("SELECT fsmp.*, "
-                                             + "fsm.last_price, "
-                                             + "fsm.cur, "
-                                             + "fsm.adr AS mkt_adr, "
-                                             + "adr.balance AS mkt_adr_balance "
-                                        + "FROM feeds_spec_mkts_pos AS fsmp "
-                                        + "JOIN feeds_spec_mkts AS fsm ON fsm.mktID=fsmp.mktID "
-                                        + "JOIN adr ON adr.adr=fsm.adr"
-                                      + " WHERE fsmp.status='ID_MARKET'");
-            
-            /// Next
-            while (rs.next())
-            {
-                 // Last price
-                 double last_price=rs.getDouble("last_price");
-            
-                 // SL
-                 double sl=rs.getDouble("sl");
-            
-                 // TP
-                 double tp=rs.getDouble("tp");
-            
-                 // Open
-                 double open=rs.getDouble("open");
-            
-                 // Qty
-                 double qty=rs.getDouble("qty");
-            
-                 // Tip
-                 String tip=rs.getString("tip");
-            
-                 // Margin
-                 double margin=rs.getDouble("margin");
-            
-                 // Position address
-                 String pos_adr=rs.getString("adr");
-            
-                 // Market address
-                 String mkt_adr=rs.getString("mkt_adr");
-            
-                 // Market currency
-                 String mkt_cur=rs.getString("cur");
-            
-                 // PL
-                 double pl=0;
-                 if (tip.equals("ID_BUY"))
-                    pl=(last_price-open)*qty;
-                 else
-                    pl=(open-last_price)*qty;
-                
-                 // Close
-                 boolean close=false;
-                 
-                // Close pposition ?
-                if (pl<0 && Math.abs(pl)>=margin) 
-                {
-                    close=true;
-                    pl=-margin;
-                    System.out.println("Closed : "+pl+", margin : "+margin);
-                }
-                
-                // SL hit
-                if (tip.equals("ID_BUY") && (last_price<=sl || last_price>=tp)) 
-                {
-                    close=true;
-                     System.out.println("Closed : "+last_price+", sl : "+sl+", tp : "+tp);
-                }
-                
-                // TP hit
-                if (tip.equals("ID_SELL") && (last_price>=sl || last_price<=tp)) 
-                {
-                    close=true;
-                     System.out.println("Closed : "+last_price+", sl : "+sl+", tp : "+tp);
-                }
-                
-                // Close
-                if (close)
-                {
-                   // To pay
-                   if (pl+margin>=0)
-                   {
-                       // To pay
-                       double to_pay=pl+margin;
-                       
-                       // To bay higher than colateral ?
-                       if (to_pay>rs.getDouble("mkt_adr_balance")) to_pay=rs.getDouble("mkt_adr_balance");
-                       
-                       // Pay
-                       if (to_pay>0)
-                       {
-                            UTILS.ACC.newTrans(pos_adr, 
-                                                 mkt_adr,
-                                                 to_pay,
-                                                 true,
-                                                 mkt_cur, 
-                                                 "One of your speculative positions was closed ", 
-                                                 "", 
-                                                 rs.getString("rowhash"), 
-                                                 block,
-                                                 block_payload,
-                                                 0);
-                       
-                            // Take money from market
-                            UTILS.ACC.newTrans(mkt_adr, 
-                                                 pos_adr,
-                                                 -to_pay,
-                                                 true,
-                                                 mkt_cur, 
-                                                 "One of positions was closed ", 
-                                                 "", 
-                                                 rs.getString("rowhash"), 
-                                                 block,
-                                                 block_payload,
-                                                 0);
-                       
-                            // Clear
-                            UTILS.ACC.clearTrans(rs.getString("rowhash"), "ID_ALL", UTILS.NET_STAT.last_block);
-                       }
-                       
-                       // Close position
-                       UTILS.DB.executeUpdate("UPDATE feeds_spec_mkts_pos "
-                                               + "SET status='ID_CLOSED', "
-                                                   + "pl='"+pl+"', closed_pl='"+pl+"', "
-                                                   + "closed_margin='"+margin+"' "
-                                             + "WHERE posID='"+rs.getString("posID")+"'");
-                   }
-                }
-                else
-                {
-                    UTILS.DB.executeUpdate("UPDATE feeds_spec_mkts_pos "
-                                            + "SET pl='"+pl+"', "
-                                                + "last_block='"+block+"' "
-                                          + "WHERE posID='"+rs.getLong("posID")+"'");
-                }
-                
-         
-            }
-            
-            
-      
-    }
-    
-    public void payInterest(CBlockPayload block_payload) throws Exception
-    {
-        // Statement
-        
-        
-        // Load address balance
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                    + "FROM adr "
-                                   + "WHERE adr='default'");
-        
-        // Next
-        rs.next();
-        
-        // Balance
-        double balance=rs.getDouble("balance");
-        
-        // In circulation
-        double in_circ=100000000-balance;
-        
-        // Interest
-        double interest=UTILS.BASIC.round(50000000/in_circ/365/24, 4);
-        
-        // Amount to pay
-        rs=UTILS.DB.executeQuery("SELECT SUM(balance) AS total "
-                          + "FROM adr "
-                         + "WHERE (last_interest<="+(block_payload.block-(UTILS.NET_STAT.blocks_per_day/24))+" OR last_interest=0) "
-                           + "AND adr<>'default' AND balance>=1");
-      
-        // Has data
-        rs.next();
-        
-        // Amount
-        double total=rs.getDouble("total");
-        
-        if (total>0)
-        {
-            // Amount to pay
-            double amount=total*interest/100;
-            
-            // Debit game fund
-            UTILS.ACC.newTrans("default",
-                                 "default",
-                                 -amount, 
-                                 false,
-                                "MSK", 
-                                 "Interest paid", 
-                                 "", 
-                                 block_payload.hash, 
-                                 block_payload.block,
-                                 block_payload,
-                                 0);
-            
-            // Clear
-            UTILS.ACC.clearTrans(block_payload.hash, "ID_ALL", UTILS.NET_STAT.last_block);
-            
-            // Credit addresses
-            UTILS.DB.executeUpdate("UPDATE adr "
-                                    + "SET balance=balance+("+interest+"*balance/100), "
-                                        + "last_interest='"+block_payload.block+"', "
-                                        + "block='"+block_payload.block+"' "
-                                  + "WHERE (last_interest<="+(block_payload.block-60)+" OR last_interest=0) "
-                                    + "AND adr<>'default' "
-                                    + "AND balance>=1");
-        }
-        
-        
-        
-    }
-    
-    public void openOrder(long orderID) throws Exception
-    {
-        // Statement
-        
-        
-        // Load order data
-        ResultSet rs=UTILS.DB.executeQuery("SELECT fsmp.*, "
-                                         + "fsm.last_price, "
-                                         + "fsm.spread "
-                                    + "FROM feeds_spec_mkts_pos AS fsmp "
-                                    + "JOIN feeds_spec_mkts AS fsm ON fsm.mktID=fsmp.mktID "
-                                   + "WHERE fsmp.posID='"+orderID+"'");
-        
-        // Next
-        rs.next();
-        
-        // Margin
-        double spread=rs.getDouble("spread");
-        
-        // Open val
-        double open=0;
-        if (rs.getString("tip").equals("ID_BUY"))
-            open=rs.getDouble("open")+spread;
-        else
-            open=rs.getDouble("open")-spread;
-        
-        // Open order
-        UTILS.DB.executeUpdate("UPDATE feeds_spec_mkts_pos "
-                                + "SET status='ID_MARKET', "
-                                    + "open='"+open+"' "
-                              + "WHERE posID='"+orderID+"'");
-        
-       
-        
-    }
-    
-    public void checkPendingOrders() throws Exception
-    {
-        // Statement
-        
-        
-        // Load pending orders
-        ResultSet rs=UTILS.DB.executeQuery("SELECT fsmp.*, fsm.last_price "
-                                   + " FROM feeds_spec_mkts_pos AS fsmp "
-                                   + " JOIN feeds_spec_mkts AS fsm ON fsm.mktID=fsmp.mktID "
-                                  + " WHERE fsmp.status='ID_PENDING'");
-        
-        // Check
-        while (rs.next())
-        {
-            // Buy order
-            if (rs.getString("tip").equals("ID_BUY"))
-            {
-                // Above open line
-                if (rs.getString("open_line").equals("ID_ABOVE") && 
-                    rs.getDouble("last_price")<=rs.getDouble("open"))
-                this.openOrder(rs.getLong("posID"));
-                
-                // Below open line
-                if (rs.getString("open_line").equals("ID_BELOW") && 
-                    rs.getDouble("last_price")>=rs.getDouble("open"))
-                this.openOrder(rs.getLong("posID"));
-            }
-            else
-            {
-                
-            }
-        }
-        
-        
-    }
     
      public void runCrons(long block, CBlockPayload block_payload) throws Exception
      {
@@ -715,14 +431,7 @@ public class CCrons
              // Run options
              this.checkOptions(block, block_payload);
          
-             // Check spec positions
-             this.checkSpecPos(block, block_payload);
-         
-             // Pending orders
-             this.checkPendingOrders();
-         
              // Update markets
-             this.updateMarkets("feeds_spec_mkts");
              this.updateMarkets("feeds_bets");
          }
          catch (Exception ex)

@@ -1,7 +1,6 @@
 package wallet.agents.VM;
 
 import java.util.ArrayList;
-import wallet.agents.VM.storage.CStorageTable;
 import wallet.kernel.UTILS;
 
 public class CCell  implements java.io.Serializable
@@ -18,8 +17,6 @@ public class CCell  implements java.io.Serializable
     // Array
     public ArrayList<CCell> list=new ArrayList<CCell>();
     
-    // Table
-    public CStorageTable rs=null;
     
     static final long serialVersionUID = 8685216892271177917L;
   
@@ -43,11 +40,7 @@ public class CCell  implements java.io.Serializable
         this.name=name;
     }
     
-     public CCell(CStorageTable val)
-    {
-        this.rs=val;
-        this.type="ID_TABLE";
-    }
+    
     
     public CCell(Double val)
     {
@@ -113,7 +106,6 @@ public class CCell  implements java.io.Serializable
         this.type=cell.type;
         this.val=cell.val;
         this.list=cell.list;
-        this.rs=cell.rs;
     }
     
     public void add(CCell cell) throws Exception
@@ -401,7 +393,6 @@ public class CCell  implements java.io.Serializable
         {
             case "ID_STRING" : size=this.val.length(); break;
             case "ID_LIST" : size=this.list.size(); break;
-            case "ID_TABLE" : size=this.rs.lines_no; break;
         }
         
         // Return
@@ -473,7 +464,7 @@ public class CCell  implements java.io.Serializable
      
      public CCell evalComplexVar(String var, VM VM) throws Exception
      {
-         if (this.rs==null && this.list==null)
+         if (this.list==null)
              throw new Exception("Couldn't evaluate complex variable");
          
          // Vector
@@ -500,10 +491,7 @@ public class CCell  implements java.io.Serializable
          else
             throw new Exception("Could not evaluate complex expression "+var);
          
-         // Evaluates position
-         if (this.rs!=null)
-            return rs.get(col, p);
-         else
+        
             return listGet(col, p);
      }
      

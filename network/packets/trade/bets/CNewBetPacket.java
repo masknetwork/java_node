@@ -110,7 +110,7 @@ public class CNewBetPacket extends CBroadcastPacket
             foot.add("End Block", dec_payload.end_block);
             foot.add("Accept Block", dec_payload.accept_block);
             foot.add("Currency", dec_payload.cur);
-            foot.add("Bet ID", dec_payload.UID);
+            foot.add("Bet ID", dec_payload.betID);
             foot.add("Title", dec_payload.title);
             foot.add("Description", dec_payload.description);
             foot.write();

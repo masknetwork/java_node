@@ -69,13 +69,9 @@ public class CCommentPayload extends CPayload
       // Check Message
       if (!UTILS.BASIC.isDesc(mes, 1000))
 	  throw new Exception("Invalid message - CTweetMesPayload.java");
-            
-      // Comment ID valid ?
-      ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                         + "FROM comments "
-                                         + "WHERE comID='"+this.comID+"'");
-            
-      if (UTILS.DB.hasData(rs))
+      
+      //  CommentID valid
+      if (!UTILS.BASIC.validID(this.comID))
          throw new Exception("Invalid message ID - CTweetMesPayload.java");
       
       // Parent type
@@ -84,40 +80,18 @@ public class CCommentPayload extends CPayload
       throw new Exception("Invalid parent type - CTweetMesPayload.java");
       
       // Already commented ?
-      rs=UTILS.DB.executeQuery("SELECT * "
-                               + "FROM comments "
-                              + "WHERE parent_type='"+this.parent_type+"' "
-                                + "AND parentID='"+this.parentID+"' "
-                                + "AND adr='"+this.target_adr+"'");
+      ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                         + "FROM comments "
+                                        + "WHERE parent_type='"+this.parent_type+"' "
+                                          + "AND parentID='"+this.parentID+"' "
+                                          + "AND adr='"+this.target_adr+"'");
           
       if (UTILS.DB.hasData(rs))
          throw new Exception("Already commented - CTweetMesPayload.java");
       
-      // Tweet ID ?
-      if (this.parent_type.equals("ID_POST"))
-      {
-          // Check tweetID
-          rs=UTILS.DB.executeQuery("SELECT * "
-                                   + "FROM tweets "
-                                  + "WHERE tweetID='"+this.parentID+"'");
-            
-          // Tweet exist ?
-          if (!UTILS.DB.hasData(rs)) 
-              throw new Exception("Invalid tweet ID - CTweetMesPayload.java");
-          
-      }
-      else if (this.parent_type.equals("ID_COM"))
-      {
-          // Check tweetID
-          rs=UTILS.DB.executeQuery("SELECT * "
-                                   + "FROM comments "
-                                  + "WHERE comID='"+this.parentID+"'");
-            
-          // Message exist ?
-          if (!UTILS.DB.hasData(rs)) 
-              throw new Exception("Invalid tweet ID - CTweetMesPayload.java");
-      }
-      else throw new Exception("Invalid entry data - CTweetMesPayload.java");
+      // Target valid
+      if (!UTILS.BASIC.targetValid(this.parent_type, this.parentID))
+          throw new Exception("Invalid target type - CTweetMesPayload.java");
             
       // Check Hash
       String h=UTILS.BASIC.hash(this.getHash()+

@@ -44,6 +44,9 @@ public class CEMAIL extends CInstruction
         // Owner address
         CCell owner=VM.SYS.getVar("SYS.AGENT.GENERAL.OWNER");
         
+        // Fee
+        VM.CODE.fee=VM.CODE.fee+0.0001;
+        
         // Log 
         VM.RUNLOG.add(VM.REGS.RCI, "EMAIL "+this.from.cel.val+", "+this.rec.cel.val+", "+this.subj.cel.val+", "+this.mes.cel.val);
         
@@ -73,7 +76,6 @@ public class CEMAIL extends CInstruction
                                          + "tstamp='"+UTILS.BASIC.tstamp()+"', "
                                          + "status='ID_PENDING'");
         
-        // Fee
-        VM.CODE.fee=VM.CODE.fee+0.0001;
+        
     }
 }

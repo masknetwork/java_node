@@ -19,9 +19,7 @@ public class CSTAds extends CStressTest
 		                             Math.random()/10, 
 		                             "Ad test", 
 		                             "This is a test ad. This is a test ad. This is a test ad. ", 
-		                             "http://www.yahoo.com",
-                                             "",
-                                             "");
+		                             "http://www.yahoo.com");
          UTILS.NETWORK.broadcast(packet);
     }
 }

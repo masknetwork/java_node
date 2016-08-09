@@ -14,6 +14,9 @@ import wallet.network.packets.blocks.CBlockPayload;
 
 public class CNewFeedComponentPayload extends CPayload
 {
+    // Feed ID
+    long feedID;
+    
     // Feed Symbol
     String feed_symbol;
     
@@ -75,8 +78,12 @@ public class CNewFeedComponentPayload extends CPayload
        // Days
        this.days=days;    
        
+       // Feed ID
+       this.feedID=UTILS.BASIC.getID();
+       
        // Hash
        hash=UTILS.BASIC.hash(this.getHash()+
+                             feedID+
 			     feed_symbol+
 		             title+
                              description+
@@ -92,6 +99,10 @@ public class CNewFeedComponentPayload extends CPayload
     
     public void check(CBlockPayload block) throws Exception
     {
+        // Feed ID valid
+        if (!UTILS.BASIC.validID(this.feedID))
+           throw new Exception("Invalid feed ID - CNewFeedComponentPayload.java");
+        
         // Symbol valid
         if (!UTILS.BASIC.isSymbol(this.feed_symbol))
            throw new Exception("Invalid symbol - CNewFeedComponentPayload.java");
@@ -147,26 +158,17 @@ public class CNewFeedComponentPayload extends CPayload
         super.commit(block);
        
         // Insert feed
-        UTILS.DB.executeUpdate("INSERT INTO feeds_branches(feed_symbol, "
-                                                              + "name, "
-                                                              + "description, "
-                                                              + "type, "
-                                                              + "symbol, "
-                                                              + "expire, "
-                                                              + "fee, "
-                                                              + "rl_symbol, "
-                                                              + "block) VALUES('"+
-                                                              this.feed_symbol+"', '"+
-                                                              UTILS.BASIC.base64_encode(this.title)+"', '"+
-                                                              UTILS.BASIC.base64_encode(this.description)+"', '"+
-                                                              this.type+"', '"+
-                                                              this.symbol+"', '"+
-                                                              (this.block+(1440*this.days))+"', '"+
-                                                              this.fee+"', '"+
-                                                              this.rl_symbol+"', '"+
-                                                              this.block+"')");
-         
-       
+        UTILS.DB.executeUpdate("INSERT INTO feeds_branches "
+                                     + "SET feed_symbol='"+this.feed_symbol+"', "
+                                         + "feedID='"+this.feedID+"', "
+                                         + "name='"+UTILS.BASIC.base64_encode(this.title)+"', "
+                                         + "description='"+UTILS.BASIC.base64_encode(this.description)+"', "
+                                         + "type='"+this.type+"', "
+                                         + "symbol='"+this.symbol+"', "
+                                         + "expire='"+(this.block+(1440*this.days))+"', "
+                                         + "fee='"+this.fee+"', "
+                                         + "rl_symbol='"+this.rl_symbol+"', "
+                                         + "block='"+this.block+"'");
     }
     
     

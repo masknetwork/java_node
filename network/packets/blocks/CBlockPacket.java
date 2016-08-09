@@ -333,6 +333,9 @@ public class CBlockPacket extends CPacket
              // Precheck
             if (!this.preCheck())
                 throw new Exception("Invalid block - CBlockPacket.java");
+            
+            UTILS.DB.executeUpdate("DELETE FROM my_trans WHERE block_hash=''");
+            UTILS.DB.executeUpdate("DELETE FROM trans WHERE block_hash=''");
                     
              // Check type
 	     if (!this.tip.equals("ID_BLOCK")) 
@@ -376,6 +379,8 @@ public class CBlockPacket extends CPacket
                 // Set block data
                 UTILS.NET_STAT.actual_block_hash=this.hash;
                 UTILS.NET_STAT.actual_block_no=this.block;
+                
+                
                         
                 // Deserialize transaction data
 	   	CBlockPayload block_payload=(CBlockPayload) UTILS.SERIAL.deserialize(payload);
@@ -385,10 +390,7 @@ public class CBlockPacket extends CPacket
 	   	
 	   	// Commit payload
 	   	block_payload.commit();
-	   	
-                 // Insert the block
-                 
-                 
+	   	 
                  // Result set
                  ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                              + "FROM agents "
@@ -435,9 +437,7 @@ public class CBlockPacket extends CPacket
                 // Update confirmations
                 this.updateConfirms();
                 
-                // Close
                 
-	   	
 	}
         
    public void addBlock(CBlockPacket block) throws Exception
@@ -601,14 +601,11 @@ public class CBlockPacket extends CPacket
    {
        // 100th block
        if (block%1000!=0) return;
-          
-       // Statement
-       
        
        // Load all addresses havin the balance over 0.0001
        ResultSet rs=UTILS.DB.executeQuery("SELECT COUNT(*) AS total "
-                                   + "FROM adr "
-                                  + "WHERE balance>=0.0001");
+                                          + "FROM adr "
+                                         + "WHERE balance>=0.0001");
        
        // Next
        rs.next();
@@ -636,6 +633,6 @@ public class CBlockPacket extends CPacket
        
        // Cleanup
        while (rs.next())
-         UTILS.NET_STAT.table_adr.removeAdr(this.block, rs.getString("adr"));
+         UTILS.NET_STAT.table_adr.expired(this.block);
    }
 }

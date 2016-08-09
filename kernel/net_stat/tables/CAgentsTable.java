@@ -45,7 +45,6 @@ public class CAgentsTable extends CTable
                                                               +"run_period BIGINT NOT NULL DEFAULT 0, "
                                                               +"sealed BIGINT NOT NULL DEFAULT 0, "
                                                               +"price FLOAT(9,4) NOT NULL DEFAULT 0, "
-                                                              +"storage LONGTEXT NOT NULL, "
                                                               +"expire BIGINT NOT NULL DEFAULT 0, "
                                                               +"aID BIGINT NOT NULL DEFAULT 0, "
                                                               +"dir BIGINT NOT NULL DEFAULT 0, "
@@ -78,7 +77,6 @@ public class CAgentsTable extends CTable
                                                                  + "ver, "
                                                                  + "run_period, "
                                                                  + "price, "
-                                                                 + "storage, "
                                                                  + "expire, "
                                                                  + "dir, "
                                                                  + "block), 256) WHERE block='"+block+"'");
@@ -168,9 +166,6 @@ public class CAgentsTable extends CTable
             // Price
             String price=UTILS.BASIC.zeros_4(UTILS.FORMAT_4.format(row.getDouble("price")));
             
-            // Storage
-            String storage=row.getString("storage");
-            
             // Expire
             long expire=row.getLong("expire");
             
@@ -201,7 +196,6 @@ public class CAgentsTable extends CTable
                                          +ver
                                          +run_period
                                          +price
-                                         +storage
                                          +expire
                                          +dir
                                          +block); 
@@ -311,9 +305,6 @@ public class CAgentsTable extends CTable
                // Price
                this.addRow("price", rs.getDouble("price"));
                
-               // Storage
-               this.addRow("storage", rs.getString("storage"));
-               
                // Expire
                this.addRow("expire", rs.getLong("expire"));
                
@@ -374,8 +365,7 @@ public class CAgentsTable extends CTable
                                                          + "categ='"+row.getString("categ")+"', "
                                                          + "ver='"+row.getString("ver")+"', "
                                                          + "run_period='"+row.getLong("run_period")+"', "
-                                                         + "price='"+UTILS.BASIC.zeros(UTILS.FORMAT_4.format(row.getDouble("price")))+"', "
-                                                         + "storage='"+row.getString("storage")+"', "
+                                                         + "price='"+UTILS.BASIC.zeros_8(UTILS.FORMAT_4.format(row.getDouble("price")))+"', "
                                                          + "expire='"+row.getLong("expire")+"', "
                                                          + "aID='"+row.getLong("aID")+"', "
                                                          + "dir='"+row.getLong("dir")+"', "

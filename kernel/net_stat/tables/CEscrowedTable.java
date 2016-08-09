@@ -167,7 +167,7 @@ public class CEscrowedTable extends CTable
             String escrower=row.getString("escrower");
                
             // Amount
-            String amount=UTILS.BASIC.zeros(UTILS.FORMAT_8.format(row.getDouble("amount")));
+            String amount=UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(row.getDouble("amount")));
                
             // Currency
             String cur=row.getString("cur");

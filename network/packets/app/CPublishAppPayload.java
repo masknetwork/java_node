@@ -121,9 +121,6 @@ public class CPublishAppPayload extends CPayload
              !this.target.equals("ID_DIR"))
          throw new Exception("Invalid target (CPublishAppPayload.java)");
          
-         // Statement 
-         
-         
          // Valid category
          if (!this.categ.equals("ID_BUSINESS") &&
              !this.categ.equals("ID_EDUCATION") &&
@@ -155,10 +152,6 @@ public class CPublishAppPayload extends CPayload
              !rs.getString("owner").equals(rs.getString("adr")))
          throw new Exception("Rented applications can't be published to market (CPublishAppPayload.java)");
              
-         // Sealed ?
-         if (UTILS.BASIC.isSealed(this.target_adr))
-            throw new Exception("Sealed address (CPublishAppPayload.java)");
-         
          // Name
          if (!UTILS.BASIC.isTitle(this.name))
             throw new Exception("Invalid title (CPublishAppPayload.java)");
@@ -185,9 +178,6 @@ public class CPublishAppPayload extends CPayload
          // Price
          if (this.target.equals("ID_STORE"))
          {
-            if (price<0.0001)
-             throw new Exception("Invalid price (CPublishAppPayload.java)");
-        
             // Payment adddress valid ?
             if (!UTILS.BASIC.adressValid(this.pay_adr))
                throw new Exception("Invalid payment address (CPublishAppPayload.java)");
@@ -228,7 +218,7 @@ public class CPublishAppPayload extends CPayload
             
         // Execute 
         UTILS.DB.executeUpdate("UPDATE agents "
-                                + "SET categ='"+UTILS.BASIC.base64_encode(this.categ)+"', "
+                                + "SET categ='"+this.categ+"', "
                                     + "name='"+UTILS.BASIC.base64_encode(this.name)+"', "
                                     + "description='"+UTILS.BASIC.base64_encode(this.desc)+"', "
                                     + "pay_adr='"+this.pay_adr+"', "

@@ -53,9 +53,6 @@ public class CNewRegMarketPosPayload extends CPayload
                                    
         // Price
         this.price=price;
-                               
-        // Statement
-        
         
         // Load market data
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
@@ -67,10 +64,7 @@ public class CNewRegMarketPosPayload extends CPayload
         
         // Decimals
         long decimals=rs.getLong("decimals");
-        
-        // Close
-        
-        
+         
         // Qty
         this.qty=UTILS.BASIC.round(qty, (int)decimals);
                                    
@@ -95,21 +89,14 @@ public class CNewRegMarketPosPayload extends CPayload
     
      public void check(CBlockPayload block) throws Exception
      {
-        // Market symbol
-        
-            
         // Check order ID
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                    + "FROM assets_mkts_pos "
-                                   + "WHERE orderID='"+this.orderID+"'");
-            
-        if (UTILS.DB.hasData(rs))
-           throw new Exception("Invalid position ID - CNewRegMarketPosPayload.java");
+        if (!UTILS.BASIC.validID(this.orderID))
+           throw new Exception("Invalid order ID - CNewRegMarketPosPayload.java");
         
         // Check marketID
-        rs=UTILS.DB.executeQuery("SELECT * "
-                          + "FROM assets_mkts "
-                         + "WHERE mktID='"+this.mktID+"'");
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM assets_mkts "
+                                          + "WHERE mktID='"+this.mktID+"'");
             
         if (!UTILS.DB.hasData(rs))
            throw new Exception("Invalid market ID - CNewRegMarketPosPayload.java");
@@ -243,7 +230,7 @@ public class CNewRegMarketPosPayload extends CPayload
                                      "none", 
                                      -remain,
                                      true,
-                                     cur, 
+                                     asset, 
                                      "New short position on market "+this.mktID, 
                                      "", 
                                      this.hash, 
@@ -332,10 +319,7 @@ public class CNewRegMarketPosPayload extends CPayload
                                      0);
             }
             
-            
-         // Close
-         
-         
+        
      }
     
     public void commit(CBlockPayload block) throws Exception

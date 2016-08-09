@@ -7,7 +7,7 @@ import wallet.agents.VM.sys.events.message.MESSAGE;
 import wallet.agents.VM.sys.events.signal.SIG;
 import wallet.agents.VM.sys.events.trans.TRANS;
 import wallet.agents.VM.sys.events.assets.*;
-import wallet.agents.VM.sys.events.speculative.*;
+import wallet.agents.VM.sys.events.vote.VOTE;
 
 public class EVENT 
 {
@@ -38,17 +38,14 @@ public class EVENT
     // New order
     public OPEN_ORDER OPEN_ORDER=null;
     
-    // Open speculative market
-    public OPEN_SPEC_MARKET OPEN_SPEC_MARKET=null;
-    
-    // Open speculative market order
-    public SPEC_MKT_ORDER_OPEN OPEN_SPEC_MARKET_ORDER=null;
-    
     // Open bet
     public BET_OPEN BET_OPEN=null;
     
     // Buy bet
     public BET_BUY BET_BUY=null;
+    
+    // Vote
+    public VOTE VOTE=null;
     
     public EVENT(long agentID, boolean sandbox) throws Exception
     {
@@ -154,62 +151,16 @@ public class EVENT
                                        price);
     }
     
-    // Load open speculative market
-    public void loadOpenSpecMarket(long mktID,
-                                   String feed_1, String branch_1, 
-                                   String feed_2, String branch_2, 
-                                   String feed_3, String branch_3, 
-                                   String cur,
-                                   long max_leverage,
-                                   double spread,
-                                   String real_symbol,
-                                   String title,
-                                   String desc,
-                                   double max_margin,
-                                   long days)
+    // Vote
+    public void loadVote(String adr,
+                         String type,
+                         double power)
     {
-        this.OPEN_SPEC_MARKET=new OPEN_SPEC_MARKET(mktID,
-                                                   feed_1, branch_1, 
-                                                   feed_2, branch_2, 
-                                                   feed_3, branch_3, 
-                                                   cur,
-                                                   max_leverage,
-                                                   spread,
-                                                   real_symbol,
-                                                   title,
-                                                   desc,
-                                                   max_margin,
-                                                   days);
+        this.VOTE=new VOTE(adr,
+                           type,
+                           power);
     }
     
-    public void loadSpecMarketOrder(long mktID,
-                                    long posID,
-                                    String adr,
-                                    double open,
-                                    double sl,
-                                    double tp,
-                                    long leverage,
-                                    double qty,
-                                    String tip,
-                                    double margin,
-                                    long days,
-                                    String hash,
-                                    long block)
-    {
-        this.OPEN_SPEC_MARKET_ORDER=new SPEC_MKT_ORDER_OPEN(mktID,
-                                                            posID,
-                                                            adr,
-                                                            open,
-                                                            sl,
-                                                            tp,
-                                                            leverage,
-                                                            qty,
-                                                            tip,
-                                                            margin,
-                                                            days,
-                                                            hash,
-                                                            block);
-    }
     
     public void loadBetOpen(long mktID,
                             String feed_1,

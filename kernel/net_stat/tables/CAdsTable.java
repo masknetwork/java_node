@@ -238,25 +238,16 @@ public class CAdsTable extends CTable
             // Load row
             JSONObject row=rows.getJSONObject(a);
             
-            UTILS.DB.executeUpdate("INSERT INTO ads(country, "
-                                                 + "adr, "
-                                                 + "title, "
-                                                 + "message, "
-                                                 + "link, "
-                                                 + "mkt_bid, "
-                                                 + "expire, "
-                                                 + "block, "
-                                                 + "rowhash"
-                                                 + ")  VALUES('"
-                                                 +row.getString("country")+"', '"
-                                                 +row.getString("adr")+"', '"
-                                                 +row.getString("title")+"', '"
-                                                 +row.getString("message")+"', '"
-                                                 +row.getString("link")+"', '"
-                                                 +UTILS.BASIC.zeros_4(UTILS.FORMAT_4.format(row.getDouble("mkt_bid")))+"', '"
-                                                 +row.getLong("expire")+"', '"
-                                                 +row.getLong("block")+"', '"
-                                                 +row.getString("rowhash")+"')");
+            UTILS.DB.executeUpdate("INSERT INTO ads "
+                                         + "SET country='"+row.getString("country")+"', "
+                                             + "adr='"+row.getString("adr")+"', "
+                                             + "title='"+row.getString("title")+"', "
+                                             + "message='"+row.getString("message")+"', "
+                                             + "link='"+row.getString("link")+"', "
+                                             + "mkt_bid='"+UTILS.BASIC.zeros_4(UTILS.FORMAT_4.format(row.getDouble("mkt_bid")))+"', "
+                                             + "expire='"+row.getString("expire")+"', "
+                                             + "block='"+row.getString("block")+"', "
+                                             + "rowhash='"+row.getString("rowhash")+"'");
         }
         
         // Clear table from sync

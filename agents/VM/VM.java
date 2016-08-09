@@ -3,7 +3,6 @@ package wallet.agents.VM;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
-import wallet.agents.VM.storage.CStorage;
 import wallet.agents.VM.sys.agent.vars.VARS;
 import wallet.agents.VM.sys.SYS;
 import wallet.kernel.UTILS;
@@ -25,8 +24,6 @@ public class VM  implements java.io.Serializable
    // Memory
    public CMemory MEM;
    
-   // Storage 
-   public CStorage STOR;
    
    // Last cmp
    public long last_cmp=0;
@@ -78,9 +75,7 @@ public class VM  implements java.io.Serializable
        
        // Memory
        this.MEM=new CMemory(this);
-       
-       // Storage
-       this.STOR=new CStorage(this, sandbox);
+  
        
        // Tags
        this.TAGS=new CTags();

@@ -18,6 +18,7 @@ public class CFeedsTable extends CTable
     {
          UTILS.DB.executeUpdate("CREATE TABLE feeds(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
                                                        +"adr VARCHAR(250) DEFAULT '', "
+                                                       +"feedID BIGINT DEFAULT 0, "
                                                        +"name VARCHAR(100) DEFAULT '', "
                                                        +"description VARCHAR(1000) DEFAULT '', "
                                                        +"website VARCHAR(250) DEFAULT '', "
@@ -28,6 +29,7 @@ public class CFeedsTable extends CTable
                                                        +"block BIGINT DEFAULT 0)");
              
              UTILS.DB.executeUpdate("CREATE INDEX feeds_adr ON feeds(adr)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_feedID ON feeds(feedID)");
              UTILS.DB.executeUpdate("CREATE INDEX feeds_symbol ON feeds(symbol)");
              UTILS.DB.executeUpdate("CREATE INDEX feeds_rowhash ON feeds(rowhash)");
              UTILS.DB.executeUpdate("CREATE INDEX feeds_block ON feeds(block)");
@@ -80,6 +82,7 @@ public class CFeedsTable extends CTable
         // Adr
         UTILS.DB.executeUpdate("UPDATE feeds "
                                 + "SET rowhash=SHA2(CONCAT(adr, "
+                                                        + "feedID, "
                                                         + "name, "
                                                         + "description, "
                                                         + "website, "
@@ -127,6 +130,9 @@ public class CFeedsTable extends CTable
             // Address
             String adr=row.getString("adr");
             
+            // FeedID
+            long feedID=row.getLong("feedID");
+            
             // Name
             String name=row.getString("name");
             
@@ -150,6 +156,7 @@ public class CFeedsTable extends CTable
             
             // Hash
             String hash=UTILS.BASIC.hash(adr+
+                                         feedID+
                                          name+
                                          description+                     
                                          website+
@@ -208,6 +215,9 @@ public class CFeedsTable extends CTable
 
                // Adr
                this.addRow("adr", rs.getString("adr"));
+               
+               // FeedID
+               this.addRow("feedID", rs.getLong("feedID"));
 
                // Name
                this.addRow("name", rs.getString("name"));
@@ -264,6 +274,7 @@ public class CFeedsTable extends CTable
             
             UTILS.DB.executeUpdate("INSERT INTO feeds "
                                          + "SET adr='"+row.getString("adr")+"', "
+                                             + "feedID='"+row.getLong("feedID")+"', "
                                              + "name='"+row.getString("name")+"', "
                                              + "description='"+row.getString("description")+"', "
                                              + "website='"+row.getString("website")+"', "

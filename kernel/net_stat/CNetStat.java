@@ -29,6 +29,9 @@ public class CNetStat
     // Domains
     public CDomainsTable table_domains;
     
+    // Delegates votes
+    public CDelVotesTable table_del_votes;
+    
     // Escrowed
     public CEscrowedTable table_escrowed;
     
@@ -113,6 +116,9 @@ public class CNetStat
     // Domains
     String domains;
     
+    // Delegates votes
+    String del_votes;
+    
     // Escrowed
     String escrowed;
     
@@ -129,7 +135,7 @@ public class CNetStat
     String tweets_follow;
     
     // Tweets Links
-    String upvotes;
+    String votes;
     
     // Feeds
     String feeds;
@@ -181,53 +187,56 @@ public class CNetStat
         // Difficulty
         this.net_dif=new BigInteger(rs.getString("net_dif"), 16);
            
-           // SQL log status
-           this.sql_log_status=rs.getString("sql_log_status");
+        // SQL log status
+        this.sql_log_status=rs.getString("sql_log_status");
            
-           // Confirm min balance
-           this.block_conf_min_balance=rs.getDouble("block_confirm_min_balance");
+        // Confirm min balance
+        this.block_conf_min_balance=rs.getDouble("block_confirm_min_balance");
            
-           // Addresses
-           this.adr=rs.getString("adr");
+        // Addresses
+        this.adr=rs.getString("adr");
     
-           // Ads
-           this.ads=rs.getString("ads");
+        // Ads
+        this.ads=rs.getString("ads");
     
-           // Assets
-           this.assets=rs.getString("assets");
+        // Assets
+        this.assets=rs.getString("assets");
     
-           // Assets owners
-           this.assets_owners=rs.getString("assets_owners");
+        // Assets owners
+        this.assets_owners=rs.getString("assets_owners");
            
-           // Assets markets
-           this.assets_mkts=rs.getString("assets_mkts");
+        // Assets markets
+        this.assets_mkts=rs.getString("assets_mkts");
            
-           // Assets mkts pos
-           this.assets_mkts_pos=rs.getString("assets_mkts_pos");
+        // Assets mkts pos
+        this.assets_mkts_pos=rs.getString("assets_mkts_pos");
            
-           // Agents
-           this.agents=rs.getString("agents");
+        // Agents
+        this.agents=rs.getString("agents");
            
-           // Domains
-           this.domains=rs.getString("domains");
+        // Domains
+        this.domains=rs.getString("domains");
+        
+        // Delegates votes
+        this.del_votes=rs.getString("del_votes");
     
-           // Escrowed
-           this.escrowed=rs.getString("escrowed");
+        // Escrowed
+        this.escrowed=rs.getString("escrowed");
     
-           // Profiles
-           this.profiles=rs.getString("profiles");
+        // Profiles
+        this.profiles=rs.getString("profiles");
     
-           // Tweets
-           this.tweets=rs.getString("tweets");
+        // Tweets
+        this.tweets=rs.getString("tweets");
     
-           // Tweets Comments
-           this.comments=rs.getString("comments");
+        // Tweets Comments
+        this.comments=rs.getString("comments");
     
-           // Tweets Follow
-           this.tweets_follow=rs.getString("tweets_follow");
+        // Tweets Follow
+        this.tweets_follow=rs.getString("tweets_follow");
     
-           // Tweets Links
-           this.upvotes=rs.getString("upvotes");
+        // Tweets Links
+        this.votes=rs.getString("votes");
            
            // Feeds
            this.feeds=rs.getString("feeds");
@@ -258,6 +267,9 @@ public class CNetStat
            
            // Domains
            this.table_domains=new CDomainsTable();
+           
+           // Del votes
+           this.table_del_votes=new CDelVotesTable();
            
            // Escrowed
            this.table_escrowed=new CEscrowedTable();
@@ -353,11 +365,8 @@ public class CNetStat
         // Feeds bets pos
         //this.table_feeds_bets_pos.refresh(block);
         
-        // Feeds spec mkts
-        //this.table_feeds_spec_mkts.refresh(block);
-        
-        // Feeds spec mkts pos
-        //this.table_feeds_spec_mkts_pos.refresh(block);
+        // Delegates votes
+        this.table_del_votes.refresh(block);
     }
     
     
@@ -391,6 +400,9 @@ public class CNetStat
             // Domains
             case "domains" : this.domains=hash; break;
             
+            // Delegates votes
+            case "del_votes" : this.del_votes=hash; break;
+            
             // Escrowed
             case "escrowed" : this.escrowed=hash; break;
             
@@ -404,7 +416,7 @@ public class CNetStat
             case "comments" : this.comments=hash; break;
             
             // Tweets likes
-            case "upvotes" : this.upvotes=hash; break;
+            case "votes" : this.votes=hash; break;
             
             // Tweets follow
             case "tweets_follow" : this.tweets_follow=hash; break;
@@ -449,6 +461,9 @@ public class CNetStat
         // Domains
         if (tab.equals("domains")) return this.domains;
         
+        // Delegates votes
+        if (tab.equals("del_votes")) return this.del_votes;
+        
         // Escrowed
         if (tab.equals("escrowed")) return this.escrowed;
         
@@ -462,7 +477,7 @@ public class CNetStat
         if (tab.equals("comments")) return this.comments;
         
         // Tweets likes
-        if (tab.equals("upvotes")) return this.upvotes;
+        if (tab.equals("votes")) return this.votes;
         
         // Tweets follow
         if (tab.equals("tweets_follow")) return this.tweets_follow;

@@ -139,7 +139,7 @@ public class CNewRegMarketPayload extends CPayload
            throw new Exception("Invalid description - CNewRegMarketPayload.java");
          
         // Market Days
-        if (this.days<1000)
+        if (this.days<100)
            throw new Exception("Invalid days - CNewRegMarketPayload.java");
          
         // Decimals

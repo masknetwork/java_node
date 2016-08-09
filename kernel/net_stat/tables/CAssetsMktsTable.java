@@ -238,13 +238,13 @@ public class CAssetsMktsTable extends CTable
             long decimals=row.getLong("decimals");
                
             // Last price
-            String last_price=UTILS.BASIC.zeros(UTILS.FORMAT_8.format(row.getDouble("last_price")));
+            String last_price=UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(row.getDouble("last_price")));
             
             // Ask
-            String ask=UTILS.BASIC.zeros(UTILS.FORMAT_8.format(row.getDouble("ask")));
+            String ask=UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(row.getDouble("ask")));
             
             // Bid
-            String bid=UTILS.BASIC.zeros(UTILS.FORMAT_8.format(row.getDouble("bid")));
+            String bid=UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(row.getDouble("bid")));
             
             // MktID
             long mktID=row.getLong("mktID");
@@ -339,13 +339,13 @@ public class CAssetsMktsTable extends CTable
                this.addRow("decimals", rs.getLong("decimals"));
                
                // Ask
-               this.addRow("ask", UTILS.BASIC.zeros(UTILS.FORMAT_8.format(rs.getDouble("ask"))));
+               this.addRow("ask", UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(rs.getDouble("ask"))));
                
                // Bid
-               this.addRow("bid", UTILS.BASIC.zeros(UTILS.FORMAT_8.format(rs.getDouble("bid"))));
+               this.addRow("bid", UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(rs.getDouble("bid"))));
                
                // Last price
-               this.addRow("last_price", UTILS.BASIC.zeros(UTILS.FORMAT_8.format(rs.getDouble("last_price"))));
+               this.addRow("last_price", UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(rs.getDouble("last_price"))));
                
                // Mkt ID
                this.addRow("mktID", rs.getLong("mktID"));
@@ -398,9 +398,9 @@ public class CAssetsMktsTable extends CTable
                                              + "name='"+row.getString("name")+"', "
                                              + "description='"+row.getString("description")+"', "
                                              + "decimals='"+row.getLong("decimals")+"', "
-                                             + "last_price='"+UTILS.BASIC.zeros(UTILS.FORMAT_8.format(row.getDouble("last_price")))+"', "
-                                             + "ask='"+UTILS.BASIC.zeros(UTILS.FORMAT_8.format(row.getDouble("ask")))+"', "
-                                             + "bid='"+UTILS.BASIC.zeros(UTILS.FORMAT_8.format(row.getDouble("bid")))+"', "
+                                             + "last_price='"+UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(row.getDouble("last_price")))+"', "
+                                             + "ask='"+UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(row.getDouble("ask")))+"', "
+                                             + "bid='"+UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(row.getDouble("bid")))+"', "
                                              + "expire='"+row.getLong("expire")+"', "
                                              + "block='"+row.getLong("block")+"', "
                                              + "mktID='"+row.getLong("mktID")+"', "

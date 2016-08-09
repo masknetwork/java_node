@@ -110,21 +110,17 @@ public class CCloseRegMarketPosPayload  extends CPayload
     {
         // Constructor
         super.commit(block);
-      
-        
-        // Statement
-        
         
         // Load market data
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                    + "FROM assets_mkts_pos "
-                                   + "WHERE orderID='"+this.orderID+"'");
+                                           + "FROM assets_mkts_pos "
+                                          + "WHERE orderID='"+this.orderID+"'");
+        
+        // Next
+        rs.next();
         
         // Market ID
-        long mktID=rs.getLong("orderID");
-        
-        // Close
-        
+        long mktID=rs.getLong("mktID");
         
         // Asset has contract attached ?
         long asset_aID=UTILS.BASIC.getMarketContract(mktID, "assets_mkts");

@@ -73,7 +73,7 @@ public class COpCode
             case "ATPOS" : i=new CATPOS(VM, tokens); break;
             case "IF" : i=new CIF(VM, tokens); break;
             case "HTTP" : i=new CHTTP(VM, tokens); break;
-            case "STORQUERY" : i=new CSTORQUERY (VM, tokens); break; 
+            case "STORAGE" : i=new CSTORAGE (VM, tokens); break; 
             case "API" : i=new CAPI (VM, tokens); break;       
             case "CONCAT" : i=new CCONCAT(VM, tokens); break;
             case "TWEET" : i=new CTWEET(VM, tokens); break;

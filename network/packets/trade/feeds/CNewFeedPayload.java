@@ -13,6 +13,9 @@ import wallet.network.packets.blocks.CBlockPayload;
 
 public class CNewFeedPayload extends CPayload
 {
+    // Feed ID
+    long feedID;
+    
     // Title
     String title;
     
@@ -57,9 +60,13 @@ public class CNewFeedPayload extends CPayload
        // Market days
        this.days=days;
        
+       // Feed ID
+       this.feedID=UTILS.BASIC.getID();
+       
        // Hash
        hash=UTILS.BASIC.hash(this.getHash()+
-			     title+
+			     feedID+
+                             title+
                              description+  
                              website+
 		             symbol+
@@ -73,7 +80,11 @@ public class CNewFeedPayload extends CPayload
     {  
          // Super class
          super.check(block);
-           
+         
+         // Feed ID
+         if (!UTILS.BASIC.validID(this.feedID))
+             throw new Exception("Invalid title - CNewFeedPayload.java"); 
+         
          // Title
          if (!UTILS.BASIC.isTitle(this.title))
              throw new Exception("Invalid title - CNewFeedPayload.java"); 
@@ -97,6 +108,7 @@ public class CNewFeedPayload extends CPayload
          
          // Hash
          String h=UTILS.BASIC.hash(this.getHash()+
+                                   feedID+
 			           title+
                                    description+  
                                    website+
@@ -113,20 +125,15 @@ public class CNewFeedPayload extends CPayload
         this.check(block);
         
         // Insert feed
-        UTILS.DB.executeUpdate("INSERT INTO feeds(adr,"
-                                                   + "name, "
-                                                   + "description, "
-                                                   + "website, "
-                                                   + "symbol, "
-                                                   + "expire, "
-                                                   + "block) VALUES('"+
-                                                   this.target_adr+"', '"+
-                                                   UTILS.BASIC.base64_encode(this.title)+"', '"+
-                                                   UTILS.BASIC.base64_encode(this.description)+"', '"+
-                                                   UTILS.BASIC.base64_encode(this.website)+"', '"+
-                                                   this.symbol+"', '"+
-                                                   (this.block+(1440*this.days))+"', '"+
-                                                   this.block+"')");
+        UTILS.DB.executeUpdate("INSERT INTO feeds "
+                                     + "SET feedID='"+this.feedID+"', "
+                                          + "adr='"+this.target_adr+"',"
+                                          + "name='"+UTILS.BASIC.base64_encode(this.title)+"', "
+                                          + "description='"+UTILS.BASIC.base64_encode(this.description)+"', "
+                                          + "website='"+UTILS.BASIC.base64_encode(this.website)+"', "
+                                          + "symbol='"+this.symbol+"', "
+                                          + "expire='"+(this.block+(1440*this.days))+"', "
+                                          + "block='"+this.block+"'"); 
     }
   
 }

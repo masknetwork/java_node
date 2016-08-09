@@ -57,7 +57,7 @@ public class CVMUtils
             case "LOG" : return true;
             case "IF" : return true;
             case "LISTPUSH" : return true;
-            case "STORQUERY" : return true;
+            case "STORAGE" : return true;
             case "DBQUERY" : return true;
             case "MES" : return true;
             case "TWEET" : return true;

@@ -27,8 +27,7 @@ public class CAdrTable extends CTable
 		                              + "created BIGINT DEFAULT 0, "		              
                                               + "block BIGINT DEFAULT 0, "
                                               + "sealed BIGINT DEFAULT 0, "
-				              + "rowhash VARCHAR(100) DEFAULT '', "
-                                              + "last_interest BIGINT DEFAULT 0)");
+				              + "rowhash VARCHAR(100) DEFAULT '')");
 		   
         UTILS.DB.executeUpdate("CREATE INDEX adr ON adr(adr)");
 	UTILS.DB.executeUpdate("CREATE INDEX block ON adr(block)");
@@ -38,49 +37,9 @@ public class CAdrTable extends CTable
         if (fill) this.fillTest();    
     }
     
-    public void removeAdr(long block, String adr) throws Exception
+    public void expired(long block) throws Exception
     {
-        // Ads
-        UTILS.NET_STAT.table_ads.expired(block, adr);
         
-        // Agents
-        UTILS.NET_STAT.table_agents.expired(block, adr);
-        
-        // Assets markets pos
-        UTILS.NET_STAT.table_assets_mkts_pos.expired(block, adr);
-        
-        // Assets markets
-        UTILS.NET_STAT.table_assets_mkts.removeByAdr(adr);
-        
-        // Assets owners
-        UTILS.NET_STAT.table_assets_owners.removeByAdr(adr);
-        
-        // Assets 
-        UTILS.NET_STAT.table_assets.expired(block, adr);
-        
-        // Domains
-        UTILS.NET_STAT.table_domains.expired(block, adr);
-        
-        // escrowed
-        UTILS.NET_STAT.table_escrowed.removeByAdr(adr);
-        
-        // Profiles
-        UTILS.NET_STAT.table_profiles.expired(block, adr);
-        
-        // Tweets Comments
-        UTILS.NET_STAT.table_comments.removeByAdr(adr);
-        
-        // Tweets Follow
-        UTILS.NET_STAT.table_tweets_follow.expired(block, adr);
-        
-        // Tweets Likes
-        UTILS.NET_STAT.table_votes.removeByAdr(adr);
-        
-        // Tweets
-        UTILS.NET_STAT.table_profiles.expired(block, adr);
-        
-        // Delete address
-        UTILS.DB.executeUpdate("DELETE FROM adr WHERE adr='"+adr+"'");
     }
     
     // Address
@@ -90,7 +49,6 @@ public class CAdrTable extends CTable
         UTILS.DB.executeUpdate("UPDATE adr SET rowhash=SHA2(CONCAT(adr, "
                                                                  + "balance, "
                                                                  + "created, "
-                                                                 + "last_interest, "
                                                                  + "sealed, "
                                                                  + "block), 256) where block='"+block+"'");
         
@@ -137,8 +95,6 @@ public class CAdrTable extends CTable
             // Created
             long created=row.getLong("created");
             
-            // Last interest
-            long last_interest=row.getLong("last_interest");
             
             // Last interest
             long sealed=row.getLong("sealed");
@@ -151,18 +107,16 @@ public class CAdrTable extends CTable
             
             // Hash
             String hash=UTILS.BASIC.hash(adr+
-                                         UTILS.BASIC.zeros(UTILS.FORMAT_8.format(balance))+
+                                         UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(balance))+
                                          created+
-                                         last_interest+
                                          sealed+
                                          block);
                     
             // Check hash
             if (!rowhash.equals(hash))
                 throw new Exception("Invalid hash - CAdrTable.java "+adr+
-                                         UTILS.BASIC.zeros(UTILS.FORMAT_8.format(balance))+
+                                         UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(balance))+
                                          created+
-                                         last_interest+
                                          sealed+
                                          block);
             
@@ -198,21 +152,13 @@ public class CAdrTable extends CTable
             // Load row
             JSONObject row=rows.getJSONObject(a);
             
-            UTILS.DB.executeUpdate("INSERT INTO adr(adr, "
-                                                 + "balance, "
-                                                 + "created, "
-                                                 + "last_interest, "
-                                                 + "sealed, "
-                                                 + "block, "
-                                                 + "rowhash "
-                                                 + ")  VALUES('"
-                                                 +row.getString("adr")+"', '"
-                                                 +UTILS.BASIC.zeros(UTILS.FORMAT_8.format(row.getDouble("balance")))+"', '"
-                                                 +row.getLong("created")+"', '"
-                                                 +row.getLong("last_interest")+"', '"
-                                                 +row.getLong("sealed")+"', '"
-                                                 +row.getLong("block")+"', '"
-                                                 +row.getString("rowhash")+"')");
+            UTILS.DB.executeUpdate("INSERT INTO adr "
+                                         + "SET adr='"+row.getString("adr")+"', "
+                                             + "balance='"+UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(row.getDouble("balance")))+"', "
+                                             + "created='"+row.getLong("created")+"', "
+                                             + "sealed='"+row.getLong("sealed")+"', "
+                                             + "block='"+row.getLong("block")+"', "
+                                             + "rowhash='"+row.getString("rowhash")+"'");
         }
         
         // Clear table from sync
@@ -227,9 +173,6 @@ public class CAdrTable extends CTable
         
         // Constructor
         super.fromDB();
-       
-       // Statement
-       
        
        // Load data
        ResultSet rs=UTILS.DB.executeQuery("SELECT * FROM adr ORDER BY ID ASC");
@@ -257,9 +200,6 @@ public class CAdrTable extends CTable
                // Created
                this.addRow("created", rs.getLong("created"));
                
-               // Last interest
-               this.addRow("last_interest", rs.getLong("last_interest"));
-               
                // Sealed
                this.addRow("sealed", rs.getLong("sealed"));
                
@@ -279,11 +219,6 @@ public class CAdrTable extends CTable
                
        // Close json
        this.json=this.json+"]}";
-       
-       // Close
-       
-       
-       
     }
     
     
@@ -292,12 +227,10 @@ public class CAdrTable extends CTable
         UTILS.DB.executeUpdate("INSERT INTO adr(adr, "
                                              + "balance, "
                                                       + "rowhash, "
-                                                      + "block, "
-                                                      + "last_interest) "
+                                                      + "block) "
                                           + "VALUES('"+adr+"', "
                                                  + "'"+balance+"', "
                                                    + "'0000000000000000000000000000000000000000000000000000000000000000', "
-                                                   + "'0', "
                                                    + "'0')");
                 
                 

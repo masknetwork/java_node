@@ -102,9 +102,6 @@ public class CAgent implements java.io.Serializable
                  
                  if (VM.CODE.fee<VM.SYS.AGENT.GENERAL.balance)
                  {
-                    // Flush storage
-                    VM.STOR.flush(sandbox);
-       
                     // Flush run log
                     VM.RUNLOG.flush();
                  }

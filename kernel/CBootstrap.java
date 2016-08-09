@@ -16,10 +16,7 @@ public class CBootstrap
         // Check tables
         this.checkTables();
         
-        // Delete packets
-         UTILS.DB.executeUpdate("DELETE FROM packets");
-        
-        // Delete active peers
+         // Delete active peers
         UTILS.DB.executeUpdate("DELETE FROM peers");
         
         // Delete transaction pool
@@ -140,11 +137,18 @@ public class CBootstrap
            domains.create();
 	}
         
-         // ------------------------------- Agents feeds --------------------------------------
+        // ------------------------------- Agents feeds --------------------------------------
 	if (tab.equals("agents_feeds"))
 	{
 	   CAgentsFeedsTable agents_feeds=new CAgentsFeedsTable();
            agents_feeds.create();
+	}
+        
+        // ------------------------------- Storage --------------------------------------
+	if (tab.equals("storage"))
+	{
+	   CAgentsFeedsTable storage=new CAgentsFeedsTable();
+           storage.create();
 	}
          
          // ---------------------------------- Error Log--------------------------------------
@@ -1154,6 +1158,13 @@ public class CBootstrap
              agents.create(); 
          }
          
+         // ------------------------------------- Delegates votes  ------------------------------------------------
+         if (tab.equals("del_votes"))
+         {
+             CDelVotesTable del_votes=new CDelVotesTable();
+             del_votes.create(); 
+         }
+         
          // ------------------------------------- Agents Emails ------------------------------------------------
          if (tab.equals("out_emails"))
          {
@@ -1195,6 +1206,16 @@ public class CBootstrap
              
              UTILS.DB.executeUpdate("CREATE INDEX checkpoints_block ON checkpoints(block)");
              UTILS.DB.executeUpdate("CREATE INDEX checkpoints_hash ON checkpoints(hash)");
+         }
+         
+          // ------------------------------------- Delegates ------------------------------------------------
+         if (tab.equals("delegates"))
+         {
+              UTILS.DB.executeUpdate("CREATE TABLE delegates(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                +"delegate VARCHAR(500) DEFAULT '', "
+                                                                +"power BIGINT DEFAULT 0)");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX delegates_adr ON delegates(block)");
          }
          
          // ------------------------------------- Agents categs ------------------------------------------------
@@ -1445,8 +1466,17 @@ public class CBootstrap
           if (this.tableExist("agents_feeds")==false)
             this.createTable("agents_feeds");
           
+          if (this.tableExist("storage")==false)
+            this.createTable("storage");
+          
           if (this.tableExist("votes_stats")==false)
             this.createTable("votes_stats");
+          
+          if (this.tableExist("delegates")==false)
+            this.createTable("delegates");
+          
+          if (this.tableExist("del_votes")==false)
+            this.createTable("del_votes");
     }
    
     

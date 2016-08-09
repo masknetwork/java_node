@@ -50,8 +50,6 @@ public class CUpdateAppPayload extends CPayload
         // Commit parent
  	super.check(block);
  	
-        // Statement
-        
         
         // App ID
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
@@ -76,12 +74,6 @@ public class CUpdateAppPayload extends CPayload
         if (UTILS.BASIC.isSealed(rs.getString("adr")))
             throw new Exception ("Sealed application (CUpdateAppPayload.java)");
         
-        // Days
-        if (this.op.equals("ID_SEAL"))
-        {
-            if (this.days<1)
-                throw new Exception ("Sealed days (CUpdateAppPayload.java)");
-        }
         
         // Hash
         String h=UTILS.BASIC.hash(this.getHash()+

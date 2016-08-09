@@ -22,6 +22,8 @@ public class UTILS
     // Settings
     public static CSettings SETTINGS;
     
+    // Delegates
+    public static CDelegates DELEGATES;
     
     // Utils
     public static CUtils BASIC;

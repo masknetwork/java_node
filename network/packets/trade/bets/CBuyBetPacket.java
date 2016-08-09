@@ -57,7 +57,7 @@ public class CBuyBetPacket extends CBroadcastPacket
             
             // Footprint
             CPackets foot=new CPackets(this);
-            foot.add("Bet UID", dec_payload.bet_uid);
+            foot.add("Bet UID", dec_payload.betID);
             foot.add("Amount", dec_payload.amount);
             foot.write();
 	}

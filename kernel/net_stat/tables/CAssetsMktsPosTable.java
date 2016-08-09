@@ -168,10 +168,10 @@ public class CAssetsMktsPosTable extends CTable
             String tip=row.getString("tip");
                
             // Qty
-            String qty=UTILS.BASIC.zeros(UTILS.FORMAT_8.format(row.getDouble("qty")));
+            String qty=UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(row.getDouble("qty")));
                
             // Price
-            String price=UTILS.BASIC.zeros(UTILS.FORMAT_8.format(row.getDouble("price")));
+            String price=UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(row.getDouble("price")));
                
             // OrderID
             long orderID=row.getLong("orderID");
@@ -259,10 +259,10 @@ public class CAssetsMktsPosTable extends CTable
                this.addRow("tip", rs.getString("tip"));
                
                // Qty
-               this.addRow("qty", UTILS.BASIC.zeros(UTILS.FORMAT_8.format(rs.getDouble("qty"))));
+               this.addRow("qty", UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(rs.getDouble("qty"))));
                
                // Price
-               this.addRow("price", UTILS.BASIC.zeros(UTILS.FORMAT_8.format(rs.getDouble("price"))));
+               this.addRow("price", UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(rs.getDouble("price"))));
                
                // Block
                this.addRow("block", rs.getLong("block"));

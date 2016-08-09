@@ -214,7 +214,7 @@ public class CTransPayload extends CPayload
                 if (this.mes!=null) this.mes.getMessage(this.dest, hash);
               
                 // IPN
-                this.checkIPN("unconfirmed");
+                if (block==null) this.checkIPN("unconfirmed");
             }
        
         }
@@ -237,9 +237,6 @@ public class CTransPayload extends CPayload
                    // creates loader thread
                    CLoader loader=new CLoader(rs.getString("web_link"), rs.getString("web_pass"));
                    
-                   // Status
-                   loader.addParam("status", status);
-                   
                    // Source
                    loader.addParam("src", this.src);
                    
@@ -252,6 +249,13 @@ public class CTransPayload extends CPayload
                    // Currency
                    loader.addParam("currency", this.cur);
                    
+                   // Message
+                   String message="";
+                   if (this.mes!=null)
+                       message=this.mes.mes;
+                    
+                   loader.addParam("mes", message);
+                   
                    // transaction hash
                    loader.addParam("tx_hash", this.hash);
                    
@@ -261,29 +265,15 @@ public class CTransPayload extends CPayload
                    // Start
                    loader.start();
             }
-            
-            // Close
-            
+         
          }
          
          public void commit(CBlockPayload block) throws Exception
 	 { 
-             // Load details
-                
-                
-                if (UTILS.BASIC.isContractAdr(this.dest))
+            if (UTILS.BASIC.isContractAdr(this.dest))
                 {
-                    // Result set
-                    ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                                       + "FROM agents "
-                                                      + "WHERE adr='"+this.dest+"' "
-                                                        + "AND status='ID_ONLINE'");
-                    
-                    // Next
-                    rs.next();
-                    
                     // Load VM
-                    CAgent AGENT=new CAgent(rs.getLong("aID"), false, this.block);
+                    CAgent AGENT=new CAgent(UTILS.BASIC.getAgentID(this.dest), false, this.block);
                     
                     // Message ?
                     String message="";

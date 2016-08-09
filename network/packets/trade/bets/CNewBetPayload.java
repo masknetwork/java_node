@@ -59,8 +59,8 @@ public class CNewBetPayload extends CPayload
    // Currency
    String cur;
    
-   // UID
-   long UID;
+   // BetID
+   long betID;
    
    // Title
    String title;
@@ -141,8 +141,8 @@ public class CNewBetPayload extends CPayload
        // Description
        this.description=description;
        
-       // UID
-       this.UID=Math.round(Math.random()*1000000000000L+(this.block+1));
+       // betID
+       this.betID=UTILS.BASIC.getID();
        
        // Hash
        hash=UTILS.BASIC.hash(this.getHash()+
@@ -153,7 +153,7 @@ public class CNewBetPayload extends CPayload
                              this.feed_symbol_3+
                              this.feed_component_symbol_3+
                              this.tip+
-                             this.UID+
+                             this.betID+
                              String.valueOf(this.val_1)+
                              String.valueOf(this.val_2)+
                              this.title+
@@ -197,13 +197,8 @@ public class CNewBetPayload extends CPayload
                !tip.equals("ID_CLOSE_EXACT_VALUE"))
         throw new Exception("Invalid type - CNewBetPayload.java"); 
         
-        // UID
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                           + "FROM feeds_bets "
-                                          + "WHERE adr='"+this.target_adr+"'");
-        
-        // Has data
-        if (UTILS.DB.hasData(rs))
+        // Bet ID
+        if (UTILS.BASIC.validID(this.betID))
             throw new Exception("Invalid bet ID - CNewBetPayload.java"); 
         
         // Values
@@ -253,7 +248,7 @@ public class CNewBetPayload extends CPayload
                            -this.budget, 
                            true,
                            this.cur, 
-                           "Budget for bet "+this.UID, 
+                           "Budget for bet "+this.betID, 
                            "", 
                            this.hash, 
                            this.block,
@@ -269,7 +264,7 @@ public class CNewBetPayload extends CPayload
                                   this.feed_symbol_3+
                                   this.feed_component_symbol_3+
                                   this.tip+
-                                  this.UID+
+                                  this.betID+
                                   String.valueOf(this.val_1)+
                                   String.valueOf(this.val_2)+
                                   this.title+
@@ -309,7 +304,7 @@ public class CNewBetPayload extends CPayload
                    CAgent AGENT=new CAgent(cur_aID, false, this.block);
                     
                    // Set Message 
-                   AGENT.VM.SYS.EVENT.loadBetOpen(this.UID,
+                   AGENT.VM.SYS.EVENT.loadBetOpen(this.betID,
                                                   this.feed_symbol_1,
                                                   this.feed_component_symbol_1,
                                                   this.feed_symbol_2,
@@ -342,7 +337,7 @@ public class CNewBetPayload extends CPayload
         
         // Insert position
         UTILS.DB.executeUpdate("INSERT INTO feeds_bets "
-                                     + "SET mktID='"+this.UID+"', "
+                                     + "SET betID='"+this.betID+"', "
                                          + "adr='"+this.target_adr+"', "
                                          + "feed_1='"+this.feed_symbol_1+"', "
                                          + "branch_1='"+this.feed_component_symbol_1+"', "

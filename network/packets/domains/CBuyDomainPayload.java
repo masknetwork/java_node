@@ -24,9 +24,7 @@ public class CBuyDomainPayload extends CPayload
     // Attach address
     String buyer_adr;
 	
-    // Transaction
-    public CTransPayload pay;
-	
+    
     public CBuyDomainPayload(String buyer_adr, 
                              String domain) throws Exception
     {
@@ -50,7 +48,7 @@ public class CBuyDomainPayload extends CPayload
    
     public void check(CBlockPayload block) throws Exception
     {
-        // Constructor
+        // Parent
         super.check(block);
                  
         // Attach address
@@ -80,17 +78,17 @@ public class CBuyDomainPayload extends CPayload
        	    rs.next();
             
             // Transaction
-            UTILS.ACC.newTrans(rs.getString("adr"), 
-                               "none",
-                               rs.getDouble("sale_price"),
-                               true,
-                               "MSK", 
-                               "Domain aquisition", 
-                               "", 
-                               this.hash, 
-                               this.block,
-                               block,
-                               0);
+            UTILS.ACC.newTransfer(this.target_adr,
+                                  rs.getString("adr"), 
+                                  rs.getDouble("sale_price"),
+                                  true,
+                                  "MSK", 
+                                  "Domain aquisition", 
+                                  "", 
+                                  this.hash, 
+                                  this.block,
+                                  block,
+                                  0);
         }
         else throw new Exception("Invalid domain - CBuyDomainPayload.java");
     }

@@ -52,7 +52,6 @@ public class CSealPacket extends CBroadcastPacket
           
           // Footprint
           CPackets foot=new CPackets(this);
-                  
           foot.add("Address", dec_payload.target_adr);
           foot.add("Days", String.valueOf(dec_payload.days));
           foot.write();

@@ -119,10 +119,10 @@ public class CAccounting
             if (amount<0)
             {
                 // Balance
-                double balance=getBalance(adr, cur);
+                double balance=UTILS.NETWORK.TRANS_POOL.getBalance(adr, cur);
                    
                 // Funds
-                if (balance<amount)
+                if (balance<Math.abs(amount))
                    throw new Exception("Insufficient funds");
                     
                 // Add to pool

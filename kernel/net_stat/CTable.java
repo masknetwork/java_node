@@ -174,7 +174,7 @@ public class CTable
             case "comments" : UTILS.NET_STAT.comments=rs.getString("comments"); break;
             
             // Tweets likes
-            case "upvotes" : UTILS.NET_STAT.upvotes=rs.getString("upvotes"); break;
+            case "votes" : UTILS.NET_STAT.votes=rs.getString("votes"); break;
             
             // Tweets follow
             case "tweets_follow" : UTILS.NET_STAT.tweets_follow=rs.getString("tweets_follow"); break;

@@ -195,6 +195,8 @@ public class CNetwork extends Thread
 	  
 	  public boolean packetExist(CPacket packet, CPeer sender) throws Exception
 	  {
+              if (!UTILS.BASIC.isHash(packet.hash)) return true;
+              
               ResultSet rs=UTILS.DB.executeQuery("SELECT * "
 		      		                 + "FROM rec_packets "
 		      		                + "WHERE hash='"+packet.hash+"'");

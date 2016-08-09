@@ -3339,7 +3339,7 @@ public CCell loadAssets() throws Exception
        return c;
     }
 
-    public CCell loadTweetsLikes() throws Exception
+    public CCell loadVotes() throws Exception
     {
        // Result
        ResultSet rs=this.query();
@@ -3350,15 +3350,23 @@ public CCell loadAssets() throws Exception
        // ID
        CCell colID=new CCell("");
        colID.name="ID";
-
-       // TweetID
-       CCell colTweetID=new CCell("");
-       colTweetID.name="tweetID";
-
+       
        // Adr
        CCell colAdr=new CCell("");
        colAdr.name="adr";
+       
+       // Target type
+       CCell colTarget_type=new CCell("");
+       colTarget_type.name="target_type";
 
+       // Target ID
+       CCell colTargetID=new CCell("");
+       colTargetID.name="targetID";
+       
+       // Power
+       CCell colPower=new CCell("");
+       colPower.name="power";
+      
        // Block
        CCell colBlock=new CCell("");
        colBlock.name="block";
@@ -3376,11 +3384,17 @@ public CCell loadAssets() throws Exception
                      // ID
                      colID.addCell(new CCell(rs.getString("ID")));
 
-                     // TweetID
-                     colTweetID.addCell(new CCell(rs.getString("tweetID")));
-
                      // Adr
                      colAdr.addCell(new CCell(rs.getString("adr")));
+                     
+                     // Target type
+                     colTarget_type.addCell(new CCell(rs.getString("target_type")));
+
+                     // Target ID
+                     colTargetID.addCell(new CCell(rs.getString("targetID")));
+                     
+                     // Power
+                     colPower.addCell(new CCell(rs.getString("power")));
 
                      // Block
                      colBlock.addCell(new CCell(rs.getString("block")));
@@ -3398,12 +3412,18 @@ public CCell loadAssets() throws Exception
 
        // ID
        c.addCell(colID);
-
-       // TweetID
-       c.addCell(colTweetID);
-
+ 
        // Adr
        c.addCell(colAdr);
+       
+       // Target type
+       c.addCell(colTarget_type);
+
+       // Target ID
+       c.addCell(colTargetID);
+       
+       // Power
+       c.addCell(colPower);
 
        // Block
        c.addCell(colBlock);
@@ -3501,7 +3521,7 @@ public CCell loadAssets() throws Exception
        return c;
     }
 
-    public CCell loadTweetsComments() throws Exception
+    public CCell loadComments() throws Exception
     {
        // Result
        ResultSet rs=this.query();
@@ -3532,10 +3552,6 @@ public CCell loadAssets() throws Exception
        // Mes
        CCell colMes=new CCell("");
        colMes.name="mes";
-
-       // Status
-       CCell colStatus=new CCell("");
-       colStatus.name="status";
 
        // Rowhash
        CCell colRowhash=new CCell("");
@@ -3569,9 +3585,6 @@ public CCell loadAssets() throws Exception
                      // Mes
                      colMes.addCell(new CCell(rs.getString("mes")));
 
-                     // Status
-                     colStatus.addCell(new CCell(rs.getString("status")));
-
                      // Rowhash
                      colRowhash.addCell(new CCell(rs.getString("rowhash")));
 
@@ -3603,9 +3616,6 @@ public CCell loadAssets() throws Exception
 
        // Mes
        c.addCell(colMes);
-
-       // Status
-       c.addCell(colStatus);
 
        // Rowhash
        c.addCell(colRowhash);
@@ -3686,13 +3696,13 @@ public CCell loadAssets() throws Exception
             case "tweets" : c=this.loadTweets(); break;
             
             // Tweets likes
-            case "upvotes" : c=this.loadTweetsLikes(); break;
+            case "votes" : c=this.loadVotes(); break;
             
             // Tweets follow
             case "tweets_follow" : c=this.loadTweetsFollow(); break;
             
             // Tweets comments
-            case "comments" : c=this.loadTweetsComments(); break;
+            case "comments" : c=this.loadComments(); break;
         }
         
         // Copy to dest

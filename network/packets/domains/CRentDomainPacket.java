@@ -18,15 +18,13 @@ public class CRentDomainPacket extends CBroadcastPacket
    public CRentDomainPacket(String fee_adr, 
                             String adr, 
                             String domain, 
-                            long days,
-                            String packet_sign,
-                            String payload_sign)  throws Exception
-   {
+                            long days)  throws Exception
+   { 
        // Constructs the broadcast packet
        super("ID_RENT_DOMAIN_PACKET");
 		  
        // Builds the payload class
-       CRentDomainPayload dec_payload=new CRentDomainPayload(adr, domain, days, payload_sign);
+       CRentDomainPayload dec_payload=new CRentDomainPayload(adr, domain, days);
 				
        // Build the payload
        this.payload=UTILS.SERIAL.serialize(dec_payload);
@@ -35,7 +33,7 @@ public class CRentDomainPacket extends CBroadcastPacket
        fee=new CFeePayload(fee_adr, (days*0.0001));
 		   
        // Sign packet
-       this.sign(packet_sign);
+       this.sign();
    }
 	
 	// Check 

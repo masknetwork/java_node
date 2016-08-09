@@ -61,5 +61,6 @@ public class CSealPayload extends CPayload
                                     + "block='"+this.block+"' "
                               + "WHERE adr='"+this.target_adr+"'");
        
+       
     }        
 }
