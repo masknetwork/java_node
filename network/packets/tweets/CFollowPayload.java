@@ -56,7 +56,7 @@ public class CFollowPayload extends CPayload
            throw new Exception("Invalid follow address - CFollowPayload.java");
    	
        // Follow address valid
-       if (!UTILS.BASIC.adressValid(this.follow_adr))
+       if (!UTILS.BASIC.isAdr(this.follow_adr))
           throw new Exception("Invalid follow address - CFollowPayload.java");
              
        // Address has tweets ?

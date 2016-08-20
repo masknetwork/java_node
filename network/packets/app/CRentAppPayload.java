@@ -2,6 +2,7 @@ package wallet.network.packets.app;
 
 import java.sql.ResultSet;
 import java.sql.Statement;
+import wallet.agents.CAgent;
 import wallet.kernel.UTILS;
 import wallet.network.CResult;
 import wallet.network.packets.CPayload;
@@ -70,7 +71,7 @@ public class CRentAppPayload extends CPayload
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                            + "FROM agents "
                                           + "WHERE aID='"+this.appID+"' "
-                                            + "AND price>0");
+                                            + "AND app_store>0");
         
         // Has data
         if (!UTILS.DB.hasData(rs))
@@ -146,5 +147,11 @@ public class CRentAppPayload extends CPayload
         
         // Clear
         UTILS.ACC.clearTrans(this.hash, "ID_ALL", this.block);
+        
+        // Load VM
+        CAgent AGENT=new CAgent(UTILS.BASIC.getAgentID(this.target_adr), false, this.block);
+                    
+        // Execute
+        AGENT.execute("#install#", false, this.block);
      }
 }

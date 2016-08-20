@@ -36,7 +36,7 @@ public class CReqConnectionPacket extends CPacket
            this.hash=UTILS.BASIC.hash(UTILS.BASIC.mtstamp()+this.ver+this.server_port);
    }
    
-   public CResult checkWithPeer(CPeer peer) throws Exception
+   public void check(CPeer peer) throws Exception
    {
 	   boolean aproved=true;
 	   
@@ -50,8 +50,5 @@ public class CReqConnectionPacket extends CPacket
 	   // Create response
 	   CReqConnectionResponsePacket response=new CReqConnectionResponsePacket(aproved, peer);
 	   peer.writePacket(response);
-	   
-	   // Return
-	   return new CResult(true, "Ok", "CReqConnectionPacket.java", 22);
    }
 }

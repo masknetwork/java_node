@@ -17,7 +17,7 @@ public class CSTTweets extends CStressTest
                                                   "Test tweet", 
                                                   "Test tweet", 
                                                   0,
-		                                  "https://www.exceptionnotfound.net/content/images/2015/04/the-coder.jpg");
+		                                  "https://www.exceptionnotfound.net/content/images/2015/04/the-coder.jpg", 30);
        
         UTILS.NETWORK.broadcast(packet);
      }

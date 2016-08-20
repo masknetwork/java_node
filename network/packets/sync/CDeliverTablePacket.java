@@ -34,7 +34,7 @@ public class CDeliverTablePacket extends CPacket
         this.table=table;
         
         // Data
-        File file = new File(UTILS.WRITEDIR+"checkpoints/"+checkpoint+"/"+table+"+table");
+        File file = new File(UTILS.WRITEDIR+"checkpoints/"+checkpoint+"/"+table+".table");
         if (file.exists()) 
             this.data = FileUtils.readFileToByteArray(file);
         
@@ -42,7 +42,7 @@ public class CDeliverTablePacket extends CPacket
         this.hash=UTILS.BASIC.hash(this.hash()+UTILS.BASIC.hash(this.data));
     }
     
-    public void process(CPeer sender) throws Exception
+    public void check(CPeer sender) throws Exception
     {
         // Table
         CTable tab=null;
@@ -57,75 +57,65 @@ public class CDeliverTablePacket extends CPacket
         // Load data
         switch (this.table)
         {
-            // Address
+            // Adr
             case "adr" : tab=new CAdrTable(); 
                          tab_name="adr"; 
                          break;
-            
+                         
             // Ads
             case "ads" : tab=new CAdsTable(); 
                          tab_name="ads"; 
                          break;
-            
+                         
             // Agents
             case "agents" : tab=new CAgentsTable(); 
                             tab_name="agents"; 
                             break;
-            
-            // Assets
-            case "assets" : tab=new CAssetsTable(); 
-                            tab_name="assets"; 
-                            break;
-            
-            // Assets owners
-            case "assets_owners" : tab=new CAssetsOwnersTable(); 
-                                   tab_name="assets_owners"; 
-                                   break;
-            
-            // Assets markets
-            case "assets_mkts" : tab=new CAssetsMktsTable(); 
-                                 tab_name="assets_mkts"; 
-                                 break;
-            
-            // Assets markets pos
-            case "assets_mkts_pos" : tab=new CAssetsMktsPosTable(); 
-                                     tab_name="assets_mkts_pos"; 
-                                     break;
+                            
+            // Comments
+            case "comments" : tab=new CCommentsTable(); 
+                              tab_name="comments"; 
+                              break;
+                              
+            // Delegates votes
+            case "del_votes" : tab=new CDelVotesTable(); 
+                               tab_name="del_votes"; 
+                               break;
             
             // Domains
             case "domains" : tab=new CDomainsTable(); 
                              tab_name="domains"; 
                              break;
-            
+                               
             // Escrowed
             case "escrowed" : tab=new CEscrowedTable(); 
                               tab_name="escrowed"; 
                               break;
-            
+                               
             // Profiles
             case "profiles" : tab=new CProfilesTable(); 
                               tab_name="profiles"; 
                               break;
-            
+                                    
+            // Storage
+            case "storage" : tab=new CStorageTable(); 
+                             tab_name="storage"; 
+                             break;
+                                    
             // Tweets
             case "tweets" : tab=new CTweetsTable(); 
                             tab_name="tweets"; 
                             break;
-            
-            // Tweets likes
-            case "upvotes" : tab=new CVotesTable(); 
-                                  tab_name="upvotes"; 
-                                  break;
-            
+                                    
             // Tweets follow
             case "tweets_follow" : tab=new CTweetsFollowTable(); 
                                    tab_name="tweets_follow"; 
                                    break;
-            
-            // Tweets comments
-            case "comments" : tab=new CCommentsTable(); 
-                                     tab_name="comments"; 
-                                     break;
+                                    
+            // Votes
+            case "votes" : tab=new CVotesTable(); 
+                           tab_name="votes"; 
+                           break;
         }
         
         // Has data

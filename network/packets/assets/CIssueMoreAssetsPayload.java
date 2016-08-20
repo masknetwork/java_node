@@ -47,26 +47,16 @@ public class CIssueMoreAssetsPayload extends CPayload
         if (!UTILS.BASIC.isSymbol(symbol))
             throw new Exception("Invalid symbol - CIssueMoreAssetsPayload.java");
         
-        // Statement
-        
         
         // Symbol valid
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                    + "FROM assets "
-                                   + "WHERE symbol='"+this.symbol+"' "
-                                     + "AND adr='"+this.target_adr+"'");
+                                           + "FROM assets "
+                                          + "WHERE symbol='"+this.symbol+"' "
+                                            + "AND adr='"+this.target_adr+"'");
         
         // Not found
         if (!UTILS.DB.hasData(rs))
-        {
-           // Close
-           
-            
-           // Exception 
            throw new Exception("Invalid symbol - CIssueMoreAssetsPayload.java");
-        }
-        
-        // Close
         
         
         // Qty

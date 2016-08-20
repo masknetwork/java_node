@@ -40,7 +40,7 @@ public class CDelVotePayload extends CPayload
         super.check(block);
         
         // Delegate valid
-        if (!UTILS.BASIC.adressValid(this.delegate))
+        if (!UTILS.BASIC.isAdr(this.delegate))
             throw new Exception("Invalid delegate address");
         
         // Balance
@@ -67,7 +67,7 @@ public class CDelVotePayload extends CPayload
 	super.commit(block);
         
         // Remove old vote
-        UTILS.DB.executeUpdate("DELETE FROM del_vote "
+        UTILS.DB.executeUpdate("DELETE FROM del_votes "
                                    + "WHERE adr='"+this.target_adr+"'");
         
         // Insert new vote

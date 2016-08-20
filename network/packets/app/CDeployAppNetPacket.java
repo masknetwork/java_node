@@ -4,8 +4,6 @@ import wallet.kernel.CPackets;
 import wallet.kernel.UTILS;
 import wallet.network.CResult;
 import wallet.network.packets.CBroadcastPacket;
-import wallet.network.packets.assets.reg_mkts.CCloseRegMarketPosPayload;
-import wallet.network.packets.assets.reg_mkts.CNewRegMarketPayload;
 import wallet.network.packets.blocks.CBlockPayload;
 import wallet.network.packets.mes.CMesPayload;
 import wallet.network.packets.trans.CFeePayload;

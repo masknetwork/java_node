@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import wallet.kernel.*;
 import wallet.network.*;
 import wallet.network.packets.*;
-import wallet.network.packets.trade.feeds.CFeedPayload;
 
 
 
@@ -72,10 +71,10 @@ public class CBlockPayload extends CPayload
             if (packet.tip.equals("ID_FEED_PACKET"))
             {
                 // Deserialize payload
-                CFeedPayload dec_payload=(CFeedPayload) UTILS.SERIAL.deserialize(packet.payload);
+                //CFeedPayload dec_payload=(CFeedPayload) UTILS.SERIAL.deserialize(packet.payload);
                    
                 // Feed symbol
-                String feed=dec_payload.feed_symbol;
+                //String feed=dec_payload.feed_symbol;
                            
                 // Already in block
                 for (int a=0; a<=this.packets.size()-1; a++)
@@ -87,11 +86,11 @@ public class CBlockPayload extends CPayload
                     if (p.tip.equals("ID_FEED_PACKET"))
                     {
                         // Deserialize
-                        dec_payload=(CFeedPayload) UTILS.SERIAL.deserialize(p.payload);
+                        //dec_payload=(CFeedPayload) UTILS.SERIAL.deserialize(p.payload);
                            
                         // Remove if same feed ?
-                        if (dec_payload.feed_symbol.equals(feed))
-                            this.packets.remove(a);
+                        //if (dec_payload.feed_symbol.equals(feed))
+                        //    this.packets.remove(a);
                     }
                 }
             }
@@ -152,25 +151,6 @@ public class CBlockPayload extends CPayload
 	}
 	
         
-        public void payReward(String adr) throws Exception
-        {
-            UTILS.ACC.newTransfer("default", 
-                                    adr,
-                                    0.25, 
-                                    false,
-                                    "MSK", 
-                                    "Block reward", 
-                                    "", 
-                                    hash, 
-                                    this.block,
-                                    this,
-                                    0);
-            
-            UTILS.ACC.clearTrans(hash, "ID_ALL", this.block);
-        }
-        
-        
-        
 	// Compare two blocks and returns the accuracy
 	public int compare(CBlockPayload block)
 	{
@@ -183,7 +163,7 @@ public class CBlockPayload extends CPayload
             long check_index=0;
             
             // Signer valid
-            if (!UTILS.BASIC.adressValid(this.target_adr))
+            if (!UTILS.BASIC.isAdr(this.target_adr))
                  return new CResult(false, "Invalid signer", "CBlockPayload.java", 239);
            
             // Check pow
@@ -219,13 +199,7 @@ public class CBlockPayload extends CPayload
 		   
 	        }
 		
-                // Pay block reward
-                this.payReward(this.target_adr);
-                 
-                
-                
-                // Check options
-                UTILS.CRONS.runCrons(block, this);
+               
             }
             catch (Exception ex) 
        	      {  

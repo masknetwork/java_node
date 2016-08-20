@@ -95,8 +95,13 @@ public class CCPUMiner extends Thread
     // Hash rate
     long hash=0;
     
+    // ID
+    long ID=0;
     
-    public CCPUMiner()
+    // Active
+    boolean active=true;
+    
+    public CCPUMiner(long ID)
     {
        // A
        a=new BLAKE512();
@@ -145,7 +150,9 @@ public class CCPUMiner extends Thread
     
        // 9
        f9=new SHA512();
-        
+       
+       // ID
+       this.ID=ID;
     }
     
     public void run() 
@@ -178,12 +185,13 @@ public class CCPUMiner extends Thread
         
         long ts=0;
                  
-        while (!Thread.currentThread().isInterrupted())
+        while (!Thread.currentThread().isInterrupted() && this.active==true)
         {
             if (!UTILS.NET_STAT.last_block_hash.equals("") && 
                 UTILS.NETWORK.peers.peers.size()>=0 &&
                 !UTILS.CBLOCK.signer.equals("") &&
-                UTILS.STATUS.engine_status.equals("ID_ONLINE"))
+                UTILS.STATUS.engine_status.equals("ID_ONLINE") &&
+                UTILS.CONSENSUS.status.equals("ID_WAITING"))
             {
               // Nonce
               nonce++;
@@ -214,18 +222,25 @@ public class CCPUMiner extends Thread
                                     String.valueOf(UTILS.BASIC.formatDif(UTILS.NET_STAT.net_dif.toString(16)))+
                                     UTILS.NET_STAT.getHash("adr")+
                                     UTILS.NET_STAT.getHash("ads")+
-                                    UTILS.NET_STAT.getHash("domains")+
                                     UTILS.NET_STAT.getHash("agents")+
+                                    UTILS.NET_STAT.getHash("agents_feeds")+
                                     UTILS.NET_STAT.getHash("assets")+
                                     UTILS.NET_STAT.getHash("assets_owners")+
                                     UTILS.NET_STAT.getHash("assets_mkts")+
                                     UTILS.NET_STAT.getHash("assets_mkts_pos")+
-                                    UTILS.NET_STAT.getHash("escrowed")+
-                                    UTILS.NET_STAT.getHash("profiles")+
-                                    UTILS.NET_STAT.getHash("tweets")+
                                     UTILS.NET_STAT.getHash("comments")+
-                                    UTILS.NET_STAT.getHash("upvotes")+
-                                    UTILS.NET_STAT.getHash("tweets_follow"));
+                                    UTILS.NET_STAT.getHash("del_votes")+
+                                    UTILS.NET_STAT.getHash("domains")+
+                                    UTILS.NET_STAT.getHash("escrowed")+
+                                    UTILS.NET_STAT.getHash("feeds")+
+                                    UTILS.NET_STAT.getHash("feeds_branches")+
+                                    UTILS.NET_STAT.getHash("feeds_bets")+
+                                    UTILS.NET_STAT.getHash("feeds_bets_pos")+
+                                    UTILS.NET_STAT.getHash("profiles")+
+                                    UTILS.NET_STAT.getHash("storage")+
+                                    UTILS.NET_STAT.getHash("tweets")+
+                                    UTILS.NET_STAT.getHash("tweets_follow")+
+                                    UTILS.NET_STAT.getHash("votes"));
               
               ihash=hash;
               
@@ -249,39 +264,10 @@ public class CCPUMiner extends Thread
                   // Start
                   start=UTILS.BASIC.tstamp();
                   
-                  // Hash rate
-                  this.hash=speed;
-                  
-                  // Total hash power
-                  int mine_threads=1;
-                  long total_hash=this.hash;
-                  
-                  // Thread 2
-                  if (UTILS.CBLOCK.miner_2!=null) 
-                  {
-                    mine_threads++;
-                    total_hash=total_hash+UTILS.CBLOCK.miner_2.hash;
-                  }
-                  
-                  // Thread 3
-                  if (UTILS.CBLOCK.miner_3!=null) 
-                  {
-                    mine_threads++;
-                    total_hash=total_hash+UTILS.CBLOCK.miner_3.hash;
-                  }
-                  
-                  // Thread 4
-                  if (UTILS.CBLOCK.miner_4!=null) 
-                  {
-                    mine_threads++;
-                    total_hash=total_hash+UTILS.CBLOCK.miner_4.hash;
-                  }
-                  
                   // Update
                   UTILS.DB.executeUpdate("UPDATE web_sys_data "
                                           + "SET mining='"+UTILS.BASIC.tstamp()+"', "
-                                              + "mining_threads='"+mine_threads+"',"
-                                              + "hashing_power='"+total_hash+"'");
+                                              + "cpu_"+this.ID+"_power='"+speed+"'");
               }
               
               // Found solution
@@ -297,13 +283,15 @@ public class CCPUMiner extends Thread
               }
             }
           }
+        
+          System.out.println("Miner has stopped");
         }
         catch (Exception ex) 
        	      {  
        		UTILS.LOG.log("SQLException", ex.getMessage(), "CCPUMiner.java", 57);
               }
         
-        System.out.println("CPUMiner has stopped !!!");
+       
     }
     
     public BigInteger hashToNum(String hash) throws Exception
@@ -380,5 +368,10 @@ public class CCPUMiner extends Thread
               
               // Return 
               return hash;
+    }
+    
+    public void stopMiner()
+    {
+        this.active=false;
     }
 }

@@ -90,4 +90,9 @@ public class CPacket implements java.io.Serializable
         CECC ecc=new CECC(signer);
 	return (ecc.checkSig(hash, this.sign));
     }
+   
+     public void process(CPeer sender) throws Exception
+    {
+        
+    }
 }

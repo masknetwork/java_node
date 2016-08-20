@@ -84,6 +84,8 @@ public class CVMUtils
             case "CALL" : return true;
             case "RET" : return true;
             case "ADDFEED" : return true;
+            case "NAMETOADR" : return true;
+            case "ADRVALID" : return true;
         }
         
         // Not found

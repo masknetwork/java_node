@@ -283,7 +283,7 @@ public class CAPI extends CInstruction
         this.fields_adr.add("block");
 
         // Feeds_bets_pos
-        this.fields_adr.add("bet_uid");
+        this.fields_adr.add("betID");
         this.fields_adr.add("adr");
         this.fields_adr.add("amount");
         this.fields_adr.add("block"); 
@@ -2341,9 +2341,9 @@ public CCell loadAssets() throws Exception
        CCell colID=new CCell("");
        colID.name="ID";
 
-       // Bet_uid
-       CCell colBet_uid=new CCell("");
-       colBet_uid.name="bet_uid";
+       // betID
+       CCell colbetID=new CCell("");
+       colbetID.name="betID";
 
        // Adr
        CCell colAdr=new CCell("");
@@ -2370,8 +2370,8 @@ public CCell loadAssets() throws Exception
                      // ID
                      colID.addCell(new CCell(rs.getString("ID")));
 
-                     // Bet_uid
-                     colBet_uid.addCell(new CCell(rs.getString("bet_uid")));
+                     // betID
+                     colbetID.addCell(new CCell(rs.getString("betID")));
 
                      // Adr
                      colAdr.addCell(new CCell(rs.getString("adr")));
@@ -2396,8 +2396,8 @@ public CCell loadAssets() throws Exception
        // ID
        c.addCell(colID);
 
-       // Bet_uid
-       c.addCell(colBet_uid);
+       // betID
+       c.addCell(colbetID);
 
        // Adr
        c.addCell(colAdr);

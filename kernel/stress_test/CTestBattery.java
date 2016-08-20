@@ -20,10 +20,6 @@ import wallet.network.packets.app.CDeployAppNetPacket;
 import wallet.network.packets.app.CPublishAppPacket;
 import wallet.network.packets.app.CRentAppPacket;
 import wallet.network.packets.app.CUpdateAppPacket;
-import wallet.network.packets.assets.CIssueAssetPacket;
-import wallet.network.packets.assets.reg_mkts.CCloseRegMarketPosPacket;
-import wallet.network.packets.assets.reg_mkts.CNewRegMarketPacket;
-import wallet.network.packets.assets.reg_mkts.CNewRegMarketPosPacket;
 import wallet.network.packets.blocks.CBlockPacket;
 import wallet.network.packets.blocks.CBlockPayload;
 import wallet.network.packets.domains.CBuyDomainPacket;
@@ -31,9 +27,6 @@ import wallet.network.packets.domains.CRentDomainPacket;
 import wallet.network.packets.domains.CSaleDomainPacket;
 import wallet.network.packets.domains.CTransferDomainPacket;
 import wallet.network.packets.sync.CDeliverBlocksPacket;
-import wallet.network.packets.trade.feeds.CFeedPacket;
-import wallet.network.packets.trade.feeds.CNewFeedComponentPacket;
-import wallet.network.packets.trade.feeds.CNewFeedPacket;
 import wallet.network.packets.trans.CEscrowedTransSignPacket;
 import wallet.network.packets.trans.CTransPacket;
 import wallet.network.packets.tweets.CFollowPacket;
@@ -55,6 +48,9 @@ public class CTestBattery
     
     // Agents
     CSTAgents agents;
+    
+    // delegates
+    CSTDelegates delegates;
 		
     public CTestBattery()  throws Exception
     {
@@ -66,6 +62,9 @@ public class CTestBattery
         
         // Agents
         agents=new CSTAgents();
+        
+        // delegates
+        delegates=new CSTDelegates();
     }
     
     public void start()
@@ -84,8 +83,10 @@ public class CTestBattery
         {  
             try
             {
+                adr.runTrans();
+                
                 // Online ?
-                if (!UTILS.STATUS.engine_status.equals("ID_ONLINE")) return;
+                /*if (!UTILS.STATUS.engine_status.equals("ID_ONLINE")) return;
         
                 // Run adr       
                 if (UTILS.BASIC.tstamp()%2==0) 
@@ -117,7 +118,9 @@ public class CTestBattery
                 //if (UTILS.BASIC.tstamp()%10==0) runRentApp();
                 //if (UTILS.BASIC.tstamp()%11==0) runUpdateApp();
                 //if (UTILS.BASIC.tstamp()%12==0) runTweet();
-                //if (UTILS.BASIC.tstamp()%25==0) runSeal();
+                //if (UTILS.BASIC.tstamp()%25==0) runSeal();*/
+                
+                
             }
             catch (Exception ex)
             {

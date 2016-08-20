@@ -14,14 +14,24 @@ public class CAgentsTable extends CTable
         super("agents");
     }
     
-    public void expired(long block, String adr) throws Exception
+    public void expired(long block) throws Exception
     {
-       if (adr.equals(""))
-          UTILS.DB.executeUpdate("DELETE FROM agents "
-                                     + "WHERE expire<="+block);
-       else
-          UTILS.DB.executeUpdate("DELETE FROM agents "
-                                     + "WHERE adr='"+adr+"'");
+          ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                             + "FROM agents "
+                                            + "WHERE expire<"+block);
+          
+          while (rs.next())
+            this.removeByID(rs.getLong("aID"));
+    }
+    
+    public void removeByID(long aID) throws Exception
+    {
+        UTILS.DB.executeUpdate("DELETE FROM agents "
+                                     + "WHERE aID='"+aID+"'");
+        
+        UTILS.DB.executeUpdate("DELETE FROM storage "
+                                     + "WHERE aID='"+aID+"'");
+          
     }
     
     public void create() throws Exception
@@ -48,6 +58,7 @@ public class CAgentsTable extends CTable
                                                               +"expire BIGINT NOT NULL DEFAULT 0, "
                                                               +"aID BIGINT NOT NULL DEFAULT 0, "
                                                               +"dir BIGINT NOT NULL DEFAULT 0, "
+                                                              +"app_store BIGINT NOT NULL DEFAULT 0, "
                                                               +"block BIGINT NOT NULL DEFAULT 0, "
                                                               +"rowhash VARCHAR(100) NOT NULL DEFAULT '')");
              
@@ -79,6 +90,7 @@ public class CAgentsTable extends CTable
                                                                  + "price, "
                                                                  + "expire, "
                                                                  + "dir, "
+                                                                 + "app_store, "
                                                                  + "block), 256) WHERE block='"+block+"'");
         
         // Table hash
@@ -97,6 +109,9 @@ public class CAgentsTable extends CTable
     
     public void fromJSON(String data, String crc) throws Exception
     {
+        // No data
+        if (crc.equals("")) return;
+        
         // Grand hash
         String ghash="";
         
@@ -169,8 +184,11 @@ public class CAgentsTable extends CTable
             // Expire
             long expire=row.getLong("expire");
             
-            // Expire
+            // Directory
             long dir=row.getLong("dir");
+            
+            // App store
+            long app_store=row.getLong("app_store");
             
             // Block
             long block=row.getLong("block");
@@ -198,6 +216,7 @@ public class CAgentsTable extends CTable
                                          +price
                                          +expire
                                          +dir
+                                         +app_store
                                          +block); 
           
                     
@@ -213,9 +232,7 @@ public class CAgentsTable extends CTable
         }
         
         // Grand hash
-        System.out.println(ghash);
         ghash=UTILS.BASIC.hash(ghash);
-        System.out.println(ghash);
          
         // Check grand hash
         if (!ghash.equals(crc))
@@ -311,6 +328,9 @@ public class CAgentsTable extends CTable
                // Dir
                this.addRow("dir", rs.getLong("dir"));
                
+               // App store
+               this.addRow("app_store", rs.getLong("app_store"));
+               
                // Block
                this.addRow("block", rs.getLong("block"));
                
@@ -369,6 +389,7 @@ public class CAgentsTable extends CTable
                                                          + "expire='"+row.getLong("expire")+"', "
                                                          + "aID='"+row.getLong("aID")+"', "
                                                          + "dir='"+row.getLong("dir")+"', "
+                                                         + "app_store='"+row.getLong("app_store")+"', "
                                                          + "block='"+row.getLong("block")+"', "
                                                          + "rowhash='"+row.getString("rowhash")+"'");
         }

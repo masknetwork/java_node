@@ -24,125 +24,74 @@ import org.bouncycastle.jce.interfaces.ECPrivateKey;
 
 public class CECC 
 {
-	// Public and private key
+    // Public key
     public byte[] public_key;
+    
+    // Private key
     public byte[] private_key;
     
     // EC public key
- 	ECPublicKey ecPublicKey;
+    ECPublicKey ecPublicKey;
  	
- 	// EC private key
- 	ECPrivateKey ecPrivateKey;
+    // EC private key
+    ECPrivateKey ecPrivateKey;
  	
- 	// Curve
- 	String curve;
+    // Curve
+    String curve;
  	
- 	 // Can broadcast ?
-    boolean canBroadcast=false;
     
-    // Last broadcast
-    long last_broadcast;
-
     public CECC()
     {
     	
     }
     
-    // Construct using public key
     public CECC(String pubKey) throws Exception
     {
-    	try
-		{
-		  Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-		  KeyFactory keyFactory = KeyFactory.getInstance("EC", "BC");
-		  X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(Base64.decodeBase64(pubKey));
-		  this.ecPublicKey = (ECPublicKey) keyFactory.generatePublic(publicKeySpec);
-		}
-		catch (NoSuchAlgorithmException ex) 
-		{ 
-			UTILS.LOG.log("NoSuchAlgorithmException", ex.getMessage(), "CECC.java", 83); 
-		}
-		catch (InvalidKeySpecException ex) 
-		{ 
-			UTILS.LOG.log("InvalidKeySpecException", ex.getMessage(), "CECC.java", 87); 
-			UTILS.BASIC.stackTrace();
-		}
-		catch (NoSuchProviderException ex) 
-		{ 
-			UTILS.LOG.log("NoSuchProviderException", ex.getMessage(), "CECC.java", 91); 
-	    }
+    	// PRovider
+        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+		  
+        // Key factory
+        KeyFactory keyFactory = KeyFactory.getInstance("EC", "BC");
+		  
+        // Key spec
+        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(Base64.decodeBase64(pubKey));
+		  
+        // Public key
+        this.ecPublicKey = (ECPublicKey) keyFactory.generatePublic(publicKeySpec);
 		
-		// Public key
-		this.public_key=Base64.decodeBase64(public_key);
+	// Decode
+	this.public_key=Base64.decodeBase64(public_key);
     }
     
     public String encrypt(String data) throws Exception
     {
-       try
-	   {
-	     javax.crypto.Cipher c = javax.crypto.Cipher.getInstance("ECIESwithAES/DHAES/PKCS7Padding", "BC"); 
-	     c.init(c.ENCRYPT_MODE, this.ecPublicKey, new SecureRandom());   
-	     byte[] encrypted=c.doFinal(data.getBytes(), 0, (data.getBytes()).length);
-	     return Base64.encodeBase64String(encrypted);
-	   }
-	   catch (NoSuchAlgorithmException ex) 
-	   { 
-		   UTILS.LOG.log("NoSuchAlgorithmException", ex.getMessage(), "CECC.java", 109); 
-	   }
-	   catch (NoSuchPaddingException ex) 
-	   { 
-		   UTILS.LOG.log("NoSuchPaddingException", ex.getMessage(), "CECC.java", 113); 
-	   }
-	   catch (NoSuchProviderException ex) 
-	   { 
-		   UTILS.LOG.log("NoSuchProviderException", ex.getMessage(), "CECC.java", 117); 
-	   }
-	   catch (InvalidKeyException ex) 
-	   { 
-		   UTILS.LOG.log("InvalidKeyException", ex.getMessage(), "CECC.java", 121); 
-	   }
-	   catch (BadPaddingException ex) 
-	   { 
-		   UTILS.LOG.log("BadPaddingException", ex.getMessage(), "CECC.java", 125); 
-	   }
-	   catch (IllegalBlockSizeException ex) 
-	   { 
-		   UTILS.LOG.log("IllegalBlockSizeException", ex.getMessage(), "CECC.java", 129); 
-	   }
+        // Chiper   
+	javax.crypto.Cipher c = javax.crypto.Cipher.getInstance("ECIESwithAES/DHAES/PKCS7Padding", "BC"); 
 	
-	return "";
+        // Init
+        c.init(c.ENCRYPT_MODE, this.ecPublicKey, new SecureRandom());   
+	     
+        // Encrypt
+        byte[] encrypted=c.doFinal(data.getBytes(), 0, (data.getBytes()).length);
+	     
+        // Encoded
+        return Base64.encodeBase64String(encrypted);
     }
     
-    public boolean checkSig(String data, String sig)
-	{
-		try
-		{
-		  Signature signature = Signature.getInstance("ECDSA", "BC");	
-		  signature.initVerify(this.ecPublicKey);
-		  signature.update(data.getBytes());
+    public boolean checkSig(String data, String sig) throws Exception
+    {  
+        // Signature
+        Signature signature = Signature.getInstance("ECDSA", "BC");	
+	
+        // Verify
+        signature.initVerify(this.ecPublicKey);
+	
+        // Update
+        signature.update(data.getBytes());
 		
-		   if (signature.verify(Base64.decodeBase64(sig)))
-			   return true;
-		   else
-			  return false;
-		}
-		catch (NoSuchAlgorithmException ex) 
-		{ 
-			 UTILS.LOG.log("NoSuchAlgorithmException", ex.getMessage(), "CECC.java", 149); 
-	    }
-		catch (SignatureException ex) 
-		{ 
-			 UTILS.LOG.log("SignatureException", ex.getMessage(), "CECC.java", 153); 
-		}
-		catch (NoSuchProviderException ex) 
-		{ 
-			 UTILS.LOG.log("NoSuchProviderException", ex.getMessage(), "CECC.java", 157); 
-		}
-		catch (InvalidKeyException ex) 
-		{ 
-			 UTILS.LOG.log("InvalidKeyException", ex.getMessage(), "CECC.java", 161); 
-		}
-		
-		return false;
-	}
+	if (signature.verify(Base64.decodeBase64(sig)))
+	    return true;
+	else
+	    return false;
+    }
 }

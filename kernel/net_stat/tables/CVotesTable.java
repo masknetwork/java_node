@@ -20,23 +20,31 @@ public class CVotesTable extends CTable
                                    + "WHERE adr='"+adr+"'");
     }
     
+    public void expired(long block) throws Exception
+    {
+       UTILS.DB.executeUpdate("DELETE FROM votes WHERE expire<"+block);
+    }
+    
     public void create() throws Exception
     {
         UTILS.DB.executeUpdate("CREATE TABLE votes(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                          +"target_type BIGINT DEFAULT '0', "
-                                                          +"targetID BIGINT DEFAULT '0', "
-                                                          +"adr VARCHAR(250) DEFAULT '', "
-                                                          +"power FLOAT(9,2) DEFAULT 0, "
-                                                          +"block BIGINT DEFAULT '0', "
-                                                          +"rowhash VARCHAR(100) DEFAULT '')");
+                                                          +"target_type VARCHAR(20) NOT NULL DEFAULT '0', "
+                                                          +"targetID BIGINT NOT NULL DEFAULT '0', "
+                                                          +"type VARCHAR(25) NOT NULL DEFAULT '', "
+                                                          +"adr VARCHAR(250) NOT NULL DEFAULT '', "
+                                                          +"power FLOAT(9,2) NOT NULL DEFAULT 0, "
+                                                          +"block BIGINT NOT NULL DEFAULT '0', "
+                                                          +"expire BIGINT NOT NULL DEFAULT '0', "
+                                                          +"rowhash VARCHAR(100) NOT NULL DEFAULT '')");
              
-        UTILS.DB.executeUpdate("CREATE INDEX votes_tweetID ON votes(tweetID)");
+        UTILS.DB.executeUpdate("CREATE INDEX votes_target_type ON votes(target_type)");
+        UTILS.DB.executeUpdate("CREATE INDEX votes_targetID ON votes(targetID)");
         UTILS.DB.executeUpdate("CREATE INDEX votes_adr ON votes(adr)");
         UTILS.DB.executeUpdate("CREATE INDEX votes_block ON votes(block)");
         UTILS.DB.executeUpdate("CREATE INDEX votes_rowhash ON votes(rowhash)");
     }
     
- // Address
+    // Address
     public void refresh(long block) throws Exception
     {
         // Adr
@@ -44,7 +52,9 @@ public class CVotesTable extends CTable
                                 + "SET rowhash=SHA2(CONCAT(target_type, "
                                                         + "targetID,"
                                                         + "adr, "
+                                                        + "type, "
                                                         + "power,"
+                                                        + "expire,"
                                                         + "block), 256) "
                               + "WHERE block='"+block+"'");
         
@@ -64,6 +74,9 @@ public class CVotesTable extends CTable
     
     public void fromJSON(String data, String crc) throws Exception
     {
+        // No data
+        if (crc.equals("")) return;
+        
         // Grand hash
         String ghash="";
         
@@ -91,11 +104,17 @@ public class CVotesTable extends CTable
             // Adr
             String adr=row.getString("adr");
             
+            // Type
+            String type=row.getString("type");
+            
             // Power
-            double power=row.getDouble("power");
+            String power=UTILS.BASIC.zeros_2(UTILS.FORMAT_2.format(row.getDouble("power")));
                
             // Block
             long block=row.getLong("block");
+            
+            // Expire
+            long expire=row.getLong("expire");
                
             // Rowhash
             String rowhash=row.getString("rowhash");
@@ -104,7 +123,9 @@ public class CVotesTable extends CTable
             String hash=UTILS.BASIC.hash(target_type+
                                          targetID+
                                          adr+
+                                         type+
                                          power+
+                                         expire+
                                          block);
                     
             // Check hash
@@ -133,8 +154,6 @@ public class CVotesTable extends CTable
         
        // Init
        int a=0;
-       
-       // Statement
        
        
        // Load data
@@ -165,8 +184,14 @@ public class CVotesTable extends CTable
                // Adr
                this.addRow("adr", rs.getString("adr"));
                
+               // Type
+               this.addRow("type", rs.getString("type"));
+               
                // Power
-               this.addRow("power", rs.getDouble("power"));
+               this.addRow("power", UTILS.BASIC.zeros_2(UTILS.FORMAT_2.format(rs.getDouble("power"))));
+               
+               // Expire
+               this.addRow("expire", rs.getLong("expire"));
                
                // Block
                this.addRow("block", rs.getLong("block"));
@@ -184,9 +209,6 @@ public class CVotesTable extends CTable
                
        // Close json
        this.json=this.json+"]}";
-       
-       
-       
     }
     
     public void toDB() throws Exception
@@ -210,7 +232,9 @@ public class CVotesTable extends CTable
                                          + "SET target_type='"+row.getString("target_type")+"', "
                                              + "targetID='"+row.getLong("targetID")+"', "
                                              + "adr='"+row.getString("adr")+"', "
-                                             + "power='"+row.getDouble("adr")+"', "
+                                             + "type='"+row.getString("type")+"', "
+                                             + "power='"+UTILS.BASIC.zeros_2(UTILS.FORMAT_2.format(row.getDouble("power")))+"', "
+                                             + "expire='"+row.getLong("expire")+"', "
                                              + "block='"+row.getLong("block")+"', "
                                              + "rowhash='"+row.getString("rowhash")+"'");
         }

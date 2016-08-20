@@ -61,7 +61,23 @@ public class CBlockchain  implements java.io.Serializable
                                             rs.getString("tab_11"),
                                             rs.getString("tab_12"),
                                             rs.getString("tab_13"),
-                                            rs.getString("tab_14")));
+                                            rs.getString("tab_14"),
+                                            rs.getString("tab_15"),
+                                            rs.getString("tab_16"),
+                                            rs.getString("tab_17"),
+                                            rs.getString("tab_18"),
+                                            rs.getString("tab_19"),
+                                            rs.getString("tab_20"),
+                                            rs.getString("tab_21"),
+                                            rs.getString("tab_22"),
+                                            rs.getString("tab_23"),
+                                            rs.getString("tab_24"),
+                                            rs.getString("tab_25"),
+                                            rs.getString("tab_26"),
+                                            rs.getString("tab_27"),
+                                            rs.getString("tab_28"),
+                                            rs.getString("tab_29"),
+                                            rs.getString("tab_30")));
        }
        
        
@@ -104,11 +120,11 @@ public class CBlockchain  implements java.io.Serializable
                    // Ads
                    UTILS.SYNC.ads=cur_block.tab_2;
                    
-                   // Domains
-                   UTILS.SYNC.domains=cur_block.tab_3;
-                   
                    // Agents
-                   UTILS.SYNC.agents=cur_block.tab_4;
+                   UTILS.SYNC.agents=cur_block.tab_3;
+                   
+                   // Agents feeds
+                   UTILS.SYNC.agents_feeds=cur_block.tab_4;
                    
                    // Assets
                    UTILS.SYNC.assets=cur_block.tab_5;
@@ -122,23 +138,44 @@ public class CBlockchain  implements java.io.Serializable
                    // Assets markets pos
                    UTILS.SYNC.assets_mkts_pos=cur_block.tab_8;
                    
+                   // Comments
+                   UTILS.SYNC.comments=cur_block.tab_9;
+                   
+                   // Delegates votes
+                   UTILS.SYNC.del_votes=cur_block.tab_10;
+                   
+                   // Domains
+                   UTILS.SYNC.domains=cur_block.tab_11;
+                   
                    // Escrowed
-                   UTILS.SYNC.escrowed=cur_block.tab_9;
+                   UTILS.SYNC.escrowed=cur_block.tab_12;
+                   
+                   // Feeds
+                   UTILS.SYNC.feeds=cur_block.tab_13;
+                   
+                   // Feeds branches
+                   UTILS.SYNC.feeds_branches=cur_block.tab_14;
+                   
+                   // Feeds bets
+                   UTILS.SYNC.feeds_bets=cur_block.tab_15;
+                   
+                   // Feeds bets pos
+                   UTILS.SYNC.feeds_bets_pos=cur_block.tab_16;
                    
                    // Profiles
-                   UTILS.SYNC.profiles=cur_block.tab_10;
+                   UTILS.SYNC.profiles=cur_block.tab_17;
                    
-                   // Tweets
-                   UTILS.SYNC.tweets=cur_block.tab_11;
+                   // Storage
+                   UTILS.SYNC.storage=cur_block.tab_18;
                    
-                   // Tweets likes
-                   UTILS.SYNC.upvotes=cur_block.tab_12;
-                   
-                   // Tweets comments
-                   UTILS.SYNC.comments=cur_block.tab_13;
+                   // Tweeets
+                   UTILS.SYNC.tweets=cur_block.tab_19;
                    
                    // Tweets follow
-                   UTILS.SYNC.tweets_follow=cur_block.tab_14;
+                   UTILS.SYNC.tweets_follow=cur_block.tab_20;
+                   
+                   // Votes
+                   UTILS.SYNC.votes=cur_block.tab_21;
                }
            }
        }      

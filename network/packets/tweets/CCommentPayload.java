@@ -117,6 +117,7 @@ public class CCommentPayload extends CPayload
                                         + "parentID='"+this.parentID+"', "
                                         + "comID='"+this.comID+"', "
    		   		        + "mes='"+UTILS.BASIC.base64_encode(this.mes)+"', "
+                                        + "expire='"+(this.block+43200)+"', "
    		   		        + "block='"+this.block+"'");
        
        // Post ?

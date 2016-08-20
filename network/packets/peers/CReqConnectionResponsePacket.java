@@ -42,22 +42,13 @@ public class CReqConnectionResponsePacket extends CPacket
 			              UTILS.STATUS.engine_status);
     }
     
-    public CResult checkWithPeer(CPeer peer) throws Exception
+    public void check(CPeer peer) throws Exception
     {
     	 // Aproved
     	 if (this.aproved==true) 
     		 UTILS.NETWORK.peers.addPeer(peer, peer.port); 
     	 else
     		System.out.println("Connection refused");
-    	 
-    	 // IP
-    	 UTILS.STATUS.IP=this.ip;
-    	 
-    	 // Country
-    	 CGeoIP geo=new CGeoIP();
-    	 UTILS.STATUS.country=geo.getCountry(UTILS.STATUS.IP);
     	
-    	 // Return
- 	     return new CResult(true, "Ok", "CReqConnectionPacket.java", 22);
     }
 }

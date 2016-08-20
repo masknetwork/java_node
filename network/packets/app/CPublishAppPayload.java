@@ -179,7 +179,7 @@ public class CPublishAppPayload extends CPayload
          if (this.target.equals("ID_STORE"))
          {
             // Payment adddress valid ?
-            if (!UTILS.BASIC.adressValid(this.pay_adr))
+            if (!UTILS.BASIC.isAdr(this.pay_adr))
                throw new Exception("Invalid payment address (CPublishAppPayload.java)");
        
          }
@@ -211,11 +211,18 @@ public class CPublishAppPayload extends CPayload
  	
         // Directory ?
         long dir=0;
+        long app_store;
         if (this.target.equals("ID_STORE"))
+        {
             dir=0;
+            app_store=this.block;
+        }
         else
+        {
             dir=1000;
-            
+            app_store=0;
+        }
+        
         // Execute 
         UTILS.DB.executeUpdate("UPDATE agents "
                                 + "SET categ='"+this.categ+"', "
@@ -226,7 +233,8 @@ public class CPublishAppPayload extends CPayload
                                     + "pic='"+UTILS.BASIC.base64_encode(this.pic)+"', "
                                     + "ver='"+UTILS.BASIC.base64_encode(this.ver)+"', "
                                     + "price='"+this.price+"', "
-                                    + "dir='"+dir+"' "
+                                    + "dir='"+dir+"', "
+                                    + "app_store='"+app_store+"' "
                               + "WHERE aID='"+this.appID+"'");
        
     }

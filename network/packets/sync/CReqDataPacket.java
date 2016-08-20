@@ -92,7 +92,7 @@ public class CReqDataPacket extends CPacket
                                    this.end);
     }
     
-    public void process(CPeer sender) throws Exception
+    public void check(CPeer sender) throws Exception
     {
         // Check type
         if (!this.tip.equals("ID_BLOCKCHAIN") && 

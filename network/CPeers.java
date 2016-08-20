@@ -67,68 +67,43 @@ public class CPeers
    
    public void addPeer(CPeer peer, int port) throws Exception
    {
-       try
-       {
-            // Return if connected
-            if (this.conectedTo(peer.adr)) return;
+        // Return if connected
+        if (this.conectedTo(peer.adr)) return;
        
-            // Add peer	   
-            peers.add(peer);
+        // Add peer	   
+        peers.add(peer);
        
-            // Add peer
-            UTILS.DB.executeUpdate("INSERT INTO peers (peer, "
-                                                    + "port, "
-                                                    + "in_traffic, "
-                                                    + "out_traffic, "
-                                                    + "last_seen,"
-                                                    + "tstamp) "
-                                        + "VALUES('"+peer.adr+"', '"
-                                                    +port+"', "
-                                                    +"'0', "
-                                                    +"'0', '"
-                                                    +UTILS.BASIC.tstamp()+"', '"
-                                                    +UTILS.BASIC.tstamp()+"')");
+        // Add peer
+        UTILS.DB.executeUpdate("INSERT INTO peers "
+                                     + "SET peer='"+peer.adr+"', "
+                                         + "port='"+port+"', "
+                                         + "in_traffic='0', "
+                                         + "out_traffic='0', "
+                                         + "last_seen='"+UTILS.BASIC.tstamp()+"',"
+                                         + "tstamp='"+UTILS.BASIC.tstamp()+"'");
        
-           // Peer recorded
-           
-           ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                     + "FROM peers_pool "
-                                    + "WHERE peer='"+peer.adr+"'");
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM peers_pool "
+                                          + "WHERE peer='"+peer.adr+"'");
        
            if (UTILS.DB.hasData(rs)==false)
-            UTILS.DB.executeUpdate("INSERT INTO peers_pool (peer, "
-                                         + "port, "
-                                         + "con_att_no, "
-                                         + "con_att_last, "
-                                         + "accept_con, "
-                                         + "banned, "
-                                         + "last_seen) "
-	   		      + "VALUES ('"+peer.adr+"', '"
-                                           +port+"', "
-                                           + "'0', "
-                                           + "'0', "
-                                           + "'ID_YES', "
-                                           + "'0', '"
-                                           +UTILS.BASIC.tstamp()+"')");
+            UTILS.DB.executeUpdate("INSERT INTO peers_pool "
+                                         + "SET peer='"+peer.adr+"', "
+                                             + "port='"+port+"', "
+                                             + "con_att_no='0', "
+                                             + "con_att_last='0', "
+                                             + "accept_con='ID_YES', "
+                                             + "banned='0', "
+                                             + "last_seen='"+UTILS.BASIC.tstamp()+"'");
            else
            UTILS.DB.executeUpdate("UPDATE peers "
-	   		 + "SET last_seen='"+UTILS.BASIC.tstamp()+"' "
-	   	       + "WHERE peer='"+peer.adr+"'");
+	   		           + "SET last_seen='"+UTILS.BASIC.tstamp()+"' "
+	   	                 + "WHERE peer='"+peer.adr+"'");
        
-           // Close
-          
-       
+           
            // Console
            System.out.println("Peer Added "+peer.adr);
-       }
-       catch (SQLException ex)
-       {
-           UTILS.LOG.log("SQLException", ex.getMessage(), "CPeers.java", 120);
-       }
-       catch (Exception ex)
-       {
-           UTILS.LOG.log("Exception", ex.getMessage(), "CPeers.java", 120);
-       }
+      
    }
    
    public void removePeer(CPeer peer) throws Exception
@@ -178,7 +153,7 @@ public class CPeers
               }
    }
    
-   public CPeer conect(String adr, int port)
+   public CPeer conect(String adr, int port) throws Exception
    {
        try
        {
@@ -230,11 +205,11 @@ public class CPeers
    public void checkPendingPeers() throws Exception
    {
       if (this.peers.size()<3)
-          {
+      {
              // Select pending peers
              
              ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                      + "FROM peers_pool "
+                                                + "FROM peers_pool "
                                   + "ORDER BY rand() "
                                      + "LIMIT 0,1");
        
@@ -252,40 +227,19 @@ public class CPeers
                   UTILS.NETWORK.connectTo(rs.getString("peer"), rs.getInt("port"));
                }
              }
-          
-         
-          
-          }
-       
+     }    
    }
    
    public void removeInactives() throws Exception
    {
-       try
-       {
+       // Load data
+       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                          + "FROM peers "
+                                             + "WHERE last_seen<"+String.valueOf(UTILS.BASIC.tstamp()-600));
            
-           
-           // Load data
-           ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                       + "FROM peers "
-                                      + "WHERE last_seen<"+String.valueOf(UTILS.BASIC.tstamp()-600));
-           
-           // Remove peers
-           while (rs.next()) 
-               this.removePeer(rs.getString("peer"));
-           
-           // Close connection
-         
-       }
-       catch (SQLException ex)
-       {
-           UTILS.LOG.log("SQLexception", ex.getMessage(), "CPeers.java", 209);
-       }
-       catch (Exception ex)
-       {
-           UTILS.LOG.log("Exception", ex.getMessage(), "CPeers.java", 284);
-       }
-       
+        // Remove peers
+        while (rs.next()) 
+          this.removePeer(rs.getString("peer"));
    }
    
    class RemindTask extends TimerTask 
@@ -365,13 +319,11 @@ public class CPeers
    
    public void checkPeersConn() throws Exception
    {
-       if (this.peers.size()>0)
-       {
-          // Load pending peers
-          ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                             + "FROM peers_pool "
-                                            + "WHERE (accept_con='ID_PENDING' AND con_att_last<"+(UTILS.BASIC.tstamp()-600)+") "
-                                               + "OR (accept_con='ID_YES' AND con_att_last<"+(UTILS.BASIC.tstamp()-3600)+")");
+       // Load pending peers
+       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                          + "FROM peers_pool "
+                                         + "WHERE (accept_con='ID_PENDING' AND con_att_last<"+(UTILS.BASIC.tstamp()-600)+") "
+                                            + "OR (accept_con='ID_YES' AND con_att_last<"+(UTILS.BASIC.tstamp()-3600)+")");
        
           while (rs.next())
           {
@@ -381,7 +333,7 @@ public class CPeers
               else
                    this.portOpen(rs.getString("peer"), rs.getInt("port"));
           }
-       }
+      
    }
    
    public void broadcast(CPacket packet)  throws Exception
@@ -411,39 +363,33 @@ public class CPeers
    {
        try
        {
-       // Address
-       String IP=so.getInetAddress().getHostAddress();
+           // Address
+           String IP=so.getInetAddress().getHostAddress();
        
-       // Port
-       int port=so.getPort();
+           // Port
+           int port=so.getPort();
        
-       // Self
-       if (IP.equals("127.0.0.1"))
-           return false;
+           // Self
+           if (IP.equals("127.0.0.1"))
+               return false;
        
-       // Already connected
-       if (this.conectedTo(IP))
-           return false;
+           // Already connected
+           if (this.conectedTo(IP))
+               return false;
        
-       // Search for the same IP
+           // Search for the same IP
+           ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                              + "FROM con_log "
+                                             + "WHERE IP='"+IP+"' "
+                                               + "AND tstamp>"+(UTILS.BASIC.tstamp()-5));
+           if (UTILS.DB.hasData(rs)==true)
+               return false;
        
-       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                     + "FROM con_log "
-                                    + "WHERE IP='"+IP+"' "
-                                      + "AND tstamp>"+(UTILS.BASIC.tstamp()-5));
-       if (UTILS.DB.hasData(rs)==true)
-           return false;
-       
-       // Close
-      
-       
-       // Record connection
-       UTILS.DB.executeUpdate("INSERT INTO con_log (IP, "
-                                           + "port, "
-                                           + "tstamp) "
-                           + "VALUES('"+IP+"', '"
-                                       +port+"', '"
-                                       +UTILS.BASIC.tstamp()+"')");
+           // Record connection
+           UTILS.DB.executeUpdate("INSERT INTO con_log "
+                                        + "SET IP='"+IP+"', "
+                                           + "port='"+port+"', "
+                                           + "tstamp='"+UTILS.BASIC.tstamp()+"'");
        }
        catch (SQLException ex)
        {
@@ -465,7 +411,7 @@ public class CPeers
 	   {
 	     server=new ServerSocket(port);
 	     
-	     System.out.println("Server started on port "+port+"+");  
+	     System.out.println("Server started on port "+port);  
 	     
 	     while (true) 
 	     {
@@ -478,6 +424,7 @@ public class CPeers
 	    	  CPeer p=new CPeer(this, s);
 	    	  p.start();
                 }
+                else System.out.println("Conn refused.");
                
 	     }
 	   }

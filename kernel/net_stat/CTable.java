@@ -146,18 +146,6 @@ public class CTable
             // agents
             case "agents" : UTILS.NET_STAT.agents=rs.getString("agents"); break;
             
-            // Assets
-            case "assets" : UTILS.NET_STAT.assets=rs.getString("assets"); break;
-            
-            // Assets owners
-            case "assets_owners" : UTILS.NET_STAT.assets_owners=rs.getString("assets_owners"); break;
-            
-            // Assets markets
-            case "assets_mkts" : UTILS.NET_STAT.assets_mkts=rs.getString("assets_mkts"); break;
-            
-            // Assets markets positions
-            case "assets_mkts_pos" : UTILS.NET_STAT.assets_mkts_pos=rs.getString("assets_mkts_pos"); break;
-            
             // Domains
             case "domains" : UTILS.NET_STAT.domains=rs.getString("domains"); break;
             

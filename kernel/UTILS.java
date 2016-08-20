@@ -86,4 +86,7 @@ public class UTILS
     
     // Arguments
     public static CArgs ARGS;
+    
+    // Reward
+    public static CReward REWARD;
 }

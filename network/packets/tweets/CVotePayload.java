@@ -136,13 +136,15 @@ public class CVotePayload extends CPayload
                                        + "SET adr='"+this.target_adr+"', "
                                            + "target_type='"+this.target_type+"', "
                                            + "targetID='"+this.targetID+"', "
+                                           + "expire='"+(this.block+43200)+"', "
                                            + "type='"+this.type+"', "
                                            + "block='"+this.block+"'");
         
         // Number of votes
         ResultSet rs=UTILS.DB.executeQuery("SELECT COUNT(*) AS total "
                                            + "FROM votes "
-                                          + "WHERE block>"+(this.block-1440));
+                                          + "WHERE adr='"+this.target_adr+"' "
+                                            + "AND block>"+(this.block-1440));
         // Next
         rs.next();
         
@@ -162,7 +164,7 @@ public class CVotePayload extends CPayload
                                 + "AND block>"+(this.block-1440));
         
         // Has contract ?
-        if (UTILS.BASIC.isContractAdr(hash))
+        if (UTILS.BASIC.isContractAdr(target_adr))
         {
             // Load message
             CAgent AGENT=new CAgent(UTILS.BASIC.getAgentID(target_adr), false, this.block);

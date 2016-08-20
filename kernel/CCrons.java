@@ -88,7 +88,7 @@ public class CCrons
                // Load winners
                rs=UTILS.DB.executeQuery("SELECT * "
                                  + "FROM feeds_bets_pos "
-                                + "WHERE bet_uid='"+uid+"'");
+                                + "WHERE betID='"+uid+"'");
                
                // Execute
                while (rs.next())
@@ -426,18 +426,11 @@ public class CCrons
     
      public void runCrons(long block, CBlockPayload block_payload) throws Exception
      {
-         try
-         {
-             // Run options
-             this.checkOptions(block, block_payload);
+        // Run options
+        this.checkOptions(block, block_payload);
          
-             // Update markets
-             this.updateMarkets("feeds_bets");
-         }
-         catch (Exception ex)
-         {
-             UTILS.LOG.log("SQLException", ex.getMessage(), "CCrons.java", 57);
-         }
+        // Update markets
+        this.updateMarkets("feeds_bets");
      }
      
     
@@ -524,6 +517,29 @@ public class CCrons
          }
      }
      
+     public void setStatus()throws Exception
+     {
+         // Get runtime
+           Runtime runtime = Runtime.getRuntime();
+           
+           // Low memory ?
+           if (runtime.freeMemory()<200000) 
+           {
+               UTILS.LOG.log("ID_ERROR", "Exit virtual machine (run out of memory)", "CStatus.java", 146);
+               System.exit(0);
+           }
+           
+           // Update
+           UTILS.DB.executeUpdate("UPDATE web_sys_data "
+                                   + "SET last_ping='"+UTILS.BASIC.tstamp()+"', "
+                                       + "max_memory='"+runtime.maxMemory()+"', "
+                                       + "version='0.9.0', "
+                                       + "free_memory='"+runtime.freeMemory()+"', "
+                                       + "total_memory='"+runtime.totalMemory()+"', "
+                                       + "procs='"+runtime.availableProcessors()+"', "
+                                       + "threads_no='"+Thread.getAllStackTraces().size()+"'");
+     }
+     
      class RemindTask extends TimerTask 
      {  
        @Override
@@ -539,6 +555,9 @@ public class CCrons
                
                // My agents
                checkMyAgents();
+               
+               // Status
+               setStatus();
               
            }
            catch (Exception ex)

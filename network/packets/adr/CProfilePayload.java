@@ -161,29 +161,18 @@ public class CProfilePayload extends CPayload
       // Superclass
        super.commit(block);
           
-       // Statement
-       
-   	    
-       // Insert
-       UTILS.DB.executeUpdate("INSERT INTO profiles(adr, "
-   	    	  		                      + "name, "
-   	    	  		                      + "pic, "
-                                                      + "pic_back, "
-   	    	  		                      + "description, "
-   	    	  		                      + "website, "
-   	    	  		                      + "email, "
-   	    	  		                      + "block, "
-   	    	  		                      + "expire) "
-   	    	  		          + "VALUES('"+this.target_adr+"', '"+
-   	    	  		                       UTILS.BASIC.base64_encode(this.name)+"', '"+
-   	    	  		                       UTILS.BASIC.base64_encode(this.pic_back)+"', '"+
-                                                       UTILS.BASIC.base64_encode(this.pic)+"', '"+
-   	    	  		                       UTILS.BASIC.base64_encode(this.description)+"', '"+
-   	    	  		                       UTILS.BASIC.base64_encode(this.website)+"', '"+
-   	    	  		                       UTILS.BASIC.base64_encode(this.email)+"', '"+
-   	    	  		                       this.block+"', '"+
-   	    	  		                       (this.block+(this.days*1440))+"')");
-     
+        // Insert
+       UTILS.DB.executeUpdate("INSERT INTO profiles "
+                                    + "SET adr='"+this.target_adr+"', "
+   	                                + "name='"+UTILS.BASIC.base64_encode(this.name)+"', "
+   	    	                        + "pic='"+UTILS.BASIC.base64_encode(this.pic_back)+"', "
+                                        + "pic_back='"+UTILS.BASIC.base64_encode(this.pic)+"', "
+   	    	                        + "description='"+UTILS.BASIC.base64_encode(this.description)+"', "
+   	       	                        + "website='"+UTILS.BASIC.base64_encode(this.website)+"', "
+   	    	                        + "email='"+UTILS.BASIC.base64_encode(this.email)+"', "
+   	       	                        + "block='"+this.block+"', "
+   	    	                        + "expire='"+(this.block+(this.days*1440))+"'");
+   	    	  		        
     }
   
 }

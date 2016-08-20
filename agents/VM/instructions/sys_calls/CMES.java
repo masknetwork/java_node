@@ -65,11 +65,11 @@ public class CMES extends CInstruction
         if (UTILS.WALLET.isMine(this.dest.cel.val)==true)
              UTILS.DB.executeUpdate("INSERT INTO mes "
                                           + "SET from_adr='"+owner.val+"', "
-    	   		                       + "to_adr='"+this.dest.cel.val+"'', "
+    	   		                       + "to_adr='"+this.dest.cel.val+"', "
     	   		                       + "subject='"+UTILS.BASIC.base64_encode(this.subject.cel.val)+"', "
     	   		                       + "mes='"+UTILS.BASIC.base64_encode(this.mes.cel.val)+"', "
     	   		                       + "status='0', "
-    	   		                       + "block='"+VM.block+"', "
+    	   		                       + "tstamp='"+UTILS.BASIC.tstamp()+"', "
                                                + "tgt='0'");
         
         // Cost

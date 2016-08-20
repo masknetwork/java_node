@@ -32,8 +32,9 @@ public class CUtils
 	{
 		// TODO Auto-generated constructor stub
 	}
-	// checks if address is valid
-	public boolean adressValid(String adr) throws Exception
+	
+        // checks if address is valid
+	public boolean isAdr(String adr) throws Exception
 	{
             // Length valid
             if (adr.length()!=108 && 
@@ -60,7 +61,7 @@ public class CUtils
 	public boolean addressExist(String adr) throws Exception
 	{
             // Checks if address is valid
-	    if (this.adressValid(adr)==false)
+	    if (this.isAdr(adr)==false)
 			return false;
 		
 	    // Search for address
@@ -201,36 +202,15 @@ public class CUtils
 	
 	public boolean domainExist(String domain) throws Exception
 	{
-            try
-            {
-                
-		ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-				                      + "FROM domains "
-				                     + "WHERE domain='"+domain+"'");
+           ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+				              + "FROM domains "
+				             + "WHERE domain='"+domain+"'");
 		
-		if (UTILS.DB.hasData(rs)) 
-                {
-                    // Close
-                  
-                    
-                    // Return
-		    return true;
-                }
-		else
-                {
-                    // Close
-                  
-                    
-                    // Return
-		    return false;
-                }
-            }
-            catch (SQLException ex)
-            {
-                UTILS.LOG.log("SQLException", ex.getMessage(), "CUtils.java", 692);
-            }
-            
-            return false;
+            if (UTILS.DB.hasData(rs)) 
+               return true;
+            else
+               return false;
+              
 	}
 	
 	public String adrFromDomain(String domain) throws Exception
@@ -394,22 +374,6 @@ public class CUtils
         return new String(Hex.decodeHex(data.toCharArray()));
     }
     
-    public boolean isSpecMkt(String adr) throws Exception
-    {
-       // Found
-       boolean found;
-      
-       // Load data
-       ResultSet rs=UTILS.DB.executeQuery("SELECT * FROM feeds_spec_mkts WHERE adr='"+adr+"'");
-       
-       if (UTILS.DB.hasData(rs))
-           found=true;
-       else
-           found=false;
-       
-       // Return
-       return found;
-    }
     
     public boolean isMktPeggedAssetAdr(String adr) throws Exception
     {
@@ -449,25 +413,6 @@ public class CUtils
        return found;
     }
     
-    public boolean isSpecMktAdr(String adr) throws Exception
-    {
-        // Found
-       boolean found;
-       
-       
-       // Load data
-       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                          + "FROM feeds_spec_mkts "
-                                         + "WHERE adr='"+adr+"'");
-       
-       if (UTILS.DB.hasData(rs))
-           found=true;
-       else
-           found=false;
-        
-       // Return
-       return found;
-    }
     
     public boolean isAsset(String symbol) throws Exception
     {
@@ -671,6 +616,14 @@ public class CUtils
            return false;
     }
     
+    public boolean isBitcoinAdr(String adr)
+    {
+        if (adr.matches("^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$"))
+           return true;
+        else
+           return false;
+    }
+    
     public boolean isPic(String link) throws Exception
     {   
         // Is link
@@ -680,7 +633,8 @@ public class CUtils
         // Length
         if (link.endsWith(".jpg")==false && 
             link.endsWith(".jpeg")==false &&
-            link.indexOf("/")>0)
+            link.endsWith(".png")==false &&
+            link.endsWith(".gif")==false)
         return false;
         
         return true;
@@ -704,7 +658,7 @@ public class CUtils
         
         if (a.length==1) 
         {
-            num=num+"+00000000";
+            num=num+".00000000";
         }
         else
         {
@@ -726,7 +680,7 @@ public class CUtils
         
         if (a.length==1) 
         {
-            num=num+"+0000";
+            num=num+".0000";
         }
         else
         {
@@ -744,7 +698,7 @@ public class CUtils
         
         if (a.length==1) 
         {
-            num=num+"+00";
+            num=num+".00";
         }
         else
         {
@@ -894,12 +848,6 @@ public class CUtils
                                           + "WHERE assetID='"+ID+"'");
         if (UTILS.DB.hasData(rs)) return false;
                 
-        // Is feed ID
-        rs=UTILS.DB.executeQuery("SELECT * "
-                                 + "FROM feeds "
-                                + "WHERE feedID='"+ID+"'");
-        if (UTILS.DB.hasData(rs)) return false;
-        
         // Is post ID
         rs=UTILS.DB.executeQuery("SELECT * "
                                  + "FROM tweets "
@@ -918,11 +866,6 @@ public class CUtils
                                 + "WHERE aID='"+ID+"'");
         if (UTILS.DB.hasData(rs)) return false;
         
-        // Is bet
-        rs=UTILS.DB.executeQuery("SELECT * "
-                                 + "FROM feeds_bets "
-                                + "WHERE betID='"+ID+"'");
-        if (UTILS.DB.hasData(rs)) return false;
         
         // Return
         return true;
@@ -1052,5 +995,46 @@ public class CUtils
        
        // Return
        return rs.getLong("aID");
+    }
+    
+    public double getReward(String target) throws Exception
+    {
+        // Load address
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM adr "
+                                          + "WHERE adr='default'");
+        
+        // Next
+        rs.next();
+        
+        // Undistributed
+        double unspend=21000000-rs.getDouble("balance");
+        
+        // Per day
+        double per_day=unspend/365;
+        
+        // Reward
+        double reward=0;
+        
+        switch (target)
+        {
+            // Miners - 20%
+            case "ID_MINER" : reward=UTILS.BASIC.round(per_day*0.2/1440.0, 4); break;
+            
+            // Content - 30%
+            case "ID_CONTENT" : reward=per_day*0.3; break;
+            
+            // Voters - 20%
+            case "ID_VOTER" : reward=per_day*0.2; break;
+            
+            // Commenters - 15%
+            case "ID_COM" : reward=per_day*0.15; break;
+            
+            // Applications - 15%
+            case "ID_APP" : reward=per_day*0.15; break;
+        }
+        
+        // Return
+        return reward;
     }
 }

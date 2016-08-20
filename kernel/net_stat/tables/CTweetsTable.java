@@ -16,40 +16,18 @@ public class CTweetsTable extends CTable
     
     public void expired(long block) throws Exception
     {
-       // Statement
-       
-       
        // Load expired
        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                  + "FROM tweets "
-                                 + "WHERE block<='"+(block-50000)+"'");
+                                          + "FROM tweets "
+                                         + "WHERE expire<='"+block+"'");
        
        // Remove
        while (rs.next())
            this.removeByID(rs.getLong("tweetID"));
-       
-       // Close
-       
+      
     }
     
-    public void removeByAdr(String adr) throws Exception
-    {
-       // Statement
-       
-       
-       // Load expired
-       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                  + "FROM tweets "
-                                 + "WHERE adr='"+adr+"'");
-       
-       // Remove
-       while (rs.next())
-           this.removeByID(rs.getLong("tweetID"));
-       
-       // Close
-        
-    }
-    
+   
     public void removeByID(long ID) throws Exception
     {
         // Remove tweet
@@ -58,32 +36,35 @@ public class CTweetsTable extends CTable
         
         // Remove comments
         UTILS.DB.executeUpdate("DELETE FROM comments "
-                                   + "WHERE tweetID='"+ID+"'");
+                                   + "WHERE parent_type='ID_POST' "
+                                     + "AND parentID='"+ID+"'");
         
         // Remove upvotes
-        UTILS.DB.executeUpdate("DELETE FROM upupvotes "
-                                   + "WHERE tweetID='"+ID+"'");
+        UTILS.DB.executeUpdate("DELETE FROM votes "
+                                   + "WHERE target_type='ID_POST' "
+                                     + "AND targetID='"+ID+"'");
         
         // Remove retweets
         UTILS.DB.executeUpdate("DELETE FROM tweets "
-                                   + "WHERE retweet_tweetID='"+ID+"'");
+                                   + "WHERE retweet_tweet_ID='"+ID+"'");
     }
     
     // Create
     public void create() throws Exception
     {
         UTILS.DB.executeUpdate("CREATE TABLE tweets(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                        +"tweetID BIGINT DEFAULT '0', "
-                                                        +"adr VARCHAR(250) DEFAULT '', "
-                                                        +"mes VARCHAR(1000) DEFAULT '', "
-                                                        +"title VARCHAR(250) DEFAULT '', "
-                                                        +"pic VARCHAR(250) DEFAULT '', "
-                                                        +"rowhash VARCHAR(100) DEFAULT '', "
-                                                        +"block BIGINT DEFAULT '0', "
-                                                        +"retweet VARCHAR(2) DEFAULT 'N', "
-                                                        +"retweet_tweet_ID BIGINT DEFAULT '0', "
-                                                        +"comments BIGINT DEFAULT '0', "
-                                                        +"retweets BIGINT DEFAULT '0')");
+                                                        +"tweetID BIGINT NOT NULL DEFAULT '0', "
+                                                        +"adr VARCHAR(250) NOT NULL DEFAULT '', "
+                                                        +"mes VARCHAR(10000) NOT NULL DEFAULT '', "
+                                                        +"title VARCHAR(250) NOT NULL DEFAULT '', "
+                                                        +"pic VARCHAR(250) NOT NULL DEFAULT '', "
+                                                        +"rowhash VARCHAR(100) NOT NULL DEFAULT '', "
+                                                        +"block BIGINT NOT NULL DEFAULT '0', "
+                                                        +"expire BIGINT NOT NULL DEFAULT '0', "
+                                                        +"retweet VARCHAR(2) NOT NULL DEFAULT 'N', "
+                                                        +"retweet_tweet_ID BIGINT NOT NULL DEFAULT '0', "
+                                                        +"comments BIGINT NOT NULL DEFAULT '0', "
+                                                        +"retweets BIGINT NOT NULL DEFAULT '0')");
              
         UTILS.DB.executeUpdate("CREATE INDEX tweets_tweetID ON tweets(tweetID)");
         UTILS.DB.executeUpdate("CREATE INDEX tweets_adr ON tweets(adr)");
@@ -102,6 +83,7 @@ public class CTweetsTable extends CTable
                                                          + "pic, "
                                                          + "retweet, "
                                                          + "retweet_tweet_ID, "
+                                                         + "expire, "
                                                          + "comments, "
                                                          + "retweets, "
                                                          + "block), 256) WHERE block='"+block+"'");
@@ -122,7 +104,8 @@ public class CTweetsTable extends CTable
     
     public void fromJSON(String data, String crc) throws Exception
     {
-        System.out.println(data);
+        // No data
+        if (crc.equals("")) return;
         
         // Grand hash
         String ghash="";
@@ -163,6 +146,9 @@ public class CTweetsTable extends CTable
             // Retweet tweet ID
             long retweet_tweet_ID=row.getLong("retweet_tweet_ID");
             
+            // Expire
+            long expire=row.getLong("expire");
+            
             // Comments
             long comments=row.getLong("comments");
             
@@ -183,6 +169,7 @@ public class CTweetsTable extends CTable
                                          pic+
                                          retweet+
                                          retweet_tweet_ID+
+                                         expire+
                                          comments+
                                          retweets+
                                          block);
@@ -231,6 +218,7 @@ public class CTweetsTable extends CTable
                                              + "pic='"+row.getString("pic")+"', "
                                              + "retweet='"+row.getString("retweet")+"', "
                                              + "retweet_tweet_ID='"+row.getLong("retweet_tweet_ID")+"', "
+                                             + "expire='"+row.getLong("expire")+"', "
                                              + "comments='"+row.getLong("comments")+"', "
                                              + "retweets='"+row.getLong("retweets")+"', "
                                              + "rowhash='"+row.getString("rowhash")+"', "
@@ -289,6 +277,9 @@ public class CTweetsTable extends CTable
                
                // Retweet tweet ID
                this.addRow("retweet_tweet_ID", rs.getLong("retweet_tweet_ID"));
+               
+               // Expire
+               this.addRow("expire", rs.getLong("expire"));
                
                // Comments
                this.addRow("comments", rs.getLong("comments"));

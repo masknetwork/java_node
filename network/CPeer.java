@@ -90,7 +90,7 @@ public class CPeer extends Thread
               client=new Socket(InetAddress.getByName(adr), port);
               
               // Console
-              System.out.println("New peer created to "+adr);
+              System.out.println("New peer created to "+adr+" : "+port);
            }
 	   catch (IOException ex) 
 	   { 
@@ -256,11 +256,9 @@ public class CPeer extends Thread
    {   
 	   try
 	   {
-		   out.writeObject(packet);
-                   out.flush();
-                   //UTILS.CONSOLE.write(" Written "+packet.tip+" to "+this.adr);
-                   packet=null;
-	   }
+	       out.writeObject(packet);
+               out.flush();
+           }
 	   catch (IOException ex) 
 	   { 
 		   UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 252); 

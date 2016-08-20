@@ -82,38 +82,19 @@ public class COpCode
             case "ADDFEED" : i=new CADDFEED(VM, tokens); break;
             case "RET" : i=new CRET(VM, tokens); break;
             case "PUSH" : i=new CPUSH(VM, tokens); break;
-            case "POP" : i=new CPOP(VM, tokens); 
-                            break;
-                            
-            case "MES" : i=new CMES(VM, tokens); 
-                         break;      
-                         
-            case "SEAL" : i=new CSEAL(VM, tokens); 
-                            break;      
-                         
-            case "TRANS" : i=new CTRANS(VM, tokens); 
-                           break;     
-                           
-            case "LISTPUSH" : i=new CLISTPUSH(VM, tokens); 
-                             break;     
-                         
-            case "EXIT" : i=new CEXIT(VM, tokens); 
-                          break;
-                         
-            case "BLANK" : i=new CBLANK(VM); 
-                            break;
-                            
-            case "TOSTRING" : i=new CTOSTRING(VM, tokens); 
-                               break;
-                               
-            case "RAND" : i=new CRAND(VM, tokens); 
-                               break;
-                               
-            case "HASH" : i=new CHASH(VM, tokens); 
-                            break;
-                            
-            case "EMAIL" : i=new CEMAIL(VM, tokens); 
-                            break;
+            case "POP" : i=new CPOP(VM, tokens); break;
+            case "MES" : i=new CMES(VM, tokens); break;      
+            case "SEAL" : i=new CSEAL(VM, tokens); break;      
+            case "TRANS" : i=new CTRANS(VM, tokens); break;     
+            case "LISTPUSH" : i=new CLISTPUSH(VM, tokens); break;     
+            case "EXIT" : i=new CEXIT(VM, tokens); break;
+            case "BLANK" : i=new CBLANK(VM); break;
+            case "TOSTRING" : i=new CTOSTRING(VM, tokens); break;
+            case "RAND" : i=new CRAND(VM, tokens); break;
+            case "HASH" : i=new CHASH(VM, tokens);  break;
+            case "EMAIL" : i=new CEMAIL(VM, tokens); break;
+            case "NAMETOADR" : i=new CEMAIL(VM, tokens); break;
+            case "ADRVALID" : i=new CEMAIL(VM, tokens); break;
         }
         
         // Return

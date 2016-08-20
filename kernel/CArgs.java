@@ -5,6 +5,9 @@ public class CArgs
     // Late op
     String late_op="";
     
+    // Rhash
+    String rhash="";
+    
     public CArgs()
     {
         
@@ -42,7 +45,11 @@ public class CArgs
                               break;
                            
              // DB Pass
-            case "wallet_pass" :  UTILS.SETTINGS.pass=val;
+            case "wallet_pass" :  UTILS.SETTINGS.wallet_pass=val;
+                                  break;
+                                  
+            // Rhash
+            case "rhash" : this.rhash=val;
                                   break;
                                   
             // Late op
@@ -57,6 +64,12 @@ public class CArgs
             UTILS.DB.reset(); 
             System.out.println("DB dropped"); 
             System.exit(0); 
+        }
+        
+        if (this.late_op.equals("reorg"))
+        {
+            UTILS.CONSENSUS.reorganize(this.rhash);
+            System.out.println("Reorganize"); 
         }
     }
 }

@@ -18,29 +18,25 @@ public class CAdsTable extends CTable
     public void create() throws Exception
     {
         UTILS.DB.executeUpdate("CREATE TABLE ads(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                     + "country VARCHAR(2) DEFAULT '', "
-                                                     + "adr VARCHAR(250) DEFAULT '', "
-				    		     + "title VARCHAR(250) DEFAULT '', "
-				    		     + "message VARCHAR(1000) DEFAULT '',"
-                                                     + "link VARCHAR(500) DEFAULT '',"
-                                                     + "mkt_bid DOUBLE(9,4) DEFAULT 0,"
-                                                     + "expire BIGINT DEFAULT 0,"
-                                                     + "block BIGINT DEFAULT 0,"
-				    		     + "rowhash VARCHAR(100) DEFAULT '')");
+                                                     + "country VARCHAR(2) NOT NULL DEFAULT'', "
+                                                     + "adr VARCHAR(250) NOT NULL DEFAULT'', "
+				    		     + "title VARCHAR(250) NOT NULL DEFAULT'', "
+				    		     + "message VARCHAR(1000) NOT NULL DEFAULT'',"
+                                                     + "link VARCHAR(500) NOT NULL DEFAULT'',"
+                                                     + "mkt_bid DOUBLE(9,4) NOT NULL DEFAULT 0,"
+                                                     + "expire BIGINT NOT NULL DEFAULT 0,"
+                                                     + "block BIGINT NOT NULL DEFAULT 0,"
+				    		     + "rowhash VARCHAR(100) NOT NULL DEFAULT '')");
 				    
 	UTILS.DB.executeUpdate("CREATE INDEX ads_adr ON ads(adr)");
         UTILS.DB.executeUpdate("CREATE INDEX ads_rowhash ON ads(rowhash)");
         UTILS.DB.executeUpdate("CREATE INDEX ads_block ON ads(block)");    
     }
     
-    public void expired(long block, String adr) throws Exception
+    public void expired(long block) throws Exception
     {
-       if (adr.equals(""))
-          UTILS.DB.executeUpdate("DELETE FROM ads "
-                                     + "WHERE expire<="+block);
-       else
-          UTILS.DB.executeUpdate("DELETE FROM ads "
-                                     + "WHERE adr='"+adr+"'");
+       UTILS.DB.executeUpdate("DELETE FROM ads "
+                                  + "WHERE expire<="+block);
     }
     
     // Address
@@ -72,6 +68,9 @@ public class CAdsTable extends CTable
     
     public void fromJSON(String data, String crc) throws Exception
     {
+        // No data
+        if (crc.equals("")) return;
+        
         // Grand hash
         String ghash="";
         
@@ -140,9 +139,7 @@ public class CAdsTable extends CTable
         }
         
         // Grand hash
-        System.out.println(ghash);
         ghash=UTILS.BASIC.hash(ghash);
-        System.out.println(ghash);
          
         // Check grand hash
         if (!ghash.equals(crc))

@@ -76,7 +76,7 @@ public class CRentDomainPayload extends CPayload
                throw new Exception("Invalid domain name - CRentDomainPayload.java");
            
            // Days
-           if (this.days<100)
+           if (this.days<10)
                throw new Exception("Invalid rent period - CRentDomainPayload.java");
           
 	}

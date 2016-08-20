@@ -16,6 +16,7 @@ import wallet.kernel.UTILS;
 import wallet.network.CResult;
 import wallet.network.packets.blocks.CBlockPacket;
 import wallet.network.packets.blocks.CBlockPayload;
+import wallet.network.packets.sync.CGetBlockPacket;
 
 public class CConsensus extends Thread
 {
@@ -76,8 +77,19 @@ public class CConsensus extends Thread
           // Unknown parent
           if (!this.blockExist(block.prev_hash)) 
           {
+               // Add to pool
                this.addToPool(block);
+               
+               // Request missing block
+               CGetBlockPacket packet=new CGetBlockPacket(block.prev_hash);
+               
+               // Broadcast
+               UTILS.NETWORK.broadcast(packet);
+               
+               // Status
                this.setStatus("ID_WAITING");
+               
+               // Return
                return;
           }
        
@@ -138,6 +150,8 @@ public class CConsensus extends Thread
        {
           if (this.status.equals("ID_PROCESSING"))
               this.setStatus("ID_WAITING");
+          
+          System.out.println(ex.getMessage());
        }
    }
    
@@ -165,14 +179,12 @@ public class CConsensus extends Thread
        // Find a chain up to the last checkpoint
        boolean found=false;
        
-       // Statement
-       
        
        while (!found)
        {
            ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                       + "FROM blocks "
-                                      + "WHERE hash='"+hash+"'");
+                                              + "FROM blocks "
+                                             + "WHERE hash='"+hash+"'");
            
            // Next 
            rs.next();
@@ -191,8 +203,6 @@ public class CConsensus extends Thread
                this.reorganize(rs.getLong("block")-1);
            }
        }
-       
-       // Close
        
    }
    
@@ -215,73 +225,15 @@ public class CConsensus extends Thread
        
        // Reload addresses
        UTILS.NET_STAT.table_adr.loadCheckpoint(rs.getString("hash"), 
-                                               this.getTableCRC(this.chain.get(this.chain.size()-1), 
-                                               "adr"));
+                                               this.getTableCRC(this.chain.get(this.chain.size()-1), "adr"));
        
        // Reload ads
        UTILS.NET_STAT.table_ads.loadCheckpoint(rs.getString("hash"), 
-                                               this.getTableCRC(this.chain.get(this.chain.size()-1), 
-                                               "ads"));
+                                               this.getTableCRC(this.chain.get(this.chain.size()-1), "ads"));
        
        // Reload domains
-       UTILS.NET_STAT.table_ads.loadCheckpoint(rs.getString("hash"), 
-                                               this.getTableCRC(this.chain.get(this.chain.size()-1), 
-                                               "domains"));
-       
-       // Reload agents
-       UTILS.NET_STAT.table_agents.loadCheckpoint(rs.getString("hash"), 
-                                                  this.getTableCRC(this.chain.get(this.chain.size()-1), 
-                                                  "agents"));
-       
-       // Reload assets
-       UTILS.NET_STAT.table_assets.loadCheckpoint(rs.getString("hash"), 
-                                                  this.getTableCRC(this.chain.get(this.chain.size()-1), 
-                                                  "assets"));
-       
-       // Reload assets owners
-       UTILS.NET_STAT.table_assets_owners.loadCheckpoint(rs.getString("hash"), 
-                                                         this.getTableCRC(this.chain.get(this.chain.size()-1), 
-                                                         "table_assets_owners"));
-       
-       // Reload assets mkts
-       UTILS.NET_STAT.table_assets_mkts.loadCheckpoint(rs.getString("hash"), 
-                                                       this.getTableCRC(this.chain.get(this.chain.size()-1), 
-                                                       "assets_mkts"));
-       
-       // Reload assets mkts pos
-       UTILS.NET_STAT.table_assets_mkts_pos.loadCheckpoint(rs.getString("hash"), 
-                                                           this.getTableCRC(this.chain.get(this.chain.size()-1), 
-                                                           "assets_mkts_pos"));
-       
-       // Reload escrowed
-       UTILS.NET_STAT.table_escrowed.loadCheckpoint(rs.getString("hash"), 
-                                                    this.getTableCRC(this.chain.get(this.chain.size()-1), 
-                                                    "escroed"));
-       
-       // Reload profiles
-       UTILS.NET_STAT.table_profiles.loadCheckpoint(rs.getString("hash"), 
-                                                    this.getTableCRC(this.chain.get(this.chain.size()-1), 
-                                                    "profiles"));
-       
-       // Reload tweets
-       UTILS.NET_STAT.table_tweets.loadCheckpoint(rs.getString("hash"), 
-                                                  this.getTableCRC(this.chain.get(this.chain.size()-1), 
-                                                  "tweets"));
-       
-       // Reload comments
-       UTILS.NET_STAT.table_comments.loadCheckpoint(rs.getString("hash"), 
-                                                           this.getTableCRC(this.chain.get(this.chain.size()-1), 
-                                                           "comments"));
-       
-       // Reload votes
-       UTILS.NET_STAT.table_votes.loadCheckpoint(rs.getString("hash"), 
-                                                 this.getTableCRC(this.chain.get(this.chain.size()-1),
-                                                 "votes"));
-       
-       // Reload tweets_follow
-       UTILS.NET_STAT.table_tweets_follow.loadCheckpoint(rs.getString("hash"), 
-                                                         this.getTableCRC(this.chain.get(this.chain.size()-1), 
-                                                         "tweets_follow"));
+       UTILS.NET_STAT.table_domains.loadCheckpoint(rs.getString("hash"), 
+                                               this.getTableCRC(this.chain.get(this.chain.size()-1), "domains"));
        
        // Load blocks from chain
        for (int a=this.chain.size()-1; a>=0; a--)
@@ -303,13 +255,11 @@ public class CConsensus extends Thread
        // CRC
        String crc="";
        
-       // Statement
-       
        
        // Load
        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                   + "FROM blocks "
-                                  + "WHERE hash='"+hash+"'");
+                                          + "FROM blocks "
+                                         + "WHERE hash='"+hash+"'");
        
        // Next
        rs.next();
@@ -323,11 +273,11 @@ public class CConsensus extends Thread
            // Ads
            case "ads" : crc=rs.getString("tab_2"); break;
            
-           // Domains
-           case "domains" : crc=rs.getString("tab_3"); break;
-           
            // Agents
-           case "agents" : crc=rs.getString("tab_4"); break;
+           case "agents" : crc=rs.getString("tab_3"); break;
+           
+           // Agents feeds
+           case "agents_domains" : crc=rs.getString("tab_4"); break;
            
            // Assets
            case "assets" : crc=rs.getString("tab_5"); break;
@@ -338,31 +288,50 @@ public class CConsensus extends Thread
            // Assets markets
            case "assets_mkts" : crc=rs.getString("tab_7"); break;
            
-           // Markets pos
-           case "assets_mkts_pos" : crc=rs.getString("tab_8"); break;
+           // Assets markets pos
+           case "assets_mkts_po" : crc=rs.getString("tab_8"); break;
            
-           // escrowed
-           case "escrowed" : crc=rs.getString("tab_9"); break;
+           // Comments
+           case "comments" : crc=rs.getString("tab_9"); break;
+           
+           // Del Votes
+           case "del_votes" : crc=rs.getString("tab_10"); break;
+           
+           // Domains
+           case "domains" : crc=rs.getString("tab_11"); break;
+           
+           // Escrowed
+           case "escrowed" : crc=rs.getString("tab_12"); break;
+           
+           // Feeds
+           case "feeds" : crc=rs.getString("tab_13"); break;
+           
+           // Feeds branches
+           case "feeds_branches" : crc=rs.getString("tab_14"); break;
+           
+           // Feeds bets
+           case "feeds_bets" : crc=rs.getString("tab_15"); break;
+           
+           // Feeds bets pos
+           case "feeds_bets_pos" : crc=rs.getString("tab_16"); break;
            
            // Profiles
-           case "profiles" : crc=rs.getString("tab_10"); break;
+           case "profiles" : crc=rs.getString("tab_17"); break;
+           
+           // Storage
+           case "storage" : crc=rs.getString("tab_18"); break;
            
            // Tweets
-           case "tweets" : crc=rs.getString("tab_11"); break;
-           
-           // Tweets comments
-           case "comments" : crc=rs.getString("tab_12"); break;
-           
-           // Tweets likes
-           case "upvotes" : crc=rs.getString("tab_13"); break;
+           case "tweets" : crc=rs.getString("tab_19"); break;
            
            // Tweets follow
-           case "tweets_follow" : crc=rs.getString("tab14"); break;
+           case "tweets_follow" : crc=rs.getString("tab_20"); break;
+           
+           // Votes
+           case "votes" : crc=rs.getString("tab_21"); break;
        }
        
-       // Close
-       
-       
+        
        // Return
        return crc;
    }
@@ -465,6 +434,22 @@ public class CConsensus extends Thread
                                         + "tab_12='"+block.tab_12+"', "
                                         + "tab_13='"+block.tab_13+"', "
                                         + "tab_14='"+block.tab_14+"', "
+                                        + "tab_15='"+block.tab_15+"', "
+                                        + "tab_16='"+block.tab_16+"', "
+                                        + "tab_17='"+block.tab_17+"', "
+                                        + "tab_18='"+block.tab_18+"', "
+                                        + "tab_19='"+block.tab_19+"', "
+                                        + "tab_20='"+block.tab_20+"', "
+                                        + "tab_21='"+block.tab_21+"', "
+                                        + "tab_22='"+block.tab_22+"', "
+                                        + "tab_23='"+block.tab_23+"', "
+                                        + "tab_24='"+block.tab_24+"', "
+                                        + "tab_25='"+block.tab_25+"', "
+                                        + "tab_26='"+block.tab_26+"', "
+                                        + "tab_27='"+block.tab_27+"', "
+                                        + "tab_28='"+block.tab_28+"', "
+                                        + "tab_29='"+block.tab_29+"', "
+                                        + "tab_30='"+block.tab_30+"', "
                                         + "payload_hash='"+block.payload_hash+"', "
                                         + "size='"+block.payload.length+"'");
   

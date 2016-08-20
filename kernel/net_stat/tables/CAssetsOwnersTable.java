@@ -18,12 +18,12 @@ public class CAssetsOwnersTable extends CTable
     public void create() throws Exception
     {
         UTILS.DB.executeUpdate("CREATE TABLE assets_owners(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                          +"owner VARCHAR(250) DEFAULT '', "
-                                                          +"symbol VARCHAR(10) DEFAULT '', "
-                                                          +"qty DOUBLE(20,8) DEFAULT 0, "
-                                                          +"invested DOUBLE(20,8) DEFAULT 0, "
-                                                          +"rowhash VARCHAR(100) DEFAULT '', "
-                                                          +"block BIGINT DEFAULT 0)");
+                                                          +"owner VARCHAR(250) NOT NULL DEFAULT '', "
+                                                          +"symbol VARCHAR(10) NOT NULL DEFAULT '', "
+                                                          +"qty DOUBLE(20,8) NOT NULL DEFAULT 0, "
+                                                          +"invested DOUBLE(20,8) NOT NULL DEFAULT 0, "
+                                                          +"rowhash VARCHAR(100) NOT NULL DEFAULT '', "
+                                                          +"block BIGINT NOT NULL DEFAULT 0)");
              
         UTILS.DB.executeUpdate("CREATE INDEX assets_owners_owner ON assets_owners(owner)");
         UTILS.DB.executeUpdate("CREATE INDEX assets_owners_symbol ON assets_owners(symbol)");
@@ -63,6 +63,9 @@ public class CAssetsOwnersTable extends CTable
     
     public void fromJSON(String data, String crc) throws Exception
     {
+        // No data
+        if (crc.equals("")) return;
+        
         // Grand hash
         String ghash="";
         

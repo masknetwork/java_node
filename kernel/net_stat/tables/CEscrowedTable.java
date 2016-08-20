@@ -6,6 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import wallet.kernel.UTILS;
 import wallet.kernel.net_stat.CTable;
+import wallet.network.packets.blocks.CBlockPayload;
 
 public class CEscrowedTable extends CTable
 {
@@ -18,14 +19,15 @@ public class CEscrowedTable extends CTable
     public void create() throws Exception
     {
         UTILS.DB.executeUpdate("CREATE TABLE escrowed(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-			 	 		       + "trans_hash VARCHAR(250) DEFAULT '', "
-			 	 	 	       + "sender_adr VARCHAR(250) DEFAULT '', "
-			 	 	 	       + "rec_adr VARCHAR(250) DEFAULT '', "
-                                                       + "escrower VARCHAR(250) DEFAULT '', "
-                                                       + "amount FLOAT(20,8) DEFAULT 0, "
-                                                       + "cur VARCHAR(10) DEFAULT '', "
-                                                       + "block BIGINT DEFAULT 0, "
-                                                       + "rowhash VARCHAR(250) DEFAULT '')");
+			 	 		       + "trans_hash VARCHAR(250) NOT NULL DEFAULT '', "
+			 	 	 	       + "sender_adr VARCHAR(250) NOT NULL DEFAULT '', "
+			 	 	 	       + "rec_adr VARCHAR(250) NOT NULL DEFAULT '', "
+                                                       + "escrower VARCHAR(250) NOT NULL DEFAULT '', "
+                                                       + "amount FLOAT(20,8) NOT NULL DEFAULT 0, "
+                                                       + "cur VARCHAR(10) NOT NULL DEFAULT '', "
+                                                       + "expire BIGINT NOT NULL DEFAULT 0, "
+                                                       + "block BIGINT NOT NULL DEFAULT 0, "
+                                                       + "rowhash VARCHAR(250) NOT NULL DEFAULT '')");
 				    
 	UTILS.DB.executeUpdate("CREATE INDEX escrowed_trans_hash ON escrowed(trans_hash)");
         UTILS.DB.executeUpdate("CREATE INDEX escrowed_sender_adr ON escrowed(sender_adr)");
@@ -37,71 +39,44 @@ public class CEscrowedTable extends CTable
     
     public void expired(long block) throws Exception
     {
-       // Statement
-       
-       
-       // Load expired
-       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                  + "FROM escrowed "
-                                 + "WHERE block<"+(block-50000));
-       
-       // Remove
-       while (rs.next())
-           this.removeByID(rs.getLong("ID"));
-       
-       // Close
-       
-    }
-    
-    public void removeByAdr(String adr) throws Exception
-    {
-       // Statement
-       
-       
        // Load expired
        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                           + "FROM escrowed "
-                                         + "WHERE sender_adr='"+adr+"' "
-                                            + "OR rec_adr='"+adr+"' "
-                                            + "OR escrower='"+adr+"'");
+                                         + "WHERE expire<"+block);
        
        // Remove
        while (rs.next())
-           this.removeByID(rs.getLong("ID"));
-       
-       // Close
-       
+           this.removeByID(rs.getLong("ID"), block);
     }
    
-    public void removeByID(long ID) throws Exception
+    public void removeByID(long ID, long block) throws Exception
     {
-        // Statement
-       
-       
-       // Load expired
+        // Load expired
        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                  + "FROM escrowed "
-                                 + "WHERE ID='"+ID+"'");
+                                          + "FROM escrowed "
+                                         + "WHERE ID='"+ID+"'");
        
        // Next
        rs.next();
        
        // Return the funds
-       if (rs.getString("cur").equals("MSK"))
-          UTILS.DB.executeUpdate("UPDATE adr "
-                                  + "SET balance=balance+"+rs.getDouble("amount")+" "
-                                + "WHERE adr='"+rs.getString("sender_adr")+"'");
-       else
-          UTILS.DB.executeUpdate("UPDATE assets_owners "
-                                  + "SET qty=qty+"+rs.getDouble("amount")+" "
-                                + "WHERE owner='"+rs.getString("sender_adr")+"' "
-                                  + "AND symbol='"+rs.getString("cur")+"'");
+       UTILS.ACC.newTrans(rs.getString("sender_adr"), 
+                          "", 
+                          rs.getDouble("amount"), 
+                          true,
+                          rs.getString("cur"), 
+                          "Escrowed funds returned", 
+                          "", 
+                          rs.getString("rowhash"), 
+                          block,
+                          null,
+                          0);
+       
+       // Clear
+       UTILS.ACC.clearTrans(rs.getString("rowhash"), "ID_ALL", block);
        
        // Remove
        UTILS.DB.executeUpdate("DELETE FROM escrowed WHERE ID='"+ID+"'");
-           
-       // Close
-       
    }
     
     // Address
@@ -115,6 +90,7 @@ public class CEscrowedTable extends CTable
                                                         + "escrower, "
                                                         + "amount, "
                                                         + "cur, "
+                                                        + "expire, "
                                                         + "block), 256) "
                                 + "WHERE block='"+block+"'");
         
@@ -134,7 +110,8 @@ public class CEscrowedTable extends CTable
     
     public void fromJSON(String data, String crc) throws Exception
     {
-        System.out.println(data);
+        // No data
+        if (crc.equals("")) return;
         
         // Grand hash
         String ghash="";
@@ -172,6 +149,9 @@ public class CEscrowedTable extends CTable
             // Currency
             String cur=row.getString("cur");
             
+             // Expire
+            long expire=row.getLong("expire");
+            
             // Block
             long block=row.getLong("block");
                
@@ -185,6 +165,7 @@ public class CEscrowedTable extends CTable
                                          escrower+
                                          amount+
                                          cur+
+                                         expire+
                                          block);
                     
             // Check hash
@@ -213,10 +194,6 @@ public class CEscrowedTable extends CTable
         
        // Init
        int a=0;
-       
-       
-       // Statement
-       
        
        // Load data
        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
@@ -254,6 +231,9 @@ public class CEscrowedTable extends CTable
                
                // Currency
                this.addRow("cur", rs.getString("cur"));
+               
+               // Expire
+               this.addRow("expire", rs.getLong("expire"));
                
                // Block
                this.addRow("block", rs.getLong("block"));
@@ -300,6 +280,7 @@ public class CEscrowedTable extends CTable
                                              + "escrower='"+row.getString("escrower")+"', "
                                              + "amount='"+row.getDouble("amount")+"', "
                                              + "cur='"+row.getString("cur")+"', "
+                                             + "expire='"+row.getLong("expire")+"', "
                                              + "block='"+row.getLong("block")+"', "
                                              + "rowhash='"+row.getString("rowhash")+"'");
         }

@@ -47,7 +47,7 @@ public class CDB
                    System.exit(0);
   	   }
      
-           this.executeUpdate("SET GLOBAL group_concat_max_len=10000000000");
+           this.executeUpdate("SET SESSION group_concat_max_len=10000000000");
 	   System.out.println("DB initialized...");
            
    }
@@ -119,7 +119,6 @@ public class CDB
           }
       }
       
-      if (cons.size()%100==0 && cons.size()>10000) System.out.println(cons.size());
       
       return rs;
    }
@@ -159,6 +158,7 @@ public class CDB
    {
        this.executeUpdate("DROP database wallet");
        this.executeUpdate("CREATE database wallet");
+       System.exit(0);
    }
    
    public void begin() throws Exception

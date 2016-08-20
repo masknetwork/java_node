@@ -45,11 +45,7 @@ public class CDeliverBlocksPacket extends CPacket
         // Constructor
 	super("ID_DELIVER_BLOCKS_PACKET");
         
-        // Sync ?
-        if (!UTILS.STATUS.engine_status.equals("ID_SYNC"))
-            return;
-        		
-	// Start
+        // Start
 	this.start=start;
         
         // End
@@ -106,15 +102,9 @@ public class CDeliverBlocksPacket extends CPacket
             // Hash
             String hash=rs.getString("hash");
             
-            // Close
-            
-            
             // Return
             return hash;
         }
-        
-        // Close
-        
         
         // Return
         return "";
@@ -126,7 +116,7 @@ public class CDeliverBlocksPacket extends CPacket
 	blocks.add(block);
     }
 		
-    public void process(CPeer sender) throws Exception
+    public void check(CPeer sender) throws Exception
     { 
         CResult res=null;
         
@@ -136,13 +126,7 @@ public class CDeliverBlocksPacket extends CPacket
 	    if (UTILS.SYNC.blockchain.commited(block.hash)) 
                 block.commit();
 				
-            // Report error
-            if (!res.passed) res.report();
-			        
-            UTILS.DB.executeUpdate("UPDATE status "
-                                    + "SET last_blocks_block='"+(this.start+a)+"'");
-                               
-            System.out.println("+");
+            System.out.println(".");
         }
 				   
 	// Delete from sync
@@ -151,7 +135,7 @@ public class CDeliverBlocksPacket extends CPacket
 			             + "AND start='"+this.start+"'");
                             
                             
-        System.out.println("Done.");
+        //System.out.println("Done.");
     }
     
     

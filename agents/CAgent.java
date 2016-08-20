@@ -58,21 +58,28 @@ public class CAgent implements java.io.Serializable
            // Parsed
            parsed=true;
        
-           if (VM.TAGS.hasTag("#start#")) 
-              VM.CODE.execute(VM.TAGS.getLine("#start#"));
-       
-           // Start tag ?
-           if (!tag.equals("") && !tag.equals("#start#")) 
+           if (!tag.equals("#install#"))
            {
-               if (!VM.TAGS.hasTag(tag)) 
-                   return;
-               else
-                   VM.CODE.execute(VM.TAGS.getLine(tag));
-           }
-           
-           if (VM.TAGS.hasTag("#cleanup#")) 
-              VM.CODE.execute(VM.TAGS.getLine("#cleanup#"));
+               if (VM.TAGS.hasTag("#start#")) 
+                  VM.CODE.execute(VM.TAGS.getLine("#start#"));
        
+               // Start tag ?
+               if (!tag.equals("") && !tag.equals("#start#")) 
+               {
+                   if (!VM.TAGS.hasTag(tag)) 
+                       return;
+                   else
+                       VM.CODE.execute(VM.TAGS.getLine(tag));
+               }
+           
+               if (VM.TAGS.hasTag("#cleanup#")) 
+                  VM.CODE.execute(VM.TAGS.getLine("#cleanup#"));
+           }
+           else
+           {
+              if (VM.TAGS.hasTag("#install#")) 
+                  VM.CODE.execute(VM.TAGS.getLine("#install#")); 
+           }
         }
         catch (Exception ex)
         {
@@ -126,6 +133,7 @@ public class CAgent implements java.io.Serializable
    {
        System.out.println("Syntax error. Uninstalling agent .");
        UTILS.DB.executeUpdate("DELETE FROM agents WHERE aID='"+this.ID+"'");
+       UTILS.DB.executeUpdate("DELETE FROM storage WHERE aID='"+this.ID+"'");
    }
    
    

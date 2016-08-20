@@ -83,6 +83,51 @@ public class CChainBlock implements java.io.Serializable
     // Tab 15
     public String tab_15="";
     
+    // Tab 15
+    public String tab_16="";
+    
+    // Tab 15
+    public String tab_17="";
+    
+    // Tab 15
+    public String tab_18="";
+    
+    // Tab 15
+    public String tab_19="";
+    
+    // Tab 15
+    public String tab_20="";
+    
+    // Tab 15
+    public String tab_21="";
+    
+    // Tab 15
+    public String tab_22="";
+    
+    // Tab 15
+    public String tab_23="";
+    
+    // Tab 15
+    public String tab_24="";
+    
+    // Tab 15
+    public String tab_25="";
+    
+    // Tab 15
+    public String tab_26="";
+    
+    // Tab 15
+    public String tab_27="";
+    
+    // Tab 15
+    public String tab_28="";
+    
+    // Tab 15
+    public String tab_29="";
+    
+    // Tab 15
+    public String tab_30="";
+    
     public CChainBlock(String prev_block_hash,
                        String block_hash,
                        long block, 
@@ -106,7 +151,23 @@ public class CChainBlock implements java.io.Serializable
                        String tab_11,
                        String tab_12,
                        String tab_13,
-                       String tab_14) throws Exception
+                       String tab_14,
+                       String tab_15,
+                       String tab_16,
+                       String tab_17,
+                       String tab_18,
+                       String tab_19,
+                       String tab_20,
+                       String tab_21,
+                       String tab_22,
+                       String tab_23,
+                       String tab_24,
+                       String tab_25,
+                       String tab_26,
+                       String tab_27,
+                       String tab_28,
+                       String tab_29,
+                       String tab_30) throws Exception
     {
         // Prev hash
         this.prev_hash=prev_block_hash;
@@ -180,6 +241,54 @@ public class CChainBlock implements java.io.Serializable
         // Tab 14
         this.tab_14=tab_14;
         
+        // Tab 14
+        this.tab_15=tab_15;
+        
+        // Tab 14
+        this.tab_16=tab_16;
+        
+        // Tab 14
+        this.tab_17=tab_17;
+        
+        // Tab 14
+        this.tab_18=tab_18;
+        
+        // Tab 14
+        this.tab_19=tab_19;
+        
+        // Tab 14
+        this.tab_20=tab_20;
+        
+        // Tab 14
+        this.tab_21=tab_21;
+        
+        // Tab 14
+        this.tab_22=tab_22;
+        
+        // Tab 14
+        this.tab_23=tab_23;
+        
+        // Tab 14
+        this.tab_24=tab_24;
+        
+        // Tab 14
+        this.tab_25=tab_25;
+        
+        // Tab 14
+        this.tab_26=tab_26;
+        
+        // Tab 14
+        this.tab_27=tab_27;
+        
+        // Tab 14
+        this.tab_28=tab_28;
+        
+        // Tab 14
+        this.tab_29=tab_29;
+        
+        // Tab 14
+        this.tab_30=tab_30;
+        
     }
     
     public CResult check() throws Exception
@@ -206,7 +315,23 @@ public class CChainBlock implements java.io.Serializable
                                         this.tab_11,
                                         this.tab_12,
                                         this.tab_13,
-                                        this.tab_14))
+                                        this.tab_14,
+                                        this.tab_15,
+                                        this.tab_16,
+                                        this.tab_17,
+                                        this.tab_18,
+                                        this.tab_19,
+                                        this.tab_20,
+                                        this.tab_21,
+                                        this.tab_22,
+                                        this.tab_23,
+                                        this.tab_24,
+                                        this.tab_25,
+                                        this.tab_26,
+                                        this.tab_27,
+                                        this.tab_28,
+                                        this.tab_29,
+                                        this.tab_30))
             return new CResult(true, "Ok", "CChainBlock", 67);
         else
             return new CResult(false, "Invalid block", "CChainBlock", 67);

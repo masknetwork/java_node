@@ -39,9 +39,6 @@ public class CWallet
    // Wallet data
    String wallet="";
    
-   // Password
-   String pass;
-   
    // Wallet Balance
    public double balance=0;
    
@@ -53,81 +50,49 @@ public class CWallet
    
    public CWallet() throws Exception
    {
-	     // Check if settings file exists
-		  f=new File(UTILS.WRITEDIR+"wallet.msk");
+	// Check if settings file exists
+	f=new File(UTILS.WRITEDIR+"wallet.msk");
 		  
-		  // Records the password
-		  this.pass=org.apache.commons.codec.digest.DigestUtils.sha512Hex(UTILS.SETTINGS.getWalletPass()); 
-		  
-		  // File exist ?
-		  if (f.exists()==false)
-		  {
-			  System.out.println("Creating initial wallet....");
+	// File exist ?
+	if (f.exists()==false)
+	{
+	    System.out.println("Creating initial wallet....");
 			  
-			  try
-			  {
-			    FileOutputStream out=new FileOutputStream(f);
-			    f_out=new ObjectOutputStream(out);
+	    FileOutputStream out=new FileOutputStream(f);
+	    f_out=new ObjectOutputStream(out);
 			    
-			    // Generate an address
-			    CAddress adr=new CAddress();
-			    adr.generate("secp224r1");
-			    this.addresses.add(adr);
+	    // Generate an address
+	    CAddress adr=new CAddress();
+	    adr.generate("secp224r1");
+	    this.addresses.add(adr);
 			    
-			    // Insert address
-		            UTILS.DB.executeUpdate("INSERT INTO my_adr(userID, adr) "
-				 		             + "VALUES('1', '"+adr.getPublic()+"')");
+	    // Insert address
+            UTILS.DB.executeUpdate("INSERT INTO my_adr "
+                                         + "SET userID='1', "
+                                             + "adr='"+adr.getPublic()+"'");
 			    
-			    // Save wallet
-			    save();
-			  }
-			  catch (FileNotFoundException e) 
-			  { 
-				  UTILS.LOG.log("FileNotFoundException", e.getMessage(), "CWallet", 72);  
-			  }
-			  catch (IOException e) 
-			  { 
-				  UTILS.LOG.log("IOException", e.getMessage(), "CWallet", 73);  
-			  }
-		  }
-		  else
-		  {
-		     try
-		     {
-		         // Input Streqm
-		    	 String wallet = FileUtils.readFileToString(f, "UTF-8");
-		    	 wallet=UTILS.AES.decrypt(wallet, UTILS.SETTINGS.getWalletPass());
+	    // Save wallet
+	    save();
+        }
+	else
+        {
+            // Input Streqm
+	    String wallet = FileUtils.readFileToString(f, "UTF-8");
+	    wallet=UTILS.AES.decrypt(wallet, UTILS.SETTINGS.getWalletPass());
 		       
-		       // Load addresses
-		       String[] s=wallet.split("\\*");
+	    // Load addresses
+            String[] s=wallet.split("\\*");
 		      
-		       
-		       for (int a=0; a<=s.length-1; a++)
-		       {
-		    	   String[] adr=s[a].split(",");
-		    	   CAddress address=new CAddress(adr[0], adr[1], adr[2], Float.parseFloat(adr[3])); 
-		    	   this.addresses.add(address);
-		    	   this.balance=this.balance+address.balance;
-		       }
-		     }
-		     catch (FileNotFoundException e) 
-		     { 
-		    	 UTILS.LOG.log("ERROR", e.getMessage(), "CWallet", 87); 
-		     }
-		     catch (IOException e) 
-		     { 
-		    	 UTILS.LOG.log("ERROR", e.getMessage(), "CWallet", 88);  
-		     }
-		     catch(Exception ex) 
-		     {  
-		    	 UTILS.LOG.log("ERROR", ex.getMessage(), "CWallet", 90);  
-		     }
-		  }
+	    for (int a=0; a<=s.length-1; a++)
+	    {
+		String[] adr=s[a].split(",");
+		CAddress address=new CAddress(adr[0], adr[1], adr[2], Float.parseFloat(adr[3])); 
+		this.addresses.add(address);
+		this.balance=this.balance+address.balance;
+	    }
+        }
      }
    
-   
-   
-     
      public void save() throws Exception
      {
     	 String w="";
@@ -165,53 +130,38 @@ public class CWallet
      
       public String newAddress(String user, String curve, String description) throws Exception
       {
-         try
-         {    
-    	    // Generate an address
-            CAddress adr=new CAddress();
-	    adr.generate(curve);
+        // Generate an address
+        CAddress adr=new CAddress();
+	adr.generate(curve);
 		 
-	    // Add
-	    this.addresses.add(adr);
+	// Add
+	this.addresses.add(adr);
          
-            // Load user ID
-            
-           
-            // Load address data
-            ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+        // Load address data
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                                + "FROM web_users "
                                               + "WHERE user='"+user+"'");
          
-            // Next
-            rs.next();
+        // Next
+        rs.next();
          
-            // User ID
-            long userID=rs.getLong("ID");
+        // User ID
+        long userID=rs.getLong("ID");
          
-	    // Insert address
-	    UTILS.DB.executeUpdate("INSERT INTO my_adr(userID, adr, description) "
-		 		      + "VALUES('"+userID+"', '"+
-                                                   adr.getPublic()+"', '"+
-                                                   UTILS.BASIC.base64_encode(description)+"')");
+	// Insert address
+	UTILS.DB.executeUpdate("INSERT INTO my_adr "
+                                     + "SET userID='"+userID+"', "
+                                         + "adr='"+adr.getPublic()+"', "
+                                         + "description='"+UTILS.BASIC.base64_encode(description)+"'");
         
-           // Close
-         
-           
-         
-           // Save wallet
-	   save();
+        // Save wallet
+	save();
 				 
-	   // Last generated
-	   this.last_adr=adr;
-           
-           return adr.getPublic();
-        }
-        catch (SQLException ex) 
-       	{  
-       		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
-        }
-	
-    	 throw new Exception("Could not geberate address");
+        // Last generated
+	this.last_adr=adr;
+        
+        // Return
+        return adr.getPublic();
      }
      
      public boolean add(CAddress adr) throws Exception
@@ -245,14 +195,7 @@ public class CWallet
     	 return false;
      }
      
-     public boolean checkPass(String pass) throws Exception
-     {
-    	 if (org.apache.commons.codec.digest.DigestUtils.sha512Hex(pass)!=this.pass) 
-    		 return false;
-    	 else
-    		 return true;
-     }
-     
+    
      public CAddress getAddress(String adr) throws Exception
      {
     	 for (int a=0; a<=this.addresses.size()-1; a++)

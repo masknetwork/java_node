@@ -44,7 +44,7 @@ public class CUnfollowPayload extends CPayload
         super.check(block);
    	
    	// Follow address valid
-        if (!UTILS.BASIC.adressValid(this.unfollow_adr))
+        if (!UTILS.BASIC.isAdr(this.unfollow_adr))
            throw new Exception("Invalid address - CUnfollowPayload.java"); 
             
         // Address is followed ?

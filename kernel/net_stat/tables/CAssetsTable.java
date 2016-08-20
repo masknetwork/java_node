@@ -14,13 +14,12 @@ public class CAssetsTable extends CTable
         super("assets");
     }
     
-    public void expired(long block, String adr) throws Exception
+    public void expired(long block) throws Exception
     {
        // Load expired
        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                           + "FROM assets "
-                                         + "WHERE expire<"+block+" "
-                                            + "OR adr='"+adr+"'");
+                                         + "WHERE expire<"+block);
        
        // Remove
        while (rs.next())
@@ -30,8 +29,20 @@ public class CAssetsTable extends CTable
     
     public void removeBySymbol(String symbol) throws Exception
     {
-        // Remove markets using this asset
-        UTILS.NET_STAT.table_assets_mkts.removeByAsset(symbol);
+        // Load data
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM assets "
+                                          + "WHERE symbol='"+symbol+"'");
+        
+        // Next
+        rs.next();
+        
+        // Address
+        String adr=rs.getString("adr");
+        
+        // Escrowed ?
+        rs=UTILS.DB.executeQuery("SELECT * FROM escrowed WHERE cur='"+symbol+"'");
+        if (UTILS.DB.hasData(rs)) return;
         
         // Delete owners
         UTILS.DB.executeUpdate("DELETE FROM assets_owners "
@@ -45,22 +56,22 @@ public class CAssetsTable extends CTable
     public void create() throws Exception
     {
         UTILS.DB.executeUpdate("CREATE TABLE assets(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                             +"assetID BIGINT DEFAULT 0, "
-                                                             +"adr VARCHAR(250) DEFAULT '', "
-                                                             +"symbol VARCHAR(10) DEFAULT '', "
-                                                             +"title VARCHAR(250) DEFAULT '', "
-                                                             +"description VARCHAR(1000) DEFAULT '', "
-                                                             +"how_buy VARCHAR(1000) DEFAULT '', "
-                                                             +"how_sell VARCHAR(1000) DEFAULT '', "
-                                                             +"web_page VARCHAR(250) DEFAULT '', "
-                                                             +"pic VARCHAR(250) DEFAULT '', "
-                                                             +"expire BIGINT DEFAULT 0, "
-                                                             +"qty BIGINT DEFAULT 0, "
-                                                             +"trans_fee_adr VARCHAR(250), "
-                                                             +"trans_fee DOUBLE(9,2), "
-                                                             +"linked_mktID BIGINT DEFAULT 0, "
-                                                             +"rowhash VARCHAR(100) DEFAULT '', "
-                                                             +"block BIGINT DEFAULT 0)");
+                                                             +"assetID BIGINT NOT NULL DEFAULT 0, "
+                                                             +"adr VARCHAR(250) NOT NULL DEFAULT '', "
+                                                             +"symbol VARCHAR(10) NOT NULL DEFAULT '', "
+                                                             +"title VARCHAR(250) NOT NULL DEFAULT '', "
+                                                             +"description VARCHAR(1000) NOT NULL DEFAULT '', "
+                                                             +"how_buy VARCHAR(1000) NOT NULL DEFAULT '', "
+                                                             +"how_sell VARCHAR(1000) NOT NULL DEFAULT '', "
+                                                             +"web_page VARCHAR(250) NOT NULL DEFAULT '', "
+                                                             +"pic VARCHAR(250) NOT NULL DEFAULT '', "
+                                                             +"expire BIGINT NOT NULL DEFAULT 0, "
+                                                             +"qty BIGINT NOT NULL DEFAULT 0, "
+                                                             +"trans_fee_adr VARCHAR(250) NOT NULL DEFAULT '', "
+                                                             +"trans_fee DOUBLE(9,2) NOT NULL DEFAULT 0, "
+                                                             +"linked_mktID BIGINT NOT NULL DEFAULT 0, "
+                                                             +"rowhash VARCHAR(100) NOT NULL DEFAULT '', "
+                                                             +"block BIGINT NOT NULL DEFAULT 0)");
              
         UTILS.DB.executeUpdate("CREATE INDEX assets_adr ON assets(adr)");
         UTILS.DB.executeUpdate("CREATE INDEX assets_ID ON assets(assetID)");
@@ -105,6 +116,9 @@ public class CAssetsTable extends CTable
     
     public void fromJSON(String data, String crc) throws Exception
     {
+        // No data
+        if (crc.equals("")) return;
+        
         // Grand hash
         String ghash="";
         

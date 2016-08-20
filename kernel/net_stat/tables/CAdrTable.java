@@ -18,31 +18,123 @@ public class CAdrTable extends CTable
     }
     
     // Create
-    public void create(boolean fill) throws Exception
+    public void create() throws Exception
     {
        // Create table
        UTILS.DB.executeUpdate("CREATE TABLE adr(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-				              + "adr VARCHAR(500), "
-				              + "balance DOUBLE(20,8) DEFAULT 0, "
-		                              + "created BIGINT DEFAULT 0, "		              
-                                              + "block BIGINT DEFAULT 0, "
-                                              + "sealed BIGINT DEFAULT 0, "
-				              + "rowhash VARCHAR(100) DEFAULT '')");
+				              + "adr VARCHAR(500) NOT NULL DEFAULT '', "
+				              + "balance DOUBLE(20,8) NOT NULL DEFAULT 0, "
+		                              + "created BIGINT NOT NULL DEFAULT 0, "		              
+                                              + "block BIGINT NOT NULL DEFAULT 0, "
+                                              + "sealed BIGINT NOT NULL DEFAULT 0, "
+				              + "rowhash VARCHAR(100) NOT NULL DEFAULT '')");
 		   
         UTILS.DB.executeUpdate("CREATE INDEX adr ON adr(adr)");
 	UTILS.DB.executeUpdate("CREATE INDEX block ON adr(block)");
-	UTILS.DB.executeUpdate("CREATE INDEX rowhash ON adr(rowhash)");
+	UTILS.DB.executeUpdate("CREATE INDEX rowhash ON adr(rowhash)");  
+    }
+    
+    public boolean hasTableRecords(String table, String col, String adr) throws Exception
+    {
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM "+table+" "
+                                          + "WHERE "+col+"='"+adr+"'");
         
-        // Fill inital addresses
-        if (fill) this.fillTest();    
+        if (!UTILS.DB.hasData(rs))
+            return false;
+        else
+            return true;
+    }
+    
+    public boolean hasRecords(String adr) throws Exception
+    {
+        // Ads ?
+        if (this.hasTableRecords("ads", "adr", adr)) 
+            return true;
+        
+        // Agents ?
+        if (this.hasTableRecords("agents", "adr", adr)) 
+            return true;
+        
+        // Assets
+        if (this.hasTableRecords("assets", "adr", adr)) 
+            return true;
+        
+        // Assets mkts
+        if (this.hasTableRecords("assets_mkts", "adr", adr)) 
+            return true;
+        
+        // Assets mkts pos
+        if (this.hasTableRecords("assets_mkts_pos", "adr", adr)) 
+            return true;
+        
+        // Assets owners
+        if (this.hasTableRecords("assets_owners", "owner", adr)) 
+            return true;
+        
+        // Comments
+        if (this.hasTableRecords("comments", "adr", adr)) 
+            return true;
+        
+        // Del votes
+        if (this.hasTableRecords("del_votes", "adr", adr)) 
+            return true;
+        
+        // Domains
+        if (this.hasTableRecords("domains", "adr", adr)) 
+            return true;
+        
+        // Escrowed
+        if (this.hasTableRecords("escrowed", "sender_adr", adr)) 
+            return true;
+        
+        if (this.hasTableRecords("escrowed", "rec_adr", adr)) 
+            return true;
+        
+        if (this.hasTableRecords("escrowed", "escrower", adr)) 
+            return true;
+        
+        // Feeds
+        if (this.hasTableRecords("feeds", "adr", adr)) 
+            return true;
+        
+        // Feeds bets
+        if (this.hasTableRecords("feeds_bets", "adr", adr)) 
+            return true;
+        
+        // Feeds bets pos
+        if (this.hasTableRecords("feeds_bets_pos", "adr", adr)) 
+            return true;
+        
+        // Profiles
+        if (this.hasTableRecords("profiles", "adr", adr)) 
+            return true;
+        
+        // Tweets
+        if (this.hasTableRecords("tweets", "adr", adr)) 
+            return true;
+        
+        // Votes
+        if (this.hasTableRecords("votes", "adr", adr)) 
+            return true;
+        
+        // Ok to delete
+        return false;
     }
     
     public void expired(long block) throws Exception
     {
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM adr "
+                                          + "WHERE balance<=0.0001");
         
+        while (rs.next())
+           if (!this.hasRecords(rs.getString("adr")))
+               UTILS.DB.executeUpdate("DELETE FROM adr "
+                                          + "WHERE adr='"+rs.getString("adr")+"'");
     }
     
-    // Address
+    // Addressk
     public void refresh(long block) throws Exception
     {
         // Adr
@@ -52,21 +144,25 @@ public class CAdrTable extends CTable
                                                                  + "sealed, "
                                                                  + "block), 256) where block='"+block+"'");
         
-        UTILS.DB.executeUpdate("UPDATE net_stat "
+        if (UTILS.BASIC.hasRecords("adr"))
+        {
+            // Refresh
+            UTILS.DB.executeUpdate("UPDATE net_stat "
                                 + "SET adr=(SELECT SHA2(GROUP_CONCAT(rowhash ORDER BY ID ASC), 256) AS st FROM adr)");
         
-        // Refresh
-        super.refresh(block);
+            // Refresh
+            super.refresh(block);
         
-        // Reload hash
-        loadHash();
-        
+            // Reload hash
+            loadHash();
+        }
         
     }
     
     public void fromJSON(String data, String crc) throws Exception
     {
-        System.out.println(data);
+        // No data
+        if (crc.equals("")) return;
         
         // Grand hash
         String ghash="";
@@ -114,11 +210,7 @@ public class CAdrTable extends CTable
                     
             // Check hash
             if (!rowhash.equals(hash))
-                throw new Exception("Invalid hash - CAdrTable.java "+adr+
-                                         UTILS.BASIC.zeros_8(UTILS.FORMAT_8.format(balance))+
-                                         created+
-                                         sealed+
-                                         block);
+                throw new Exception("Invalid hash - CAdrTable.java ");
             
             // Total hash
             if (a>0) 
@@ -131,7 +223,7 @@ public class CAdrTable extends CTable
         ghash=UTILS.BASIC.hash(ghash);
         
         // Check grand hash
-         if (!ghash.equals(crc))
+        if (!ghash.equals(crc))
             throw new Exception("Invalid grand hash - CAdrTable.java");
     }
     
@@ -224,23 +316,16 @@ public class CAdrTable extends CTable
     
   public void insertAdr(String adr, double balance) throws Exception
     {
-        UTILS.DB.executeUpdate("INSERT INTO adr(adr, "
-                                             + "balance, "
-                                                      + "rowhash, "
-                                                      + "block) "
-                                          + "VALUES('"+adr+"', "
-                                                 + "'"+balance+"', "
-                                                   + "'0000000000000000000000000000000000000000000000000000000000000000', "
-                                                   + "'0')");
-                
-                
+        UTILS.DB.executeUpdate("INSERT INTO adr "
+                                     + "SET adr='"+adr+"', "
+                                         + "balance='"+balance+"', "
+                                         + "rowhash='0000000000000000000000000000000000000000000000000000000000000000', "
+                                         + "block='0'");
     }
      
-    public void fillTest() throws Exception
+    public void init() throws Exception
     {
-        this.insertAdr("default", 99000000);
-	this.insertAdr("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmzMuWmpif2JdeB1/UA7XQumglLj3o4/qF/CisxzJyXf7JoXXmGvBDJFbCSr8Si09zKtkfoA7jyU=", 1000000);
-		   
+        this.insertAdr("default", 20000000);   
     }
     
     public void loadCheckpoint(String hash, String crc) throws Exception
@@ -249,7 +334,7 @@ public class CAdrTable extends CTable
         UTILS.DB.executeUpdate("DROP TABLE adr");
         
         // Create table
-        this.create(false);
+        this.create();
         
         // From file
         this.fromFile(hash, "adr.table", crc);

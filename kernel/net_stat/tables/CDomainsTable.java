@@ -18,12 +18,12 @@ public class CDomainsTable extends CTable
     public void create() throws Exception
     {
         UTILS.DB.executeUpdate("CREATE TABLE domains(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-	 	 			           + "adr VARCHAR(250) DEFAULT '', "
-	 	 		                   + "domain VARCHAR(100), "
-	 	 			           + "expire BIGINT DEFAULT 0, "
-	 	 			           + "sale_price DOUBLE(10,4) DEFAULT 0, "
-	 	 			           + "block BIGINT DEFAULT 0, "
-	 	 	 	 	 	   + "rowhash VARCHAR(250) DEFAULT '')");
+	 	 			           + "adr VARCHAR(250) NOT NULL DEFAULT '', "
+	 	 		                   + "domain VARCHAR(100) NOT NULL DEFAULT '', "
+	 	 			           + "expire BIGINT NOT NULL DEFAULT 0, "
+	 	 			           + "sale_price DOUBLE(10,4) NOT NULL DEFAULT 0, "
+	 	 			           + "block BIGINT NOT NULL DEFAULT 0, "
+	 	 	 	 	 	   + "rowhash VARCHAR(250) NOT NULL DEFAULT '')");
 	 	 	 	 	    
 	UTILS.DB.executeUpdate("CREATE INDEX dom_adr ON domains(adr)");
 	UTILS.DB.executeUpdate("CREATE INDEX dom_domain ON domains(domain)");
@@ -31,14 +31,10 @@ public class CDomainsTable extends CTable
 	UTILS.DB.executeUpdate("CREATE INDEX dom_rowhash ON domains(rowhash)");
     }
     
-    public void expired(long block, String adr) throws Exception
+    public void expired(long block) throws Exception
     {
-       if (adr.equals(""))
-          UTILS.DB.executeUpdate("DELETE FROM domains "
+       UTILS.DB.executeUpdate("DELETE FROM domains "
                                      + "WHERE expire<="+block);
-       else
-          UTILS.DB.executeUpdate("DELETE FROM domains "
-                                     + "WHERE adr='"+adr+"'");
     }
     
     // Address
@@ -69,7 +65,8 @@ public class CDomainsTable extends CTable
     
     public void fromJSON(String data, String crc) throws Exception
     {
-        System.out.println(data);
+        // No data
+        if (crc.equals("")) return;
         
         // Grand hash
         String ghash="";
@@ -116,7 +113,7 @@ public class CDomainsTable extends CTable
                     
             // Check hash
             if (!rowhash.equals(hash))
-                throw new Exception("Invalid hash - CAdsTable.java");
+                throw new Exception("Invalid hash - CDomainsTable.java");
             
             // Total hash
             if (a>0) 
@@ -130,7 +127,7 @@ public class CDomainsTable extends CTable
          
         // Check grand hash
         if (!ghash.equals(crc))
-            throw new Exception("Invalid grand hash - CAdsTable.java");
+            throw new Exception("Invalid grand hash - CDomainsTable.java");
     }
     
     public void fromDB() throws Exception

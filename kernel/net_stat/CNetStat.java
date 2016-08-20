@@ -26,6 +26,12 @@ public class CNetStat
     // Ads
     public CAdsTable table_ads;
     
+    // Assets
+    public CAssetsTable table_assets;
+    
+    // Assets owners
+    public CAssetsOwnersTable table_assets_owners;
+    
     // Domains
     public CDomainsTable table_domains;
     
@@ -53,29 +59,8 @@ public class CNetStat
     // Agents
     public CAgentsTable table_agents;
     
-    // Assets
-    public CAssetsTable table_assets;
-    
-    // Assets owners
-    public CAssetsOwnersTable table_assets_owners;
-    
-    // Assets Markets
-    public CAssetsMktsTable table_assets_mkts;
-    
-    // Assets Mkts Pos
-    public CAssetsMktsPosTable table_assets_mkts_pos;
-    
-    // Feeds
-    public CFeedsTable table_feeds;
-    
-    // Feeds branches
-    public CFeedsBranchesTable table_feeds_branches;
-    
-    // Feeds bets
-    public CFeedsBetsTable table_feeds_bets;
-    
-    // Feeds bets pos
-    public CFeedsBetsPosTable table_feeds_bets_pos;
+    // Storage
+    public CStorageTable table_storage;
     
     // Last block
     public long last_block;
@@ -107,12 +92,6 @@ public class CNetStat
     // Assets owners
     String assets_owners;
     
-    // Assets markets
-    String assets_mkts;
-    
-    // Assets markets pos
-    String assets_mkts_pos;
-    
     // Domains
     String domains;
     
@@ -137,20 +116,8 @@ public class CNetStat
     // Tweets Links
     String votes;
     
-    // Feeds
-    String feeds;
-    
-    // Feeds branches
-    String feeds_branches;
-    
-    // Feeds bets
-    String feeds_bets;
-    
-    // Feeds bets pos
-    String feeds_bets_pos;
-    
-    // Blocks per day
-    public long blocks_per_day=4320;
+    // Storage
+    String storage;
     
     // Block confirmation minimum baalance
     public double block_conf_min_balance=1;
@@ -170,8 +137,14 @@ public class CNetStat
     // Last tstamp
     public long actual_block_no=0;
     
+    // Delegate
+    public String delegate="";
+    
     public CNetStat() throws Exception
     {
+        // Online
+        UTILS.DB.executeUpdate("UPDATE web_sys_data set uptime='"+UTILS.BASIC.tstamp()+"'");
+        
         // Load data
         ResultSet rs=UTILS.DB.executeQuery("SELECT * FROM net_stat");
            
@@ -199,21 +172,15 @@ public class CNetStat
         // Ads
         this.ads=rs.getString("ads");
     
-        // Assets
-        this.assets=rs.getString("assets");
-    
-        // Assets owners
-        this.assets_owners=rs.getString("assets_owners");
-           
-        // Assets markets
-        this.assets_mkts=rs.getString("assets_mkts");
-           
-        // Assets mkts pos
-        this.assets_mkts_pos=rs.getString("assets_mkts_pos");
-           
         // Agents
         this.agents=rs.getString("agents");
-           
+        
+        // Assets 
+        this.assets=rs.getString("assets");
+        
+        // Assets owners
+        this.assets_owners=rs.getString("assets_owners");
+        
         // Domains
         this.domains=rs.getString("domains");
         
@@ -238,71 +205,56 @@ public class CNetStat
         // Tweets Links
         this.votes=rs.getString("votes");
            
-           // Feeds
-           this.feeds=rs.getString("feeds");
-           
-           // Feeds branches
-           this.feeds_branches=rs.getString("feeds_branches");
+        // Delegates
+        this.delegate=rs.getString("delegate");
+        
+        // Delegates
+        this.storage=rs.getString("storage");
       
-           // Addresses
-           this.table_adr=new CAdrTable();
+        // Addresses
+        this.table_adr=new CAdrTable();
            
-           // Ads
-           this.table_ads=new CAdsTable();
+        // Ads
+        this.table_ads=new CAdsTable();
            
-           // Agents
-           this.table_agents=new CAgentsTable();
+        // Agents
+        this.table_agents=new CAgentsTable();
            
-           // Assets
-           this.table_assets=new CAssetsTable();
+        // Assets
+        this.table_assets=new CAssetsTable();
            
-           // Assets owners
-           this.table_assets_owners=new CAssetsOwnersTable();
+        // Assets owners
+        this.table_assets_owners=new CAssetsOwnersTable();
            
-           // Assets markets
-           this.table_assets_mkts=new CAssetsMktsTable();
+        // Domains
+        this.table_domains=new CDomainsTable();
            
-           // Assets markets pos
-           this.table_assets_mkts_pos=new CAssetsMktsPosTable();
+        // Del votes
+        this.table_del_votes=new CDelVotesTable();
            
-           // Domains
-           this.table_domains=new CDomainsTable();
+        // Escrowed
+        this.table_escrowed=new CEscrowedTable();
            
-           // Del votes
-           this.table_del_votes=new CDelVotesTable();
+        // Profiles
+        this.table_profiles=new CProfilesTable();
            
-           // Escrowed
-           this.table_escrowed=new CEscrowedTable();
+        // Tweets
+        this.table_tweets=new CTweetsTable();
            
-           // Profiles
-           this.table_profiles=new CProfilesTable();
+        // Tweets comments
+        this.table_comments=new CCommentsTable();
            
-           // Tweets
-           this.table_tweets=new CTweetsTable();
+        // Tweets follows
+        this.table_tweets_follow=new CTweetsFollowTable();
            
-           // Tweets comments
-           this.table_comments=new CCommentsTable();
+        // Tweets likes
+        this.table_votes=new CVotesTable();
            
-           // Tweets follows
-           this.table_tweets_follow=new CTweetsFollowTable();
+        // Feeds bets pos
+        this.table_storage=new CStorageTable();
            
-           // Tweets likes
-           this.table_votes=new CVotesTable();
-           
-           // Feeds table
-           this.table_feeds=new CFeedsTable();
-           
-           // Feeds branches table
-           this.table_feeds_branches=new CFeedsBranchesTable();
-           
-           // Feeds bets
-           this.table_feeds_bets=new CFeedsBetsTable();
-           
-           // Feeds bets pos
-           this.table_feeds_bets_pos=new CFeedsBetsPosTable();
-           
-           // Network time
-           this.net_time=UTILS.BASIC.tstamp();
+        // Network time
+        this.net_time=UTILS.BASIC.tstamp();
     }
     
         
@@ -323,15 +275,9 @@ public class CNetStat
         // Assets
         this.table_assets.refresh(block);
         
-        // Assets Owners
+        // Assets owners
         this.table_assets_owners.refresh(block);
-        
-        // Assets Markets
-        this.table_assets_mkts.refresh(block);
-        
-        // Assets Markets Pos
-        this.table_assets_mkts_pos.refresh(block);
-        
+         
         // Domains
         this.table_domains.refresh(block);
         
@@ -353,20 +299,11 @@ public class CNetStat
         // Tweets follow
         this.table_tweets_follow.refresh(block);
         
-        // Feeds
-        this.table_feeds.refresh(block);
-        
-        // Feeds branches
-        this.table_feeds_branches.refresh(block);
-        
-        // Feeds bets
-        //this.table_feeds_bets.refresh(block);
-        
-        // Feeds bets pos
-        //this.table_feeds_bets_pos.refresh(block);
-        
         // Delegates votes
         this.table_del_votes.refresh(block);
+        
+        // Storage
+        this.table_storage.refresh(block);
     }
     
     
@@ -390,12 +327,6 @@ public class CNetStat
             
             // Assets owners
             case "assets_owners" : this.assets_owners=hash; break;
-            
-            // Assets markets
-            case "assets_mkts" : this.assets_mkts=hash; break;
-            
-            // Assets markets positions
-            case "assets_mkts_pos" : this.assets_mkts_pos=hash; break;
             
             // Domains
             case "domains" : this.domains=hash; break;
@@ -421,17 +352,9 @@ public class CNetStat
             // Tweets follow
             case "tweets_follow" : this.tweets_follow=hash; break;
             
-            // Feeds
-            case "feeds" : this.feeds=hash; break;
-            
-            // Feeds branches
-            case "feeds_branches" : this.feeds_branches=hash; break;
-            
-             // Feeds bets
-            case "feeds_bets" : this.feeds_bets=hash; break;
-            
-             // Feeds bets pos
-            case "feeds_bets_pos" : this.feeds_bets_pos=hash; break;
+            // Storage
+            case "storage" : this.storage=hash; break;
+          
         }
     }
     
@@ -451,12 +374,6 @@ public class CNetStat
         
         // Assets owners
         if (tab.equals("assets_owners")) return this.assets_owners;
-        
-        // Assets markets
-        if (tab.equals("assets_mkts")) return this.assets_mkts;
-        
-        // Assets markets pos
-        if (tab.equals("assets_mkts_pos")) return this.assets_mkts_pos;
         
         // Domains
         if (tab.equals("domains")) return this.domains;
@@ -482,17 +399,9 @@ public class CNetStat
         // Tweets follow
         if (tab.equals("tweets_follow")) return this.tweets_follow;
         
-        // Feeds
-        if (tab.equals("feeds")) return this.feeds;
+        // Storage
+        if (tab.equals("storage")) return this.storage;
         
-        // Feeds branches
-        if (tab.equals("feeds_branches")) return this.feeds_branches;
-        
-        // Feeds bets
-        if (tab.equals("feeds_bets")) return this.feeds_bets;
-        
-        // Feeds bets pos
-        if (tab.equals("feeds_bets_pos")) return this.feeds_bets_pos;
         
         return "";
     }
@@ -504,55 +413,8 @@ public class CNetStat
         this.net_dif=dif;
          
         // Debug
-        System.out.println("New difficulty : "+UTILS.BASIC.formatDif(dif.toString(16)));
+        //System.out.println("New difficulty : "+UTILS.BASIC.formatDif(dif.toString(16)));
      }
      
-     public void expired(long block) throws Exception
-     {
-         // Ads
-        this.table_ads.expired(block, adr);
-        
-        // Agents
-        this.table_agents.expired(block, adr);
-        
-        // Assets
-        this.table_assets.expired(block, adr);
-        
-        // Assets Owners
-        this.table_assets_owners.removeByAdr(adr);
-        
-        // Assets Markets
-        this.table_assets_mkts.removeByAdr(adr);
-        
-        // Assets Markets Pos
-        this.table_assets_mkts_pos.expired(block, adr);
-        
-        // Domains
-        this.table_domains.expired(block, adr);
-        
-        // Escrowed
-        this.table_escrowed.expired(block);
-        
-        // Profiles
-        this.table_profiles.expired(block, adr);
-        
-        // Tweets
-        this.table_tweets.removeByAdr(adr);
-        
-        // Tweets comments
-        this.table_comments.removeByAdr(adr);
-        
-        // Tweets likes
-        this.table_votes.removeByAdr(adr);
-        
-        // Tweets follow
-        this.table_tweets_follow.expired(block, adr);
-        
-        // Feeds 
-        this.table_feeds.expired(block, adr);
-        
-        // Feeds branches
-        this.table_feeds_branches.expired(block);
-     }
      
 }

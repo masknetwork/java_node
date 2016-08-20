@@ -17,11 +17,11 @@ public class CDelVotesTable extends CTable
     public void create() throws Exception
     {
         UTILS.DB.executeUpdate("CREATE TABLE del_votes(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                    + "delegate VARCHAR(500) DEFAULT '', "
-                                                    + "adr VARCHAR(500) DEFAULT '', "
-				  	            + "type VARCHAR(25) DEFAULT 'ID_UP', "
-				    	            + "block BIGINT DEFAULT 0,"
-				     	            + "rowhash VARCHAR(100) DEFAULT '')");
+                                                    + "delegate VARCHAR(500) NOT NULL DEFAULT '', "
+                                                    + "adr VARCHAR(500) NOT NULL DEFAULT '', "
+				  	            + "type VARCHAR(25) NOT NULL DEFAULT 'ID_UP', "
+				    	            + "block BIGINT NOT NULL DEFAULT 0,"
+				     	            + "rowhash VARCHAR(100) NOT NULL DEFAULT '')");
 				    
 	UTILS.DB.executeUpdate("CREATE INDEX del_votes_delegate ON del_votes(delegate)");
         UTILS.DB.executeUpdate("CREATE INDEX del_votes_adr ON del_votes(adr)");
@@ -41,9 +41,9 @@ public class CDelVotesTable extends CTable
                               + "WHERE block='"+block+"'");
         
         // Table hash
-        if (UTILS.BASIC.hasRecords("ads"))
+        if (UTILS.BASIC.hasRecords("del_votes"))
         {
-            UTILS.DB.executeUpdate("UPDATE del_votes "
+            UTILS.DB.executeUpdate("UPDATE net_stat "
                                     + "SET del_votes=(SELECT SHA2(GROUP_CONCAT(rowhash ORDER BY ID ASC), 256) AS st FROM del_votes)"); 
         
             // Refresh
@@ -56,6 +56,9 @@ public class CDelVotesTable extends CTable
     
     public void fromJSON(String data, String crc) throws Exception
     {
+        // No data
+        if (crc.equals("")) return;
+        
         // Grand hash
         String ghash="";
         

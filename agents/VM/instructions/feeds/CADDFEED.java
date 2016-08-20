@@ -116,7 +116,8 @@ public class CADDFEED extends CInstruction
                                          + "block='"+VM.block+"'");
         else
             UTILS.DB.executeUpdate("UPDATE agents_feeds "
-                                    + "SET expire=expire+"+(rs.getLong("expire")+this.days.cel.getLong()*1440)+" "
+                                    + "SET expire=expire+"+(rs.getLong("expire")+this.days.cel.getLong()*1440)+", "
+                                        + "block='"+VM.block+"' "
                                   + "WHERE agentID='"+aID.val+"' "
                                     + "AND feed='"+this.feed.cel.val+"' "
                                     + "AND branch='"+this.branch.cel.val+"'");

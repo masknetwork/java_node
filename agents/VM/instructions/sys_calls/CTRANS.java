@@ -59,7 +59,7 @@ public class CTRANS extends CInstruction
         CCell owner=VM.SYS.getVar("SYS.AGENT.GENERAL.OWNER");
         
         // Receiver
-        if (!UTILS.BASIC.adressValid(this.receiver.cel.val))
+        if (!UTILS.BASIC.isAdr(this.receiver.cel.val))
             throw new Exception("Invalid receiver");
         
         // Receiver
@@ -70,7 +70,7 @@ public class CTRANS extends CInstruction
         if (this.escrower.cel.val.length()>0)
         {
            // Escrower
-           if (!UTILS.BASIC.adressValid(this.escrower.cel.val))
+           if (!UTILS.BASIC.isAdr(this.escrower.cel.val))
                throw new Exception("Invalid escrower");
         
            // Escrower

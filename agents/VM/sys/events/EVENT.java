@@ -232,20 +232,8 @@ public class EVENT
             // New asset transaction
             case "ASSET_TRANS" : if (ASSET_TRANS!=null) c=this.ASSET_TRANS.getVal(v[3]); else c=new CCell(0); break;
             
-            // Open asset market
-            case "OPEN_ASSET_MARKET" : if (OPEN_MARKET!=null) c=this.OPEN_MARKET.getVal(v[3]); else c=new CCell(0); break;
-            
-            // Open asset order
-            case "OPEN_ASSET_ORDER" : if (OPEN_ORDER!=null) c=this.OPEN_ORDER.getVal(v[3]); else c=new CCell(0); break;
-            
-            // Close asset order
-            case "CLOSE_ASSET_ORDER" : if (CLOSE_ORDER!=null) c=this.CLOSE_ORDER.getVal(v[3]); else c=new CCell(0); break;
-            
-            // Open speculative market
-            case "BET_OPEN" : if (this.BET_OPEN!=null) c=this.BET_OPEN.getVal(v[3]); else c=new CCell(0); break;
-            
-            // Open speculative order
-            case "BET_BUY" : if (BET_BUY!=null) c=this.BET_BUY.getVal(v[3]); else c=new CCell(0); break;
+            // Vote
+            case "VOTE" : if (VOTE!=null) c=this.VOTE.getVal(v[3]); else c=new CCell(0); break;
         }
         
         // Load

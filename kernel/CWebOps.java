@@ -24,20 +24,13 @@ import wallet.network.packets.app.CRentAppPacket;
 import wallet.network.packets.app.CUpdateAppPacket;
 import wallet.network.packets.app.CUpdateSettingsPacket;
 import wallet.network.packets.assets.CIssueAssetPacket;
-import wallet.network.packets.assets.CIssueAssetPayload;
 import wallet.network.packets.domains.CBuyDomainPacket;
 import wallet.network.packets.domains.CRentDomainPacket;
 import wallet.network.packets.domains.CSaleDomainPacket;
 import wallet.network.packets.domains.CTransferDomainPacket;
-import wallet.network.packets.assets.reg_mkts.CCloseRegMarketPosPacket;
-import wallet.network.packets.assets.reg_mkts.CNewRegMarketPacket;
-import wallet.network.packets.assets.reg_mkts.CNewRegMarketPosPacket;
 import wallet.network.packets.mes.CMesPacket;
+import wallet.network.packets.misc.CDelVotePacket;
 import wallet.network.packets.misc.CRenewPacket;
-import wallet.network.packets.trade.bets.CBuyBetPacket;
-import wallet.network.packets.trade.bets.CNewBetPacket;
-import wallet.network.packets.trade.feeds.CNewFeedComponentPacket;
-import wallet.network.packets.trade.feeds.CNewFeedPacket;
 import wallet.network.packets.trans.CEscrowedTransSignPacket;
 import wallet.network.packets.trans.CTransPacket;
 import wallet.network.packets.tweets.CFollowPacket;
@@ -92,13 +85,11 @@ public class CWebOps
                        // UserID
                        long userID=rs.getLong("par_3");
                        
-                       // Statement
-                      
                        
                        // Load newly created adddress data
                        ResultSet rsn=UTILS.DB.executeQuery("SELECT * "
-                                                    + "FROM my_adr "
-                                                   + "WHERE userID='"+userID+"'");
+                                                           + "FROM my_adr "
+                                                          + "WHERE userID='"+userID+"'");
                        
                        // Has data
                        if (UTILS.DB.hasData(rsn))
@@ -110,21 +101,24 @@ public class CWebOps
                            String adr=rsn.getString("adr");
                        
                            // Initial coins 
-                           CTransPacket packet=new CTransPacket("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmzMuWmpif2JdeB1/UA7XQumglLj3o4/qF/CisxzJyXf7JoXXmGvBDJFbCSr8Si09zKtkfoA7jyU=", 
-			                                       "ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmzMuWmpif2JdeB1/UA7XQumglLj3o4/qF/CisxzJyXf7JoXXmGvBDJFbCSr8Si09zKtkfoA7jyU=", 
-			                                       adr, 
-			                                       1, 
-			                                       "MSK",
-			                                       "Welcome to MaskNetwork",
-                                                               "");
+                           if (!UTILS.STATUS.new_acc_reward_adr.equals("") && UTILS.STATUS.new_acc_reward>0.0001)
+                           {
+                               CTransPacket packet=new CTransPacket(UTILS.STATUS.new_acc_reward_adr, 
+			                                            UTILS.STATUS.new_acc_reward_adr,  
+			                                            adr, 
+			                                            UTILS.STATUS.new_acc_reward, 
+			                                            "MSK",
+			                                            "Welcome to MaskNetwork",
+                                                                    "",
+                                                                    rs.getLong("ID"));
                         
-                           UTILS.NETWORK.broadcast(packet);
+                               UTILS.NETWORK.broadcast(packet);
+                           }
                        }
                        
                        // Close
                        rsn.close();
-                  
-                   }
+                  }
                    
                    // Add peer
                    if (op.equals("ID_ADD_PEER")) 
@@ -146,125 +140,10 @@ public class CWebOps
                                                                    UTILS.BASIC.base64_decode(rs.getString("par_1")), 
 		                                                   UTILS.BASIC.base64_decode(rs.getString("par_2")), 
                                                                    rs.getLong("par_3"),
-		                                                   UTILS.BASIC.base64_decode(rs.getString("par_4")));
+		                                                   UTILS.BASIC.base64_decode(rs.getString("par_4")),
+                                                                   rs.getLong("days"));
                        
                         UTILS.NETWORK.broadcast(packet);
-                   }
-                   
-                   // New feed
-                   if (op.equals("ID_NEW_FEED"))
-                   {
-                      CNewFeedPacket packet=new CNewFeedPacket(rs.getString("fee_adr"), 
-                                                               rs.getString("target_adr"),
-                                                               UTILS.BASIC.base64_decode(rs.getString("par_1")),
-                                                               UTILS.BASIC.base64_decode(rs.getString("par_2")),
-                                                               UTILS.BASIC.base64_decode(rs.getString("par_3")),
-                                                               rs.getString("par_5"),
-                                                               rs.getLong("days"));
-                                 
-                      UTILS.NETWORK.broadcast(packet);
-                   }  
-                   
-                   // New feed branch
-                   if (op.equals("ID_NEW_FEED_BRANCH"))
-                   {
-                       CNewFeedComponentPacket packet=new CNewFeedComponentPacket(rs.getString("fee_adr"), 
-                                                                                 rs.getString("par_1"),
-                                                                                 UTILS.BASIC.base64_decode(rs.getString("par_3")),
-                                                                                 UTILS.BASIC.base64_decode(rs.getString("par_4")),
-                                                                                 rs.getString("par_5"),
-                                                                                 rs.getString("par_2"),
-                                                                                 rs.getString("par_6"),
-                                                                                 rs.getDouble("par_7"),
-                                                                                 rs.getLong("days"));
-                                 
-                      UTILS.NETWORK.broadcast(packet);
-                   }
-                   
-                 
-
-// New feed market
-                   if (op.equals("ID_NEW_SPEC_MARKET"))
-                   {
-                       /*CNewFeedMarketPacket packet=new CNewFeedMarketPacket(rs.getString("fee_adr"), 
-                                                                             rs.getString("target_adr"),
-			                                                     rs.getString("par_1"), 
-			                                                     rs.getString("par_2"), 
-				                                             rs.getString("par_3"), 
-				                                             rs.getString("par_4"), 
-			 	                                             rs.getString("par_5"), 
-				                                             rs.getString("par_6"), 
-				                                             rs.getString("par_7"), 
-				                                             rs.getLong("par_8"),
-				                                             rs.getLong("par_9"), 
-			 	                                             rs.getLong("par_10"),
-				                                             rs.getLong("par_11"),
-			                                                     rs.getDouble("par_12"),
-				                                             rs.getString("par_13"),
-			                                                     rs.getInt("par_14"),
-			                                                     rs.getString("par_15"),
-				                                             rs.getDouble("par_16"),
-			                                                     rs.getDouble("par_17"),
-				                                             rs.getLong("par_18"),
-			                                                     UTILS.BASIC.base64_decode(rs.getString("par_19")),
-				                                             UTILS.BASIC.base64_decode(rs.getString("par_20")),
-				                                             rs.getDouble("par_21"),
-				                                             rs.getLong("days"));*/
-                       
-                       //UTILS.NETWORK.broadcast(packet);
-                   }
-                   
-                   // New speculative position
-                   if (op.equals("ID_NEW_SPEC_POS"))
-                   {
-                       /*CNewSpecMarketPosPacket packet=new CNewSpecMarketPosPacket(rs.getString("fee_adr"), 
-                                                                                  rs.getString("target_adr"),
-		                                                                  rs.getLong("par_1"), 
-				                                                  rs.getString("par_2"), 
-				                                                  rs.getString("par_3"), 
-				                                                  rs.getDouble("par_4"), 
-				                                                  rs.getDouble("par_5"), 
-				                                                  rs.getDouble("par_6"), 
-				                                                  rs.getLong("par_7"),
-				                                                  rs.getDouble("par_8"));*/
-                      // UTILS.NETWORK.broadcast(packet);
-                   }
-                   
-                  
-                   // New bet packet 
-                   if (op.equals("ID_NEW_BET"))
-                   {
-                      CNewBetPacket packet=new CNewBetPacket(rs.getString("fee_adr"), 
-                                                             rs.getString("target_adr"),
-                                                             rs.getString("par_11"),
-                                                             rs.getString("par_12"),
-                                                             rs.getString("par_13"),
-                                                             rs.getString("par_14"),
-                                                             rs.getString("par_15"),
-                                                             rs.getString("par_16"),
-                                                             rs.getString("par_1"),
-                                                             rs.getDouble("par_2"),
-                                                             rs.getDouble("par_3"),
-                                                             UTILS.BASIC.base64_decode(rs.getString("par_7")),
-                                                             UTILS.BASIC.base64_decode(rs.getString("par_8")),
-                                                             rs.getDouble("par_4"),
-                                                             rs.getDouble("par_6"),
-                                                             rs.getLong("par_17"),
-                                                             rs.getLong("par_9"),
-                                                             rs.getLong("par_10"),
-                                                             rs.getString("par_5"));
-                      UTILS.NETWORK.broadcast(packet);
-                   }
-                   
-                   // Buy bet
-                   if (op.equals("ID_BUY_BET"))
-                   {
-                       CBuyBetPacket packet=new CBuyBetPacket(rs.getString("fee_adr"), 
-                                                              rs.getString("target_adr"),
-                                                              rs.getLong("par_1"), 
-                                                              rs.getDouble("par_2"));
-                       
-                       UTILS.NETWORK.broadcast(packet);
                    }
                    
                    
@@ -323,7 +202,8 @@ public class CWebOps
                                                              rs.getDouble("par_3"),
                                                              rs.getString("par_4"),
                                                              rs.getString("par_5"),
-                                                             rs.getString("par_6"));
+                                                             rs.getString("par_6"),
+                                                             rs.getLong("ID"));
                         
                         UTILS.NETWORK.broadcast(packet);
                    }
@@ -452,6 +332,16 @@ public class CWebOps
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
+                   if (op.equals("ID_START_MINING")) 
+                   { 
+                       UTILS.CBLOCK.startMiners(rs.getInt("par_1")); 
+                   }
+                   
+                   if (op.equals("ID_STOP_MINING")) 
+                   { 
+                       UTILS.CBLOCK.stopMiners();
+                   }
+                   
                    if (op.equals("ID_NEW_AD"))
                    {
                       CNewAdPacket packet=new CNewAdPacket(rs.getString("fee_adr"), 
@@ -481,67 +371,20 @@ public class CWebOps
                       UTILS.NETWORK.broadcast(packet);
                    }  
                    
-                   if (op.equals("ID_ISSUE_ASSET"))
-                   {
-                     CIssueAssetPacket packet=new CIssueAssetPacket(rs.getString("fee_adr"), 
-                                                                       rs.getString("target_adr"),
-                                                                       rs.getString("par_7"),
-                                                                       UTILS.BASIC.base64_decode(rs.getString("par_1")),
-                                                                       UTILS.BASIC.base64_decode(rs.getString("par_2")),
-                                                                       UTILS.BASIC.base64_decode(rs.getString("par_3")),
-                                                                       UTILS.BASIC.base64_decode(rs.getString("par_4")),
-                                                                       UTILS.BASIC.base64_decode(rs.getString("par_5")),
-                                                                       UTILS.BASIC.base64_decode(rs.getString("par_6")),
-                                                                       rs.getLong("days"),
-                                                                       rs.getLong("par_8"),
-                                                                       rs.getString("par_10"),
-                                                                       rs.getDouble("par_9"));    
-                        
-                        UTILS.NETWORK.broadcast(packet);
-                   }
-                   
                    
                    
                    // New regular asset market
-                   if (op.equals("ID_NEW_REGULAR_ASSET_MARKET"))
+                   if (op.equals("ID_VOTE_DELEGATE"))
                    {
-                       CNewRegMarketPacket packet=new CNewRegMarketPacket(rs.getString("fee_adr"), 
-                                                                            rs.getString("target_adr"),
-                                                                            rs.getString("par_1"),
-                                                                            rs.getString("par_2"), 
-                                                                            rs.getInt("par_5"),
-                                                                            UTILS.BASIC.base64_decode(rs.getString("par_3")), 
-                                                                            UTILS.BASIC.base64_decode(rs.getString("par_4")),
-                                                                            rs.getLong("days"));
-                       
-                       UTILS.NETWORK.broadcast(packet);
-                   }
-                  
-                   
-                   // New regular asset market
-                   if (op.equals("ID_NEW_REGULAR_MKT_POS"))
-                   {
-                       CNewRegMarketPosPacket packet=new CNewRegMarketPosPacket(rs.getString("fee_adr"), 
-                                                                                rs.getString("target_adr"),
-                                                                                rs.getLong("par_1"), 
-                                                                                rs.getString("par_2"),
-                                                                                rs.getDouble("par_4"),
-                                                                                rs.getDouble("par_3"),
-                                                                                rs.getLong("days"));
-                       
+                       CDelVotePacket packet=new CDelVotePacket(rs.getString("fee_adr"), 
+                                                                rs.getString("target_adr"),
+                                                                rs.getString("par_1"),
+                                                                rs.getString("par_2"));
+                      
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
                    
-                   // New regular asset market
-                   if (op.equals("ID_CLOSE_REGULAR_MKT_POS"))
-                   {
-                       CCloseRegMarketPosPacket packet=new CCloseRegMarketPosPacket(rs.getString("fee_adr"), 
-                                                                                    rs.getString("target_adr"),
-                                                                                    rs.getLong("par_1"));
-                       
-                       UTILS.NETWORK.broadcast(packet);
-                   }
                    
                    
                    
@@ -626,6 +469,26 @@ public class CWebOps
                        // Broadcast
                        UTILS.NETWORK.broadcast(packet);
                    }  
+                   
+                   if (op.equals("ID_ISSUE_ASSET"))
+                   {
+                     CIssueAssetPacket packet=new CIssueAssetPacket(rs.getString("fee_adr"), 
+                                                                       rs.getString("target_adr"),
+                                                                       rs.getString("par_7"),
+                                                                       UTILS.BASIC.base64_decode(rs.getString("par_1")),
+                                                                       UTILS.BASIC.base64_decode(rs.getString("par_2")),
+                                                                       UTILS.BASIC.base64_decode(rs.getString("par_3")),
+                                                                       UTILS.BASIC.base64_decode(rs.getString("par_4")),
+                                                                       UTILS.BASIC.base64_decode(rs.getString("par_5")),
+                                                                       UTILS.BASIC.base64_decode(rs.getString("par_6")),
+                                                                       rs.getLong("days"),
+                                                                       rs.getLong("par_8"),
+                                                                       rs.getString("par_10"),
+                                                                       rs.getDouble("par_9"));    
+                        
+                        UTILS.NETWORK.broadcast(packet);
+                   }
+                   
                    
                 }
            }

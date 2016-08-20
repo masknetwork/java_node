@@ -8,6 +8,7 @@ import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import wallet.kernel.CAddress;
 import wallet.kernel.CCPUMiner;
 import wallet.kernel.CStatus;
@@ -51,14 +52,10 @@ public class CCurBlock
    public long nonce=0;
    
    // CPU miner
-   public CCPUMiner miner_1=null;
-   public CCPUMiner miner_2=null;
-   public CCPUMiner miner_3=null;
-   public CCPUMiner miner_4=null;
-   public CCPUMiner miner_5=null;
-   public CCPUMiner miner_6=null;
-   public CCPUMiner miner_7=null;
-   public CCPUMiner miner_8=null;
+   public ArrayList<CCPUMiner> miners;
+   
+   // Miners
+   public long miners_no=0;
    
    // Block time
    public long block_time=20;
@@ -75,9 +72,6 @@ public class CCurBlock
    
    public CCurBlock() throws Exception
    {
-       // Load network status
-       
-       
        // Load
        ResultSet rs=UTILS.DB.executeQuery("SELECT * FROM net_stat");
        
@@ -95,50 +89,59 @@ public class CCurBlock
        
        // Net dif
        UTILS.NET_STAT.setDifficulty(this.getNewDif(UTILS.NET_STAT.last_block_hash));
+       
+       // Reset
+       UTILS.DB.executeUpdate("UPDATE web_sys_data "
+                               + "SET mining_threads=0, "
+                                   + "cpu_1_power=0, "
+                                   + "cpu_2_power=0, "
+                                   + "cpu_3_power=0, "
+                                   + "cpu_4_power=0, "
+                                   + "cpu_5_power=0, "
+                                   + "cpu_6_power=0, "
+                                   + "cpu_7_power=0, "
+                                   + "cpu_8_power=0, "
+                                   + "cpu_9_power=0, "
+                                   + "cpu_10_power=0, "
+                                   + "cpu_11_power=0, "
+                                   + "cpu_12_power=0, "
+                                   + "cpu_13_power=0, "
+                                   + "cpu_14_power=0, "
+                                   + "cpu_15_power=0, "
+                                   + "cpu_16_power=0, "
+                                   + "cpu_17_power=0, "
+                                   + "cpu_18_power=0, "
+                                   + "cpu_19_power=0, "
+                                   + "cpu_20_power=0, "
+                                   + "cpu_21_power=0, "
+                                   + "cpu_22_power=0, "
+                                   + "cpu_23_power=0, "
+                                   + "cpu_24_power=0");
   
    }
  
-   public void startMiner(int miner)
+   public void addMiner() throws Exception
    {
-       switch (miner)
-       {
-           case 1 : this.miner_1=new CCPUMiner(); 
-                                 this.miner_1.start(); 
-                                 break;
-                                 
-           case 2 : this.miner_2=new CCPUMiner(); 
-                                 this.miner_2.start(); 
-                                 break;
-                                 
-           case 3 : this.miner_3=new CCPUMiner(); 
-                                 this.miner_3.start(); 
-                                 break;
-                                 
-           case 4 : this.miner_4=new CCPUMiner(); 
-                                 this.miner_4.start(); 
-                                 break;
-                                 
-           case 5 : this.miner_5=new CCPUMiner(); 
-                                 this.miner_5.start(); 
-                                 break;
-                                 
-           case 6 : this.miner_6=new CCPUMiner(); 
-                                 this.miner_6.start(); 
-                                 break;
-                                 
-           case 7 : this.miner_7=new CCPUMiner(); 
-                                 this.miner_7.start(); 
-                                 break;
-                                 
-           case 8 : this.miner_8=new CCPUMiner(); 
-                                 this.miner_8.start(); 
-                                 break;
-       }
+       // Miners number
+       this.miners_no++;
+       
+       // New miner
+       CCPUMiner miner=new CCPUMiner(this.miners_no);
+       
+       // Miners
+       this.miners.add(miner);
+       
+       // Start
+       miner.start();
+       
+       // Threads
+       UTILS.DB.executeUpdate("UPDATE web_sys_data "
+                               + "SET mining_threads=mining_threads+1");
    }
    
    public void addPacket(CBroadcastPacket packet) throws Exception
    {
-       if (this.nonce==0) 
+       if (this.nonce==0 && !this.signer.equals("")) 
        {
            // Add packet
            payload.addPacket(packet);
@@ -159,34 +162,30 @@ public class CCurBlock
    
    public void setSigner()  throws Exception
    {
-          // Load
-          ResultSet rs=UTILS.DB.executeQuery("SELECT ma.*, adr.balance "
-                                             + "FROM my_adr AS ma "
-                                             + "JOIN adr ON adr.adr=ma.adr "
-                                            + "WHERE mine>0 AND last_mine<"+(UTILS.NET_STAT.last_block-1000)+" "
-                                         + "ORDER BY adr.balance DESC LIMIT 0,1");
-          
-       
-          // Next
-          if (UTILS.DB.hasData(rs)) 
-          {
-              // Next
-              rs.next();
-           
-              // Set miner
-              this.signer=rs.getString("adr");
+       // Load delegate
+       ResultSet rs=UTILS.DB.executeQuery("SELECT * FROM net_stat");
               
-              // Signer balance
-              this.signer_balance=Math.round(rs.getDouble("balance"));
+       // Next
+       rs.next();
               
-              // Payload
-              if (this.payload!=null) this.payload.target_adr=signer;
-          }
-          else
-          {
-              this.signer="";
-              this.signer_balance=0;
-          }
+       // Set miner
+       this.signer=rs.getString("delegate");
+              
+       // Next
+       if (!this.signer.equals("")) 
+       {
+            // Signer power
+            this.signer_balance=UTILS.DELEGATES.getPower(signer);
+              
+            // Payload
+            if (this.payload!=null) this.payload.target_adr=signer;
+              
+       }
+       else
+       {
+            this.signer="";
+            this.signer_balance=0;
+       }
    }
    
    public void broadcast() throws Exception
@@ -291,9 +290,9 @@ public class CCurBlock
        
        // Load
        ResultSet rs=UTILS.DB.executeQuery("SELECT *  "
-                                   + "FROM blocks "
-                                  + "WHERE hash='"+last_hash+"' "
-                               + "ORDER BY block ASC");
+                                          + "FROM blocks "
+                                         + "WHERE hash='"+last_hash+"' "
+                                      + "ORDER BY block ASC");
        
        // Next
        rs.next();
@@ -335,21 +334,16 @@ public class CCurBlock
        
        // Number
        if (no==0) no=1;
-       System.out.println("Generated blocks "+no);
+       //System.out.println("Generated blocks "+no);
        
        // New dif
        BigInteger new_dif=new BigInteger("0");
        
        // Change dificulty ?
        if (no>100)
-       {
-           new_dif=last_dif.subtract(last_dif.divide(new BigInteger("100")));
-       }
+           new_dif=last_dif.subtract(last_dif.divide(BigInteger.valueOf(100)));
        else if (no<100)
-       {
-           new_dif=last_dif.add(last_dif.divide(new BigInteger("100")));
-       }
-       
+           new_dif=last_dif.add(last_dif.divide(BigInteger.valueOf(100)));
        else
          new_dif=last_dif;
        
@@ -357,4 +351,57 @@ public class CCurBlock
        return new_dif;
    }
    
+   public void stopMiners() throws Exception
+   {
+       for (int a=0; a<=this.miners.size()-1; a++)
+       {
+           CCPUMiner m=this.miners.get(a);
+           m.stopMiner();
+       }
+       
+       // Close array
+       this.miners=new ArrayList<CCPUMiner>();
+       
+       // Reset
+       UTILS.DB.executeUpdate("UPDATE web_sys_data "
+                               + "SET mining_threads=0, "
+                                   + "cpu_1_power=0, "
+                                   + "cpu_2_power=0, "
+                                   + "cpu_3_power=0, "
+                                   + "cpu_4_power=0, "
+                                   + "cpu_5_power=0, "
+                                   + "cpu_6_power=0, "
+                                   + "cpu_7_power=0, "
+                                   + "cpu_8_power=0, "
+                                   + "cpu_9_power=0, "
+                                   + "cpu_10_power=0, "
+                                   + "cpu_11_power=0, "
+                                   + "cpu_12_power=0, "
+                                   + "cpu_13_power=0, "
+                                   + "cpu_14_power=0, "
+                                   + "cpu_15_power=0, "
+                                   + "cpu_16_power=0, "
+                                   + "cpu_17_power=0, "
+                                   + "cpu_18_power=0, "
+                                   + "cpu_19_power=0, "
+                                   + "cpu_20_power=0, "
+                                   + "cpu_21_power=0, "
+                                   + "cpu_22_power=0, "
+                                   + "cpu_23_power=0, "
+                                   + "cpu_24_power=0");
+       
+       // Miners no
+       this.miners_no=0;
+   }
+   
+   public void startMiners(int no) throws Exception
+   {
+       // Create array
+       miners=new ArrayList<CCPUMiner>();
+       
+       for (int a=1; a<=no; a++)
+           this.addMiner();
+       
+       this.setSigner();
+   }
 }

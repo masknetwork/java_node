@@ -30,6 +30,9 @@ public class CNewTweetPayload extends CPayload
    // TweetID
    long tweetID;
    
+   // Days
+   long days;
+   
    // Serial
    private static final long serialVersionUID = 100L;
    
@@ -37,7 +40,8 @@ public class CNewTweetPayload extends CPayload
 		           String title, 
                            String mes, 
                            String pic,
-                           long retweet_tweet_ID) throws Exception
+                           long retweet_tweet_ID,
+                           long days) throws Exception
    {
 	  // Superclass
 	   super(adr);
@@ -57,13 +61,17 @@ public class CNewTweetPayload extends CPayload
            // Tweet ID
            this.tweetID=UTILS.BASIC.getID();
            
+           // Days
+           this.days=days;
+           
 	   // Hash
  	   hash=UTILS.BASIC.hash(this.getHash()+
  			         this.title+
                                  this.mes+
                                  this.pic+
                                  this.retweet_tweet_ID+
-                                 this.tweetID);
+                                 this.tweetID+
+                                 this.days);
  	   
  	   // Sign
            this.sign(); 
@@ -101,8 +109,6 @@ public class CNewTweetPayload extends CPayload
                 !this.title.equals(""))
             throw new Exception ("Invalid entry data - CNewTweetPayload.java");
         }
-        
-        
             
         // Check if retweet ID exist
         if (this.retweet_tweet_ID>0)
@@ -124,7 +130,8 @@ public class CNewTweetPayload extends CPayload
                                   this.mes+
                                   this.pic+
                                   this.retweet_tweet_ID+
-                                  this.tweetID);
+                                  this.tweetID+
+                                  this.days);
 	  
    	if (!h.equals(this.hash)) 
            throw new Exception ("Invalid hash - CNewTweetPayload.java");
@@ -142,6 +149,7 @@ public class CNewTweetPayload extends CPayload
    		   		            + "title='"+UTILS.BASIC.base64_encode(this.title)+"', "
                                             + "mes='"+UTILS.BASIC.base64_encode(this.mes)+"', "
    		                            + "pic='"+UTILS.BASIC.base64_encode(this.pic)+"', "
+                                            + "expire='"+(this.block+(this.days*1440))+"', "
                                             + "retweet_tweet_ID='"+this.retweet_tweet_ID+"', "
                                             + "block='"+this.block+"'");
            

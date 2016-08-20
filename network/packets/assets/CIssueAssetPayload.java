@@ -178,7 +178,7 @@ public class CIssueAssetPayload extends CPayload
           throw new Exception("Invalid days - CIssueAssetPayload.java");
         
         // Transaction fee address
-        if (!UTILS.BASIC.adressValid(this.trans_fee_adr))
+        if (!UTILS.BASIC.isAdr(this.trans_fee_adr))
             throw new Exception("Invalid transaction fee address - CIssueAssetPayload.java");
         
         // Transaction fee
@@ -191,9 +191,8 @@ public class CIssueAssetPayload extends CPayload
         
          // Mkt address ?
         if (UTILS.BASIC.isMktAdr(this.target_adr) || 
-            UTILS.BASIC.isContractAdr(this.target_adr) ||
-            UTILS.BASIC.isSpecMktAdr(this.target_adr))
-           throw new Exception("Market address - CIssueAssetPayload.java");
+            UTILS.BASIC.isContractAdr(this.target_adr))
+        throw new Exception("Market address - CIssueAssetPayload.java");
             
         // Calculates hash
         String h=UTILS.BASIC.hash(this.getHash()+

@@ -14,11 +14,12 @@ public class CAccounting
     }
     
     public void clearTrans(String hash, String tip, long block) throws Exception
-        {
+    {
             // Load trans data
-                ResultSet rs_trans=UTILS.DB.executeQuery("SELECT * "
+            ResultSet rs_trans=UTILS.DB.executeQuery("SELECT * "
                                                          + "FROM trans "
-                                                        + "WHERE hash='"+hash+"'");
+                                                        + "WHERE hash='"+hash+"' "
+                                                          + "AND status='ID_PENDING'");
                 
                 // Clear
                 while (rs_trans.next())
@@ -38,6 +39,11 @@ public class CAccounting
                                    rs_trans.getDouble("amount"), 
                                    hash,
                                    block);
+                      
+                      // Update trans
+                      UTILS.DB.executeUpdate("UPDATE trans "
+                                              + "SET status='ID_CLEARED' "
+                                            + "WHERE ID='"+rs_trans.getLong("ID")+"'");
                     }
                 }
         }
@@ -107,7 +113,7 @@ public class CAccounting
             double mkt_fee=0;
             
             // Address valid
-            if (!UTILS.BASIC.adressValid(adr)) throw new Exception("Invalid address");
+            if (!UTILS.BASIC.isAdr(adr)) throw new Exception("Invalid address");
                 
             // Statement
             
@@ -119,7 +125,7 @@ public class CAccounting
             if (amount<0)
             {
                 // Balance
-                double balance=UTILS.NETWORK.TRANS_POOL.getBalance(adr, cur);
+                double balance=this.getBalance(adr, cur);
                    
                 // Funds
                 if (balance<Math.abs(amount))
@@ -158,7 +164,7 @@ public class CAccounting
                 else 
                 {
                     // Fee
-                    fee=Math.abs(amount*0.0015);
+                    fee=Math.abs(amount*0.001);
                     
                     // Fee address
                     fee_adr="default";
@@ -226,9 +232,10 @@ public class CAccounting
                                                  + "hash='"+hash+"', "
                                                  + "block='"+block+"', "
                                                  + "block_hash='"+UTILS.NET_STAT.actual_block_hash+"', "
-                                                 + "tstamp='"+UTILS.BASIC.tstamp()+"'");
+                                                 + "tstamp='"+UTILS.BASIC.tstamp()+"', "
+                                                 + "status='ID_PENDING'");
             
-            if (amount>0)
+            if (amount>0 && !adr.equals("default"))
             {
                 // Insert fee into transactions
                 UTILS.DB.executeUpdate("INSERT INTO trans "
@@ -238,7 +245,8 @@ public class CAccounting
                                                  + "hash='"+hash+"', "
                                                  + "block='"+block+"', "
                                                  + "block_hash='"+UTILS.NET_STAT.actual_block_hash+"', "
-                                                 + "tstamp='"+UTILS.BASIC.tstamp()+"'");
+                                                 + "tstamp='"+UTILS.BASIC.tstamp()+"', "
+                                                 + "status='ID_PENDING'");
            
             
                 // Insert fee into transactions
@@ -249,10 +257,11 @@ public class CAccounting
                                                  + "hash='"+hash+"', "
                                                  + "block='"+block+"', "
                                                  + "block_hash='"+UTILS.NET_STAT.actual_block_hash+"', "
-                                                 + "tstamp='"+UTILS.BASIC.tstamp()+"'");
+                                                 + "tstamp='"+UTILS.BASIC.tstamp()+"', "
+                                                 + "status='ID_PENDING'");
             }
             
-            // Close
+       
             
         }
         
@@ -287,10 +296,7 @@ public class CAccounting
             double new_balance=0;
             double invested=0;
                     
-                // Statement
-                     
-                     
-                     // Load asset data
+            // Load asset data
                      ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                                  + "FROM assets "
                                                 + "WHERE symbol='"+cur+"'");
@@ -373,6 +379,7 @@ public class CAccounting
 		   		                    + "block='"+(UTILS.NET_STAT.last_block+1)+
                                                 "' WHERE owner='"+adr+"' "
                                                   + "AND symbol='"+cur+"'");
+                 
         }
         
         public void doTrans(String adr, 
@@ -384,7 +391,7 @@ public class CAccounting
             double new_balance;
             
             // Adr
-            if (!UTILS.BASIC.adressValid(adr)) throw new Exception("Invalid address");
+            if (!UTILS.BASIC.isAdr(adr)) throw new Exception("Invalid address");
             
             // Hash
             if (!UTILS.BASIC.isHash(hash))  throw new Exception("Invalid hash");
@@ -398,18 +405,13 @@ public class CAccounting
                      // Address exist ?
                      if (!UTILS.DB.hasData(rs))
                      {
-                        UTILS.DB.executeUpdate("INSERT INTO adr (adr, "
-                                                              + "balance, "
-                                                              + "block, "
-                                                              + "created, "
-                                                              + "rowhash, "
-                                                              + "last_interest) "
-                                                     + "VALUES('"+adr+"', "+
-                                                                  "'0', '"+
-                                                                  block+"', '"+
-                                                                  block+"', "
-                                                                  + "'', "
-                                                                  + "'"+block+"')");
+                        UTILS.DB.executeUpdate("INSERT INTO adr  "
+                                                     + "SET adr='"+adr+"', "
+                                                         + "balance='0', "
+                                                         + "block='"+block+"', "
+                                                         + "created='"+block+"', "
+                                                         + "rowhash=''");
+                        
                         // New balance
                         new_balance=Double.parseDouble(UTILS.FORMAT_8.format(amount));
                      }

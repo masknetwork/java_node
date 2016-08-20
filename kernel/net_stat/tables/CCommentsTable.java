@@ -14,6 +14,10 @@ public class CCommentsTable extends CTable
         super("comments");
     }
     
+    public void expire(long block) throws Exception
+    {
+        UTILS.DB.executeUpdate("DELETE FROM comments WHERE expire<"+block);
+    }
     
     public void create() throws Exception
     {
@@ -23,20 +27,20 @@ public class CCommentsTable extends CTable
                                                             +"parentID BIGINT NOT NULL DEFAULT 0, "
                                                             +"comID BIGINT NOT NULL DEFAULT 0, "
                                                             +"mes VARCHAR(1000) NOT NULL DEFAULT '', "
+                                                            +"expire BIGINT DEFAULT 0,"
                                                             +"rowhash VARCHAR(100) NOT NULL DEFAULT '', "
                                                             +"block BIGINT NOT NULL DEFAULT 0)");
              
         UTILS.DB.executeUpdate("CREATE INDEX comments_parent_type ON comments(parent_type)");
         UTILS.DB.executeUpdate("CREATE INDEX comments_parentID ON comments(parentID)");
         UTILS.DB.executeUpdate("CREATE INDEX comments_block ON comments(block)");
-        UTILS.DB.executeUpdate("CREATE INDEX comments_status ON comments(status)");
         UTILS.DB.executeUpdate("CREATE INDEX comments_comID ON comments(comID)");  
     }
     
-    public void removeByAdr(String adr) throws Exception
+    public void expired(long block) throws Exception
     {
         UTILS.DB.executeUpdate("DELETE FROM comments "
-                                   + "WHERE adr='"+adr+"'");
+                                   + "WHERE expire<='"+block+"'");
     }
     
      // Address
@@ -49,6 +53,7 @@ public class CCommentsTable extends CTable
                                                          + "parentID, "
                                                          + "comID, "
                                                          + "mes, "
+                                                         + "expire, "
                                                          + "block), 256) "
                                      + "WHERE block='"+block+"'");
         
@@ -68,6 +73,9 @@ public class CCommentsTable extends CTable
     
     public void fromJSON(String data, String crc) throws Exception
     {
+        // No data
+        if (crc.equals("")) return;
+            
         // Grand hash
         String ghash="";
         
@@ -100,6 +108,9 @@ public class CCommentsTable extends CTable
                
             // Message
             String mes=row.getString("mes");
+            
+            // Expire
+            long expire=row.getLong("expire");
                
             // Block
             long block=row.getLong("block");
@@ -113,6 +124,7 @@ public class CCommentsTable extends CTable
                                          parentID+
                                          comID+
                                          mes+
+                                         expire+
                                          block);
                     
             // Check hash
@@ -181,6 +193,9 @@ public class CCommentsTable extends CTable
                // Message
                this.addRow("mes", rs.getString("mes"));
                
+               // Expire
+               this.addRow("expire", rs.getLong("expire"));
+               
                // Block
                this.addRow("block", rs.getLong("block"));
                
@@ -225,6 +240,7 @@ public class CCommentsTable extends CTable
                                              + "parentID='"+row.getLong("parentID")+"', "
                                              + "comID='"+row.getLong("comID")+"', "
                                              + "mes='"+row.getString("mes")+"', "
+                                             + "expire='"+row.getLong("expire")+"', "
                                              + "block='"+row.getLong("block")+"', "
                                              + "rowhash='"+row.getString("rowhash")+"'");
         }

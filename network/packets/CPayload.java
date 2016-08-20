@@ -87,7 +87,7 @@ public class CPayload  implements java.io.Serializable
             
            // Target adr
             if (!this.target_adr.equals(""))
-               if (!UTILS.BASIC.adressValid(this.target_adr))
+               if (!UTILS.BASIC.isAdr(this.target_adr))
                   throw new Exception("Invalid target address - CPayload");
             
            // Check sig

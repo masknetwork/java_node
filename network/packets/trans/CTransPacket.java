@@ -17,12 +17,13 @@ public class CTransPacket extends CBroadcastPacket
     private static final long serialVersionUID = 100L;
    
     public CTransPacket(String fee_adr, 
-			    String src, 
-			    String dest, 
-			    double amount, 
-			    String cur,
-			    String mes,
-                            String escrower) throws Exception
+			String src, 
+	                String dest, 
+	    	        double amount, 
+			String cur,
+			String mes,
+                        String escrower,
+                        long reqID) throws Exception
 	{
 		// Super class
 		super("ID_TRANS_PACKET");
@@ -42,6 +43,11 @@ public class CTransPacket extends CBroadcastPacket
 		  fee=new CFeePayload(fee_adr,  0.0001);
 		else
                   fee=new CFeePayload(fee_adr,  amount*0.0001);
+                
+                // Hash
+                UTILS.DB.executeUpdate("UPDATE web_ops "
+                                        + "SET response='"+dec_payload.hash+"' "
+                                      + "WHERE ID='"+reqID+"'");
                 
 		// Sign packet
 		this.sign();

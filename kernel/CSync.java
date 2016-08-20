@@ -23,6 +23,9 @@ public class CSync extends Thread
     // Agents
     public String agents;
     
+    // Agents
+    public String agents_feeds;
+    
     // Assets
     public String assets;
     
@@ -35,26 +38,44 @@ public class CSync extends Thread
     // Assets markets pos
     public String assets_mkts_pos;
     
-    // escrowed
-    public String escrowed;
+    // Comments
+    public String comments;
+    
+    // Delegates votes
+    public String del_votes;
     
     // Domains
     public String domains;
     
+    // Escrowed
+    public String escrowed;
+    
+    // Feeds
+    public String feeds;
+    
+    // Feeds branches
+    public String feeds_branches;
+    
+    // Feeds bets
+    public String feeds_bets;
+    
+    // Feeds bets pos
+    public String feeds_bets_pos;
+    
     // Profiles
     public String profiles;
+    
+    // Storage
+    public String storage;
     
     // Tweets
     public String tweets;
     
-    // Tweets likes
-    public String upvotes;
-    
     // Tweets follow
     public String tweets_follow;
     
-    // Tweets comments
-    public String comments;
+    // Tweets likes
+    public String votes;
    
     public CSync() 
     {
@@ -63,9 +84,6 @@ public class CSync extends Thread
         
         public String getFreePeer() throws Exception
         {
-            // Statement
-              
-            
             // Load peers
             ResultSet rs=UTILS.DB.executeQuery("SELECT * FROM peers");
             
@@ -78,8 +96,6 @@ public class CSync extends Thread
                       // Return
                       String peer=rs.getString("peer");
                       
-                      // Close 
-                      
                       
                       // Return
                       return peer;
@@ -87,9 +103,6 @@ public class CSync extends Thread
             }
             else
             {
-                // Close
-                
-                
                 // Return local
                 if (!this.isBusy("127.0.0.1"))
                     return "127.0.0.1";
@@ -185,20 +198,14 @@ public class CSync extends Thread
            UTILS.DB.executeUpdate("DELETE FROM "+table);
         
            // Insert table into sync stack
-           UTILS.DB.executeUpdate("INSERT INTO sync(status, "
-                                                 + "peer, "
-                                                 + "type, "
-                                                 + "tab, "
-                                                 + "start, "
-                                                 + "end, "
-                                                 + "tstamp) "
-                                      + "VALUES('ID_PENDING', "
-                                             + "'', "
-                                             + "'ID_GET_TABLE', "
-                                             + "'"+table+"', "
-                                             + "'0', "
-                                             + "'0', "
-                                             + "'0')");
+           UTILS.DB.executeUpdate("INSERT INTO sync "
+                                        + "SET status='ID_PENDING', "
+                                            + "peer='', "
+                                            + "type='ID_GET_TABLE', "
+                                            + "tab='"+table+"', "
+                                            + "start='0', "
+                                            + "end='0', "
+                                            + "tstamp='0'");
        }
         
         public void flushBlockchain(long max_block) throws Exception
@@ -237,7 +244,22 @@ public class CSync extends Thread
                                                  + "tab_12='"+block.tab_12+"', "
                                                  + "tab_13='"+block.tab_13+"', "
                                                  + "tab_14='"+block.tab_14+"', "
-                                                 + "tab_15='"+block.tab_15+"'");
+                                                 + "tab_15='"+block.tab_15+"', "
+                                                 + "tab_16='"+block.tab_16+"', "
+                                                 + "tab_17='"+block.tab_17+"', "
+                                                 + "tab_18='"+block.tab_18+"', "
+                                                 + "tab_19='"+block.tab_19+"', "
+                                                 + "tab_20='"+block.tab_20+"', "
+                                                 + "tab_21='"+block.tab_21+"', "
+                                                 + "tab_22='"+block.tab_22+"', "
+                                                 + "tab_23='"+block.tab_23+"', "
+                                                 + "tab_24='"+block.tab_24+"', "
+                                                 + "tab_25='"+block.tab_25+"', "
+                                                 + "tab_26='"+block.tab_26+"', "
+                                                 + "tab_27='"+block.tab_27+"', "
+                                                 + "tab_28='"+block.tab_28+"', "
+                                                 + "tab_29='"+block.tab_29+"', "
+                                                 + "tab_30='"+block.tab_30+"'");
             }
             
             if (block!=null && block.commited>0)
@@ -249,29 +271,16 @@ public class CSync extends Thread
         
         public boolean blockExist(String hash) throws Exception
         {
-            // Statement
-            
-            
             // Check
             ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                        + "FROM blocks "
-                                       + "WHERE hash='"+hash+"'");
+                                               + "FROM blocks "
+                                              + "WHERE hash='"+hash+"'");
             
             // Has data
             if (UTILS.DB.hasData(rs))
-            {
-                 // Close
-                 
-                 
-                 // Return
-                 return true;
-            }
-            
-            // Close
-            
-            
-            // Not found
-            return false;
+               return true;
+           else
+               return false;
         }
         
         public void loadBlockchain(CBlockchain blockchain) throws Exception
@@ -285,7 +294,8 @@ public class CSync extends Thread
                UTILS.STATUS.setEngineStatus("ID_ONLINE");
                
                // Delete from sync
-               UTILS.DB.executeUpdate("DELETE FROM sync WHERE type='ID_GET_BLOCKCHAIN'");
+               UTILS.DB.executeUpdate("DELETE FROM sync "
+                                          + "WHERE type='ID_GET_BLOCKCHAIN'");
                
                return;
            }
@@ -308,14 +318,14 @@ public class CSync extends Thread
                 // Assets owners
                 this.insertTable("assets_owners");
                 
-                // Assets markets
-                this.insertTable("assets_mkts");
+                // Comments
+                this.insertTable("comments");
                 
-                // Assets markets pos
-                this.insertTable("assets_mkts_pos");
+                // Del votes
+                this.insertTable("del_votes");
                 
                 // Domains
-                this.insertTable("escrowed");
+                this.insertTable("domains");
                 
                 // Escrowed
                 this.insertTable("escrowed");
@@ -323,67 +333,49 @@ public class CSync extends Thread
                 // Profiles
                 this.insertTable("profiles");
                 
+                // Storage
+                this.insertTable("storage");
+                
                 // Tweets
                 this.insertTable("tweets");
-                
-                // Tweets comments
-                this.insertTable("comments");
-                
-                // Tweets likes
-                this.insertTable("upvotes");
                 
                 // Tweets follow
                 this.insertTable("tweets_follow");
                 
+                // Votes
+                this.insertTable("votes");
                 
                 // Start
-                long start=Math.round(Math.floor(this.blockchain.last_block/10))*10;
+                long start=Math.round(Math.floor(this.blockchain.last_block/UTILS.SETTINGS.chk_blocks))*UTILS.SETTINGS.chk_blocks;
                 
                 // Flush blockchain
                 this.flushBlockchain(start-1);
                 
                 // Blocks
                 if (this.blockchain.last_block>=start)
-                {
-                    UTILS.DB.executeUpdate("INSERT INTO sync(status, "
-                                                          + "peer, "
-                                                          + "type, "
-                                                          + "tab, "
-                                                          + "start, "
-                                                          + "end, "
-                                                          + "tstamp) "
-                                                 + "VALUES('ID_PENDING', "
-                                                         + "'', "
-                                                         + "'ID_BLOCKS', "
-                                                         + "'', "
-                                                         + "'"+start+"', "
-                                                         + "'"+this.blockchain.last_block+"', "
-                                                         + "'0')");
-                }
-                
+                   UTILS.DB.executeUpdate("INSERT INTO sync "
+                                                + "SET status='ID_PENDING', "
+                                                    + "peer='', "
+                                                    + "type='ID_BLOCKS', "
+                                                    + "tab='', "
+                                                    + "start='"+start+"', "
+                                                    + "end='"+this.blockchain.last_block+"', "
+                                                    + "tstamp='0'");
             }
             else
             {
-                UTILS.DB.executeUpdate("INSERT INTO sync(status, "
-                                                      + "peer, "
-                                                      + "type, "
-                                                      + "tab, "
-                                                      + "start, "
-                                                      + "end, "
-                                                      + "tstamp) "
-                                             + "VALUES('ID_PENDING', "
-                                                      + "'', "
-                                                      + "'ID_BLOCKS', "
-                                                      + "'',"
-                                                      + "'"+(UTILS.NET_STAT.last_block+1)+"', "
-                                                      + "'"+this.blockchain.last_block+"', "
-                                                      + "'0')");
+                UTILS.DB.executeUpdate("INSERT INTO sync "
+                                             + "SET status='ID_PENDING', "
+                                                 + "peer='', "
+                                                 + "type='ID_BLOCKS', "
+                                                 + "tab='', "
+                                                 + "start='"+(UTILS.NET_STAT.last_block+1)+"', "
+                                                 + "end='"+this.blockchain.last_block+"', "
+                                                 + "tstamp='0'");
             }
-            
             
             // Delete from sync
             UTILS.DB.executeUpdate("DELETE FROM sync WHERE type='ID_GET_BLOCKCHAIN'");
-          
         }
 	
 	public void run()
@@ -454,7 +446,8 @@ public class CSync extends Thread
                                                     + "'', "
                                                     + "'"+UTILS.NET_STAT.last_block+"', "
                                                     + "'"+UTILS.BASIC.tstamp()+"')");
-		}
+                    
+                }
                 
                 // ------------------------- Data on sync stack ----------------------------------------------------
 		else
@@ -483,6 +476,8 @@ public class CSync extends Thread
 		       UTILS.DB.executeUpdate("UPDATE sync "
 					       + "SET status='ID_DOWNLOADING' "
 					     + "WHERE type='ID_GET_BLOCKCHAIN'");
+                       
+                      
                     }
                     
                     // ------------------------- No blockchain to download ----------------------------------------------------
@@ -511,7 +506,7 @@ public class CSync extends Thread
                                     rs.next();
                                                 
                                     // Request data packet
-                                    long block_no=Math.round(Math.floor(this.blockchain.last_block/10))*10-1;
+                                    long block_no=Math.round(Math.floor(this.blockchain.last_block/UTILS.SETTINGS.chk_blocks))*UTILS.SETTINGS.chk_blocks-1;
                                     String bhash=this.getBlockHash(block_no);
 		                    CReqDataPacket packet=new CReqDataPacket("ID_GET_TABLE", 
 					    		                     rs.getString("tab"),
@@ -591,11 +586,11 @@ public class CSync extends Thread
             // Ads
             if (table.equals("ads")) return this.ads;
             
-            // Domains
-            if (table.equals("domains")) return this.domains;
-            
             // Agents
             if (table.equals("agents")) return this.agents;
+  
+            // Agents feeds
+            if (table.equals("agents_feeds")) return this.agents_feeds;
             
             // Assets
             if (table.equals("assets")) return this.assets;
@@ -609,23 +604,44 @@ public class CSync extends Thread
             // Assets markets pos
             if (table.equals("assets_mkts_pos")) return this.assets_mkts_pos;
             
+            // Comments
+            if (table.equals("comments")) return this.comments;
+            
+            // Delegates votes
+            if (table.equals("del_votes")) return this.del_votes;
+            
+            // Assets
+            if (table.equals("domains")) return this.domains;
+            
             // Escrowed
             if (table.equals("escrowed")) return this.escrowed;
+            
+            // Feeds
+            if (table.equals("feeds")) return this.feeds;
+            
+            // Feeds branches
+            if (table.equals("feeds_branches")) return this.feeds_branches;
+            
+            // Feeds bets
+            if (table.equals("feeds_bets")) return this.feeds_bets;
+            
+            // Feeds bets pos
+            if (table.equals("feeds_bets_pos")) return this.feeds_bets_pos;
             
             // Profiles
             if (table.equals("profiles")) return this.profiles;
             
+            // Storage
+            if (table.equals("storage")) return this.storage;
+            
             // Tweets
             if (table.equals("tweets")) return this.tweets;
             
-            // Tweets comments
-            if (table.equals("comments")) return this.comments;
-            
-            // Tweets likes
-            if (table.equals("upvotes")) return this.upvotes;
-            
             // Tweets follow
             if (table.equals("tweets_follow")) return this.tweets_follow;
+            
+            // Votes
+            if (table.equals("votes")) return this.votes;
             
             return "";
         }

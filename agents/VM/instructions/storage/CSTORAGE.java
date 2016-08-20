@@ -33,9 +33,6 @@ public class CSTORAGE extends CInstruction
     {
        // Out 
        VM.RUNLOG.add(VM.REGS.RCI, "STORAGE "+this.query.cel.val);
-       
-       // Fee
-       VM.CODE.fee=VM.CODE.fee+0.0001;
         
        // Parse query
        this.parseQuery(this.query.cel.val);
@@ -208,6 +205,10 @@ public class CSTORAGE extends CInstruction
     
     public void executeInsert(ArrayList tokens) throws Exception
     {
+        // Days
+        if (this.dest.cel.getLong()<1)
+            throw new Exception("Invalid days");
+        
         // Size ?
         if (tokens.size()<5)
            throw new Exception("Query string snytax");
@@ -248,11 +249,15 @@ public class CSTORAGE extends CInstruction
         String query="INSERT INTO "+table+" "
                            + "SET aID='"+VM.SYS.AGENT.GENERAL.aID+"', "
                                + "tab='"+tab+"', "
+                               + "expire='"+(VM.block+this.dest.cel.getLong()*1440)+"', "
                                + "block='"+VM.block+"', "
                                + "rowhash='', ";
         
         // Attach operators
         query=query+ops;
+        
+         // Fee
+         VM.CODE.fee=VM.CODE.fee+(0.00000001*query.length()*this.dest.cel.getLong());
         
         // Execute
         UTILS.DB.executeUpdate(query);
@@ -404,26 +409,46 @@ public class CSTORAGE extends CInstruction
         String col=token.substring(0, pos);
         
         // Column valid
-        if (!col.equals("s1") &&
-            !col.equals("s2") &&
-            !col.equals("s3") &&
-            !col.equals("s4") &&
+        if (!col.equals("s1") && 
+            !col.equals("s2") && 
+            !col.equals("s3") && 
+            !col.equals("s4") && 
             !col.equals("s5") &&
-            !col.equals("s6") &&
-            !col.equals("s7") &&
-            !col.equals("s8") &&
-            !col.equals("s9") &&
+            !col.equals("s6") && 
+            !col.equals("s7") && 
+            !col.equals("s8") && 
+            !col.equals("s9") && 
             !col.equals("s10") &&
-            !col.equals("d1") &&
-            !col.equals("d2") &&
-            !col.equals("d3") &&
-            !col.equals("d4") &&
-            !col.equals("d5") &&
-            !col.equals("d6") &&
-            !col.equals("d7") &&
-            !col.equals("d8") &&
-            !col.equals("d9") &&
-            !col.equals("d10"))
+            !col.equals("s11") && 
+            !col.equals("s12") && 
+            !col.equals("s13") && 
+            !col.equals("s14") && 
+            !col.equals("s15") &&
+            !col.equals("s16") && 
+            !col.equals("s17") && 
+            !col.equals("s18") && 
+            !col.equals("s19") && 
+            !col.equals("s20") &&
+            !col.equals("d1") && 
+            !col.equals("d2") && 
+            !col.equals("d3") && 
+            !col.equals("d4") && 
+            !col.equals("d5") && 
+            !col.equals("d6") && 
+            !col.equals("d7") && 
+            !col.equals("d8") && 
+            !col.equals("d9") && 
+            !col.equals("d10") &&
+            !col.equals("d11") && 
+            !col.equals("d12") && 
+            !col.equals("d13") && 
+            !col.equals("d14") && 
+            !col.equals("d15") &&
+            !col.equals("d16") &&
+            !col.equals("d17") && 
+            !col.equals("d18") && 
+            !col.equals("d19") && 
+            !col.equals("d20"))
         throw new Exception("Query string snytax");
         
         // String
@@ -433,31 +458,51 @@ public class CSTORAGE extends CInstruction
         if (!this.isString(str))
             throw new Exception("Query string snytax");
         
-        if (col.equals("s1") ||
-            col.equals("s2") ||
-            col.equals("s3") ||
-            col.equals("s4") ||
+        if (col.equals("s1") || 
+            col.equals("s2") || 
+            col.equals("s3") || 
+            col.equals("s4") || 
             col.equals("s5") ||
-            col.equals("s6") ||
-            col.equals("s7") ||
-            col.equals("s8") ||
-            col.equals("s9") ||
-            col.equals("s10"))
+            col.equals("s6") || 
+            col.equals("s7") || 
+            col.equals("s8") || 
+            col.equals("s9") || 
+            col.equals("s10") ||
+            col.equals("s11") || 
+            col.equals("s12") || 
+            col.equals("s13") || 
+            col.equals("s14") || 
+            col.equals("s15") ||
+            col.equals("s16") || 
+            col.equals("s17") || 
+            col.equals("s18") || 
+            col.equals("s19") || 
+            col.equals("s20"))
         {
             String s=str.replace("'", "");
             str=col+"='"+UTILS.BASIC.base64_encode(s)+"'";
         }
         
-        else if (col.equals("d1") ||
-                 col.equals("d2") ||
-                 col.equals("d3") ||
-                 col.equals("d4") ||
+        else if (col.equals("d1") || 
+                 col.equals("d2") || 
+                 col.equals("d3") || 
+                 col.equals("d4") || 
                  col.equals("d5") ||
-                 col.equals("d6") ||
-                 col.equals("d7") ||
-                 col.equals("d8") ||
-                 col.equals("d9") ||
-                 col.equals("d10"))
+                 col.equals("d6") || 
+                 col.equals("d7") || 
+                 col.equals("d8") || 
+                 col.equals("d9") || 
+                 col.equals("d10") ||
+                 col.equals("d11") || 
+                 col.equals("d12") || 
+                 col.equals("d13") || 
+                 col.equals("d14") || 
+                 col.equals("d15") ||
+                 col.equals("d16") || 
+                 col.equals("d17") || 
+                 col.equals("d18") || 
+                 col.equals("d19") || 
+                 col.equals("d20"))
         {
             String s=str.replace("'", "");
             
@@ -520,26 +565,46 @@ public class CSTORAGE extends CInstruction
             str=token.substring(pos+1, token.length());
         
         // Column valid
-        if (!col.equals("s1") &&
-            !col.equals("s2") &&
-            !col.equals("s3") &&
-            !col.equals("s4") &&
+        if (!col.equals("s1") && 
+            !col.equals("s2") && 
+            !col.equals("s3") && 
+            !col.equals("s4") && 
             !col.equals("s5") &&
-            !col.equals("s6") &&
-            !col.equals("s7") &&
-            !col.equals("s8") &&
-            !col.equals("s9") &&
+            !col.equals("s6") && 
+            !col.equals("s7") && 
+            !col.equals("s8") && 
+            !col.equals("s9") && 
             !col.equals("s10") &&
-            !col.equals("d1") &&
-            !col.equals("d2") &&
-            !col.equals("d3") &&
-            !col.equals("d4") &&
+            !col.equals("s11") && 
+            !col.equals("s12") && 
+            !col.equals("s13") && 
+            !col.equals("s14") && 
+            !col.equals("s15") &&
+            !col.equals("s16") && 
+            !col.equals("s17") && 
+            !col.equals("s18") && 
+            !col.equals("s19") && 
+            !col.equals("s20") &&
+            !col.equals("d1") && 
+            !col.equals("d2") && 
+            !col.equals("d3") && 
+            !col.equals("d4") && 
             !col.equals("d5") &&
-            !col.equals("d6") &&
-            !col.equals("d7") &&
-            !col.equals("d8") &&
-            !col.equals("d9") &&
-            !col.equals("d10"))
+            !col.equals("d6") && 
+            !col.equals("d7") && 
+            !col.equals("d8") && 
+            !col.equals("d9") && 
+            !col.equals("d10") &&
+            !col.equals("d11") && 
+            !col.equals("d12") && 
+            !col.equals("d13") && 
+            !col.equals("d14") && 
+            !col.equals("d15") &&
+            !col.equals("d16") && 
+            !col.equals("d17") && 
+            !col.equals("d18") && 
+            !col.equals("d19") && 
+            !col.equals("d20"))
         throw new Exception("Query string snytax");
         
         if (col.equals("s1") ||
@@ -551,7 +616,17 @@ public class CSTORAGE extends CInstruction
             col.equals("s7") ||
             col.equals("s8") ||
             col.equals("s9") ||
-            col.equals("s10"))
+            col.equals("s10") ||
+            col.equals("s11") ||
+            col.equals("s12") ||
+            col.equals("s13") ||
+            col.equals("s14") ||
+            col.equals("s15") ||
+            col.equals("s16") ||
+            col.equals("s17") ||
+            col.equals("s18") ||
+            col.equals("s19") ||
+            col.equals("s20"))
         {
             if (sep.equals("<=") ||
                 sep.equals(">="))
@@ -570,7 +645,17 @@ public class CSTORAGE extends CInstruction
             col.equals("s7") ||
             col.equals("s8") ||
             col.equals("s9") ||
-            col.equals("s10"))
+            col.equals("s10") ||
+            col.equals("s11") ||
+            col.equals("s12") ||
+            col.equals("s13") ||
+            col.equals("s14") ||
+            col.equals("s15") ||
+            col.equals("s16") ||
+            col.equals("s17") ||
+            col.equals("s18") ||
+            col.equals("s19") ||
+            col.equals("s20"))
         {
             String s=str.replace("'", "");
             str=col+sep+"'"+UTILS.BASIC.base64_encode(s)+"'";
@@ -585,7 +670,17 @@ public class CSTORAGE extends CInstruction
                  col.equals("d7") ||
                  col.equals("d8") ||
                  col.equals("d9") ||
-                 col.equals("d10"))
+                 col.equals("d10") ||
+                 col.equals("d11") ||
+                 col.equals("d12") ||
+                 col.equals("d13") ||
+                 col.equals("d14") ||
+                 col.equals("d15") ||
+                 col.equals("d16") ||
+                 col.equals("d17") ||
+                 col.equals("d18") ||
+                 col.equals("d19") ||
+                 col.equals("d20"))
         {
             String s=str.replace("'", "");
             
@@ -663,6 +758,36 @@ public class CSTORAGE extends CInstruction
        CCell colS10=new CCell("");
        colS10.name="s10";
        
+       CCell colS11=new CCell("");
+       colS11.name="s11";
+       
+       CCell colS12=new CCell("");
+       colS12.name="s12";
+       
+       CCell colS13=new CCell("");
+       colS13.name="s13";
+       
+       CCell colS14=new CCell("");
+       colS14.name="s14";
+       
+       CCell colS15=new CCell("");
+       colS15.name="s15";
+       
+       CCell colS16=new CCell("");
+       colS16.name="s16";
+       
+       CCell colS17=new CCell("");
+       colS17.name="s17";
+       
+       CCell colS18=new CCell("");
+       colS18.name="s18";
+       
+       CCell colS19=new CCell("");
+       colS19.name="s19";
+       
+       CCell colS20=new CCell("");
+       colS20.name="s20";
+       
        // D1...D10
        CCell colD1=new CCell("");
        colD1.name="d1";
@@ -693,6 +818,36 @@ public class CSTORAGE extends CInstruction
        
        CCell colD10=new CCell("");
        colD10.name="d10";
+       
+       CCell colD11=new CCell("");
+       colD11.name="d11";
+       
+       CCell colD12=new CCell("");
+       colD12.name="d12";
+       
+       CCell colD13=new CCell("");
+       colD13.name="d13";
+       
+       CCell colD14=new CCell("");
+       colD14.name="d14";
+       
+       CCell colD15=new CCell("");
+       colD15.name="d15";
+       
+       CCell colD16=new CCell("");
+       colD16.name="d16";
+       
+       CCell colD17=new CCell("");
+       colD17.name="d17";
+       
+       CCell colD18=new CCell("");
+       colD18.name="d18";
+       
+       CCell colD19=new CCell("");
+       colD19.name="d19";
+       
+       CCell colD20=new CCell("");
+       colD20.name="d20";
        
        // Block
        CCell colBlock=new CCell("");
@@ -728,18 +883,38 @@ public class CSTORAGE extends CInstruction
                      colS8.addCell(new CCell(rs.getString("s8")));
                      colS9.addCell(new CCell(rs.getString("s9")));
                      colS10.addCell(new CCell(rs.getString("s10")));
+                     colS11.addCell(new CCell(rs.getString("s11")));
+                     colS12.addCell(new CCell(rs.getString("s12")));
+                     colS13.addCell(new CCell(rs.getString("s13")));
+                     colS14.addCell(new CCell(rs.getString("s14")));
+                     colS15.addCell(new CCell(rs.getString("s15")));
+                     colS16.addCell(new CCell(rs.getString("s16")));
+                     colS17.addCell(new CCell(rs.getString("s17")));
+                     colS18.addCell(new CCell(rs.getString("s18")));
+                     colS19.addCell(new CCell(rs.getString("s19")));
+                     colS20.addCell(new CCell(rs.getString("s20")));
                      
                      // D1...D10
                      colD1.addCell(new CCell(rs.getDouble("d1")));
-                     colD1.addCell(new CCell(rs.getDouble("d2")));
-                     colD1.addCell(new CCell(rs.getDouble("d3")));
-                     colD1.addCell(new CCell(rs.getDouble("d4")));
-                     colD1.addCell(new CCell(rs.getDouble("d5")));
-                     colD1.addCell(new CCell(rs.getDouble("d6")));
-                     colD1.addCell(new CCell(rs.getDouble("d7")));
-                     colD1.addCell(new CCell(rs.getDouble("d8")));
-                     colD1.addCell(new CCell(rs.getDouble("d9")));
-                     colD1.addCell(new CCell(rs.getDouble("d10")));
+                     colD2.addCell(new CCell(rs.getDouble("d2")));
+                     colD3.addCell(new CCell(rs.getDouble("d3")));
+                     colD4.addCell(new CCell(rs.getDouble("d4")));
+                     colD5.addCell(new CCell(rs.getDouble("d5")));
+                     colD6.addCell(new CCell(rs.getDouble("d6")));
+                     colD7.addCell(new CCell(rs.getDouble("d7")));
+                     colD8.addCell(new CCell(rs.getDouble("d8")));
+                     colD9.addCell(new CCell(rs.getDouble("d9")));
+                     colD10.addCell(new CCell(rs.getDouble("d10")));
+                     colD11.addCell(new CCell(rs.getDouble("d11")));
+                     colD12.addCell(new CCell(rs.getDouble("d12")));
+                     colD13.addCell(new CCell(rs.getDouble("d13")));
+                     colD14.addCell(new CCell(rs.getDouble("d14")));
+                     colD15.addCell(new CCell(rs.getDouble("d15")));
+                     colD16.addCell(new CCell(rs.getDouble("d16")));
+                     colD17.addCell(new CCell(rs.getDouble("d17")));
+                     colD18.addCell(new CCell(rs.getDouble("d18")));
+                     colD19.addCell(new CCell(rs.getDouble("d19")));
+                     colD20.addCell(new CCell(rs.getDouble("d20")));
 
                      // Block
                      colBlock.addCell(new CCell(rs.getString("block")));
@@ -758,7 +933,7 @@ public class CSTORAGE extends CInstruction
        // ID
        c.addCell(colID);
 
-       // Bet_uid
+       // betID
        c.addCell(colAID);
 
        // Tab
@@ -775,6 +950,16 @@ public class CSTORAGE extends CInstruction
        c.addCell(colS8);
        c.addCell(colS9);
        c.addCell(colS10);
+       c.addCell(colS11);
+       c.addCell(colS12);
+       c.addCell(colS13);
+       c.addCell(colS14);
+       c.addCell(colS15);
+       c.addCell(colS16);
+       c.addCell(colS17);
+       c.addCell(colS18);
+       c.addCell(colS19);
+       c.addCell(colS20);
        
        // D1....D10
        c.addCell(colD1);
@@ -787,6 +972,16 @@ public class CSTORAGE extends CInstruction
        c.addCell(colD8);
        c.addCell(colD9);
        c.addCell(colD10);
+       c.addCell(colD11);
+       c.addCell(colD12);
+       c.addCell(colD13);
+       c.addCell(colD14);
+       c.addCell(colD15);
+       c.addCell(colD16);
+       c.addCell(colD17);
+       c.addCell(colD18);
+       c.addCell(colD19);
+       c.addCell(colD20);
 
        // Block
        c.addCell(colBlock);

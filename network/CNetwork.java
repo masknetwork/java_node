@@ -3,6 +3,9 @@
 
 package wallet.network;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -114,50 +117,34 @@ public class CNetwork extends Thread
                   // Sync ?
                   if (UTILS.STATUS.engine_status.equals("ID_SYNC"))
                   {
-                      if (!packet.tip.equals("ID_REQ_DATA_PACKET") && 
-                          !packet.tip.equals("ID_DELIVER_BLOCKCHAIN_PACKET") && 
-                          !packet.tip.equals("ID_DELIVER_TABLE_PACKET") &&
-                          !packet.tip.equals("ID_DELIVER_BLOCKS_PACKET") &&
-                          !packet.tip.equals("ID_REQ_CON_PACKET") && 
-                          !packet.tip.equals("ID_REQ_CON_RESPONSE_PACKET") && 
-                          !packet.tip.equals("ID_GET_PEERS_PACKET"))
-                      {
-                          this.broadcast(packet);
-                          return;
-                      }
-                      else
-                      {
-                         packet.check(sender);
-                      }
+                      if (packet.tip.equals("ID_DELIVER_BLOCKCHAIN_PACKET") || 
+                          packet.tip.equals("ID_DELIVER_BLOCKS_PACKET") ||
+                          packet.tip.equals("ID_DELIVER_TABLE_PACKET") || 
+                          packet.tip.equals("ID_REQ_CON_RESPONSE_PACKET") || 
+                          packet.tip.equals("ID_REQ_DATA_PACKET") || 
+                          packet.tip.equals("ID_PUT_BLOCK_PACKET"))
+                      packet.check(sender);
+                      
                   }
                   else
                   {
-                        if (packet.tip.equals("ID_REQ_DATA_PACKET") || 
-                            packet.tip.equals("ID_GET_BLOCK_PACKET") || 
-                            packet.tip.equals("ID_PUT_BLOCK_PACKET") ||
-                            packet.tip.equals("ID_REQ_CON_PACKET") || 
-                            packet.tip.equals("ID_REQ_CON_RESPONSE_PACKET") || 
-                            packet.tip.equals("ID_GET_PEERS_PACKET"))
-                        packet.check(sender);
-                        
-                        if (!packet.tip.equals("ID_BLOCK"))
-                              packet.check((CBlockPayload)null);
-                              
-			// Broadcast packet
+                        // Broadcast packet
                         if (packet instanceof CBroadcastPacket)
 			{ 
                             if (!packet.tip.equals("ID_BLOCK"))
                             {
-                              // Add to current block
-                              UTILS.CBLOCK.addPacket((CBroadcastPacket)packet);
+                                // Check
+                                packet.check((CBlockPayload)null);
+                                
+                                // Add to current block
+                                UTILS.CBLOCK.addPacket((CBroadcastPacket)packet);
                             
-                              // Broadcast packet
-                              if (peers.peers.size()>0) 
-                                  this.broadcast(packet);
+                                // Broadcast packet
+                                if (peers.peers.size()>0) 
+                                    this.broadcast(packet);
                             }
                         }
-                        
-                        if (packet.tip.equals("ID_BLOCK"))
+                        else if (packet.tip.equals("ID_BLOCK"))
                         {
                             // Deserialize block
                             CBlockPacket block=(CBlockPacket) packet;
@@ -165,7 +152,9 @@ public class CNetwork extends Thread
                             // Load block
                             UTILS.CONSENSUS.blockReceived(block);
                         }
+                        else packet.check(sender);
                     }
+                  
                   
                   }
 		  catch (Exception ex)
@@ -238,10 +227,7 @@ public class CNetwork extends Thread
 	  
 	  public void sendToPeer(String peer, CPacket packet) throws Exception
 	  {
-              System.out.println(System.currentTimeMillis() +": Dedicated message to "+peer);
-              System.out.println("Peers : "+peers.peers.size());
-              
-              if (peers.peers.size()==0)
+             if (peers.peers.size()==0)
               {
                   this.processRequest(packet, new CPeer());
               }
@@ -259,7 +245,7 @@ public class CNetwork extends Thread
               }
 	  }
      
-	 public void connectTo(String adr, int port)
+	 public void connectTo(String adr, int port) throws Exception
          {
              this.peers.conect(adr, port);
          }
@@ -267,5 +253,27 @@ public class CNetwork extends Thread
          public void removePeer(String adr)
          {
              this.peers.removePeer(adr);
+         }
+         
+         public void executeBlock(String hash) throws Exception
+         {
+              // File
+	        File f = new File(UTILS.WRITEDIR+"blocks/"+hash+".block");
+		
+                // Exist
+                if (f.exists())
+ 		{
+		    // Read image from disk
+		    FileInputStream f_in = new FileInputStream(UTILS.WRITEDIR+"blocks/"+hash+".block");
+
+		    // Read object using ObjectInputStream
+		    ObjectInputStream obj_in = new ObjectInputStream (f_in);
+
+		    // Read an object
+		    CBlockPacket obj = (CBlockPacket)obj_in.readObject();
+                    
+                    // Commit
+                    obj.commit();
+                }
          }
 }

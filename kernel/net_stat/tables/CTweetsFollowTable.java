@@ -14,15 +14,10 @@ public class CTweetsFollowTable extends CTable
         super("tweets_follow");
     }
     
-    public void expired(long block, String adr) throws Exception
+    public void expired(long block) throws Exception
     {
-        if (adr.equals(""))
-            UTILS.DB.executeUpdate("DELETE FROM tweets_follow "
+        UTILS.DB.executeUpdate("DELETE FROM tweets_follow "
                                    + "WHERE expire<"+block);
-        else
-            UTILS.DB.executeUpdate("DELETE FROM tweets_follow "
-                                       + "WHERE adr='"+adr+"' "
-                                          + "OR follows='"+adr+"'");
     }
     
     public void create() throws Exception
@@ -66,7 +61,8 @@ public class CTweetsFollowTable extends CTable
     
     public void fromJSON(String data, String crc) throws Exception
     {
-        System.out.println(data);
+        // No data
+        if (crc.equals("")) return;
         
         // Grand hash
         String ghash="";

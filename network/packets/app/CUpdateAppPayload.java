@@ -95,10 +95,13 @@ public class CUpdateAppPayload extends CPayload
         {
             case "ID_UNINSTALL" : UTILS.DB.executeUpdate("DELETE FROM agents "
                                                              + "WHERE aID='"+this.appID+"'"); 
+            
+                                  UTILS.DB.executeUpdate("DELETE FROM storage "
+                                                             + "WHERE aID='"+this.appID+"'");
                                   break;
                                   
             case "ID_REMOVE_STORE" : UTILS.DB.executeUpdate("UPDATE agents "
-                                                           + "SET price='0' "
+                                                           + "SET app_store='0' "
                                                          + "WHERE aID='"+this.appID+"'"); 
                                   break;
                                   

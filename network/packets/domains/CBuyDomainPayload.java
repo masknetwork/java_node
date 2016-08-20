@@ -52,7 +52,7 @@ public class CBuyDomainPayload extends CPayload
         super.check(block);
                  
         // Attach address
-        if (!UTILS.BASIC.adressValid(this.buyer_adr))
+        if (!UTILS.BASIC.isAdr(this.buyer_adr))
             throw new Exception("Invalid attach address - CBuyDomainPayload");
                  
         // Hash

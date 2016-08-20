@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import wallet.kernel.UTILS;
+import wallet.network.CPeer;
 import wallet.network.packets.CPacket;
 import wallet.network.packets.blocks.CBlockPacket;
 
@@ -29,13 +30,16 @@ public class CPutBlockPacket extends CPacket
 	    ObjectInputStream obj_in = new ObjectInputStream (f_in);
 
 	    // Read an object
-	    CBlockPacket packet = (CBlockPacket)obj_in.readObject();
+	    this.block = (CBlockPacket)obj_in.readObject();
 	}
+        
+        // Hash
+        this.hash=UTILS.BASIC.hash(String.valueOf(UTILS.BASIC.mtstamp()));
     }
     
-    public void process() throws Exception
+    public void check(CPeer sender) throws Exception
     {
-        if (block!=null)
+        if (this.block!=null)
             UTILS.CONSENSUS.blockReceived(block);
     }
 }

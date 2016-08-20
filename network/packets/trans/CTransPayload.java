@@ -100,7 +100,7 @@ public class CTransPayload extends CPayload
                      throw new Exception("Invalid source address, CTransPayload");
                  
              // Check dest
-	     if (!UTILS.BASIC.adressValid(this.dest))
+	     if (!UTILS.BASIC.isAdr(this.dest))
 	        throw new Exception("Invalid destination address, CTransPayload");
              
              // Source and destination the same
@@ -170,7 +170,7 @@ public class CTransPayload extends CPayload
             // Check escrower
 	    if (!this.escrower.equals(""))
 	    {
-	        if (!UTILS.BASIC.adressValid(this.escrower))
+	        if (!UTILS.BASIC.isAdr(this.escrower))
 	           throw new Exception("Invalid currency, CTransPayload");
 	    }
 	    
@@ -313,6 +313,7 @@ public class CTransPayload extends CPayload
                                                         + "rec_adr='"+this.dest+"', "
                                                         + "escrower='"+this.escrower+"', "
                                                         + "amount='"+this.amount+"', "
+                                                        + "expire='"+(this.block+43200)+"', "
                                                         + "cur='"+this.cur+"', "
                                                         + "block='"+this.block+"'");
                 }

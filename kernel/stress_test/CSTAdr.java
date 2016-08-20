@@ -14,25 +14,33 @@ public class CSTAdr  extends CStressTest
     
     public void runTrans() throws Exception
     {
-        ResultSet rs=UTILS.DB.executeQuery("SELECT COUNT(*) AS total FROM adr");
+        if (!UTILS.WALLET.isMine("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEFYpiA6utjRCs5jK7cHEuloveupOjwXJKww5QTFI9YedJuz4aOand6JtwuYMDNI7lxi7ewKA3pm8="))
+            return;
+        
+        ResultSet rs=UTILS.DB.executeQuery("SELECT COUNT(*) AS total FROM my_adr");
         rs.next();
         long total=rs.getLong("total");
         
         CTransPacket packet;
+        
+        
                 
-        if (total>1000)
-        packet=new CTransPacket("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmzMuWmpif2JdeB1/UA7XQumglLj3o4/qF/CisxzJyXf7JoXXmGvBDJFbCSr8Si09zKtkfoA7jyU=",
-                                "ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmzMuWmpif2JdeB1/UA7XQumglLj3o4/qF/CisxzJyXf7JoXXmGvBDJFbCSr8Si09zKtkfoA7jyU=",
+        if (total>10)
+        {
+            String rand=this.randomAdr();
+            packet=new CTransPacket("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEFYpiA6utjRCs5jK7cHEuloveupOjwXJKww5QTFI9YedJuz4aOand6JtwuYMDNI7lxi7ewKA3pm8=",
+                                "ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEFYpiA6utjRCs5jK7cHEuloveupOjwXJKww5QTFI9YedJuz4aOand6JtwuYMDNI7lxi7ewKA3pm8=",
                                 this.randomAdr(),
-			        UTILS.BASIC.round(Math.random(), 4), "MSK",  "", "");
+			        UTILS.BASIC.round(Math.random(), 4), "MSK",  "", "", 1);
+        }
         else
         {
             String adr=UTILS.WALLET.newAddress("root", "secp224r1", "");
             
-            packet=new CTransPacket("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmzMuWmpif2JdeB1/UA7XQumglLj3o4/qF/CisxzJyXf7JoXXmGvBDJFbCSr8Si09zKtkfoA7jyU=",
-                                    "ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmzMuWmpif2JdeB1/UA7XQumglLj3o4/qF/CisxzJyXf7JoXXmGvBDJFbCSr8Si09zKtkfoA7jyU=",
-                                    adr,
-			            UTILS.BASIC.round(Math.random(), 4), "MSK",  "", "");
+            packet=new CTransPacket("ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEFYpiA6utjRCs5jK7cHEuloveupOjwXJKww5QTFI9YedJuz4aOand6JtwuYMDNI7lxi7ewKA3pm8=",
+                                    "ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEFYpiA6utjRCs5jK7cHEuloveupOjwXJKww5QTFI9YedJuz4aOand6JtwuYMDNI7lxi7ewKA3pm8=",
+                                    this.randomAdr(),
+			            UTILS.BASIC.round(Math.random(), 4), "MSK",  "", "", 1);
         }
         
         UTILS.NETWORK.broadcast(packet);

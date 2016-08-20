@@ -167,6 +167,11 @@ public class CDeployAppNetPayload extends CPayload
                                             + "block='"+this.block+"', "
                                             + "expire='"+(this.block+this.days*1440)+"', "
                                             + "status='ID_ONLINE'");
-        
+           
+          // Load VM
+          CAgent AGENT=new CAgent(UTILS.BASIC.getAgentID(this.target_adr), false, this.block);
+                    
+          // Execute
+          AGENT.execute("#install#", false, this.block);
      }
 }

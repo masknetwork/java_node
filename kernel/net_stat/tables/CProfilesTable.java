@@ -18,28 +18,24 @@ public class CProfilesTable extends CTable
     public void create() throws Exception
     {
         UTILS.DB.executeUpdate("CREATE TABLE profiles(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                         +"adr VARCHAR(250) DEFAULT '', "
-                                                         +"name VARCHAR(50) DEFAULT '', "
-                                                         +"pic_back VARCHAR(250) DEFAULT '', "
-                                                         +"pic VARCHAR(250) DEFAULT '', "
-                                                         +"description VARCHAR(500) DEFAULT '', "
-                                                         +"website VARCHAR(250) DEFAULT '', "
-                                                         +"rowhash VARCHAR(100) DEFAULT '', "
-                                                         +"email VARCHAR(200) DEFAULT '', "
-                                                         +"expire BIGINT DEFAULT '0', "
-                                                         +"block BIGINT DEFAULT '0')");
+                                                         +"adr VARCHAR(250) NOT NULL DEFAULT '', "
+                                                         +"name VARCHAR(50) NOT NULL DEFAULT '', "
+                                                         +"pic_back VARCHAR(250) NOT NULL DEFAULT '', "
+                                                         +"pic VARCHAR(250) NOT NULL DEFAULT '', "
+                                                         +"description VARCHAR(500) NOT NULL DEFAULT '', "
+                                                         +"website VARCHAR(250) NOT NULL DEFAULT '', "
+                                                         +"rowhash VARCHAR(100) NOT NULL DEFAULT '', "
+                                                         +"email VARCHAR(200) NOT NULL DEFAULT '', "
+                                                         +"expire BIGINT NOT NULL DEFAULT '0', "
+                                                         +"block BIGINT NOT NULL DEFAULT '0')");
              
         UTILS.DB.executeUpdate("CREATE INDEX prof_adr ON profiles(adr)");
     }
     
-    public void expired(long block, String adr) throws Exception
+    public void expired(long block) throws Exception
     {
-       if (adr.equals(""))
-          UTILS.DB.executeUpdate("DELETE FROM profiles "
+       UTILS.DB.executeUpdate("DELETE FROM profiles "
                                      + "WHERE expire<="+block);
-       else
-          UTILS.DB.executeUpdate("DELETE FROM profiles "
-                                     + "WHERE adr='"+adr+"'");
     }
     
     // Address
@@ -72,6 +68,9 @@ public class CProfilesTable extends CTable
     
     public void fromJSON(String data, String crc) throws Exception
     {
+        // No data
+        if (crc.equals("")) return;
+        
         // Grand hash
         String ghash="";
         

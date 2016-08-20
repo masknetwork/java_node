@@ -164,7 +164,23 @@ public class CCPUMinerUtils
                              String tab_11,
                              String tab_12,
                              String tab_13,
-                             String tab_14) throws Exception
+                             String tab_14,
+                             String tab_15,
+                             String tab_16,
+                             String tab_17,
+                             String tab_18,
+                             String tab_19,
+                             String tab_20,
+                             String tab_21,
+                             String tab_22,
+                             String tab_23,
+                             String tab_24,
+                             String tab_25,
+                             String tab_26,
+                             String tab_27,
+                             String tab_28,
+                             String tab_29,
+                             String tab_30) throws Exception
     {
         String hash=UTILS.BASIC.hash(prev_hash+
                                     "ID_BLOCK"+
@@ -188,7 +204,23 @@ public class CCPUMinerUtils
                                     tab_11+
                                     tab_12+
                                     tab_13+
-                                    tab_14);
+                                    tab_14+
+                                    tab_15+
+                                    tab_16+
+                                    tab_17+
+                                    tab_18+
+                                    tab_19+
+                                    tab_20+
+                                    tab_21+
+                                    tab_22+
+                                    tab_23+
+                                    tab_24+
+                                    tab_25+
+                                    tab_26+
+                                    tab_27+
+                                    tab_28+
+                                    tab_29+
+                                    tab_30);
 
       
         // Get hash
@@ -196,50 +228,19 @@ public class CCPUMinerUtils
               
         // Get number
         BigInteger num=new BigInteger(hash, 16);
-              
+        
+        // Signer power
+        long signer_power=UTILS.DELEGATES.getPower(block_signer);
+        
         // Found solution
-        if (num.compareTo(new BigInteger(net_dif, 16).multiply(BigInteger.valueOf(Math.round(UTILS.ACC.getBalance(block_signer, "MSK")))))<0 && 
+        if (num.compareTo(new BigInteger(net_dif, 16).multiply(BigInteger.valueOf(signer_power)))<0 &&
             hash.equals(check_block_hash)) 
             return true;
         else
             return false;
     }
     
-    public BigInteger hashToNum(String hash) throws Exception
-    {
-        int po=0;
-              String snum="";
-              
-              while (po<64)
-              {
-                  // Character
-                  char ch=hash.charAt(po);
-                  
-                  switch (ch)
-                  {
-                      case '0' : snum=snum+'0'; break; 
-                      case '1' : snum=snum+'1'; break; 
-                      case '2' : snum=snum+'2'; break; 
-                      case '3' : snum=snum+'3'; break; 
-                      case '4' : snum=snum+'4'; break; 
-                      case '5' : snum=snum+'5'; break; 
-                      case '6' : snum=snum+'6'; break; 
-                      case '7' : snum=snum+'7'; break; 
-                      case '8' : snum=snum+'8'; break; 
-                      case '9' : snum=snum+'9'; break; 
-                  }
-                  
-                   // Pos
-                  po++;
-              }
-              
-              // Number
-              BigInteger num=new BigInteger(snum);
-              
-              // Return 
-              return num;
-        
-    }
+   
     
     public  String getHash(String ph, String ha) throws Exception
     {

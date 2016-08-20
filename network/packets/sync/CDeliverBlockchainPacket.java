@@ -27,7 +27,7 @@ public class CDeliverBlockchainPacket extends CPacket
     
     
     
-    public void process(CPeer sender) throws Exception
+    public void check(CPeer sender) throws Exception
     {
         // Sync ?
         if (!UTILS.STATUS.engine_status.equals("ID_SYNC"))

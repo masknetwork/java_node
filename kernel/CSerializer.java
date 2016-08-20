@@ -11,33 +11,48 @@ import java.io.ObjectOutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-
-
-public class CSerializer {
+public class CSerializer 
+{
 
 	public CSerializer() 
 	{
-		// TODO Auto-generated constructor stub
+		
 		
 	}
 	
 	public byte[] serialize(Object obj) throws IOException
 	{
+            // Byte array
             ByteArrayOutputStream out = new ByteArrayOutputStream();
+            
+            // GZIP
             GZIPOutputStream gzipOut = new GZIPOutputStream(out);
-	    ObjectOutputStream os = new ObjectOutputStream(gzipOut);
-	    os.writeObject(obj);
+	    
+            // Compress
+            ObjectOutputStream os = new ObjectOutputStream(gzipOut);
+	    
+            // Write
+            os.writeObject(obj);
+            
+            // Close 
             gzipOut.close();
-	    return out.toByteArray();
+	    
+            // Return
+            return out.toByteArray();
         }
 	
 	public  Object deserialize(byte[] data)  throws Exception
         {
-		ByteArrayInputStream in = new ByteArrayInputStream(data);
-                   GZIPInputStream gzipIn = new GZIPInputStream(in);
-	           ObjectInputStream is = new ObjectInputStream(gzipIn);
-                   return is.readObject();
-		
+	    // Data
+            ByteArrayInputStream in = new ByteArrayInputStream(data);
+                   
+            // GZIP
+            GZIPInputStream gzipIn = new GZIPInputStream(in);
+	           
+            // Decompress
+            ObjectInputStream is = new ObjectInputStream(gzipIn);
+                   
+            // Return
+            return is.readObject();
 	}
-
 }
