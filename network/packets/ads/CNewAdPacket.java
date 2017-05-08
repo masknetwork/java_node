@@ -37,7 +37,8 @@ public class CNewAdPacket extends CBroadcastPacket
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
 			
 	   // Network fee
-	   fee=new CFeePayload(fee_adr,  price*hours);
+	  CFeePayload fee=new CFeePayload(fee_adr,  price*hours);
+	  this.fee_payload=UTILS.SERIAL.serialize(fee);
 	   
 	   // Sign packet
            this.sign();
@@ -56,8 +57,11 @@ public class CNewAdPacket extends CBroadcastPacket
           // Deserialize transaction data
    	  CNewAdPayload dec_payload=(CNewAdPayload) UTILS.SERIAL.deserialize(payload);
           
+          // Deserialize payload
+         CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
+        
           // Check fee
-	  if (this.fee.amount<dec_payload.hours*0.0001)
+	  if (fee.amount<dec_payload.hours*0.0001)
 	      throw new Exception("Invalid fee - CNewAdPacket.java");
           
           // Check payload

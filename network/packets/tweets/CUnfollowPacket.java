@@ -13,7 +13,7 @@ import wallet.network.packets.blocks.*;
 public class CUnfollowPacket extends CBroadcastPacket 
 {
    // Serial
-   private static final long serialVersionUID = 100L;
+   private static final long serialVersionUID = 1L;
    
    public CUnfollowPacket(String fee_adr,
                           String adr,
@@ -30,7 +30,8 @@ public class CUnfollowPacket extends CBroadcastPacket
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
 			
 	   // Network fee
-	   fee=new CFeePayload(fee_adr,  0.0001);
+           CFeePayload fee=new CFeePayload(fee_adr,  0.0001);
+	   this.fee_payload=UTILS.SERIAL.serialize(fee);
 	   
 	   // Sign packet
            this.sign();
@@ -46,9 +47,11 @@ public class CUnfollowPacket extends CBroadcastPacket
    	  if (!this.tip.equals("ID_UNFOLLOW_PACKET")) 
    		throw new Exception("Invalid packet type - CFollowPayload.java"); 
           
-   	  
+          // Deserialize payload
+          CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
+          
           // Check fee
-	  if (this.fee.amount<0.0001)
+	  if (fee.amount<0.0001)
 	      throw new Exception("Invalid fee - CFollowPayload.java"); 
           
           // Deserialize transaction data
@@ -59,7 +62,6 @@ public class CUnfollowPacket extends CBroadcastPacket
            
           // Footprint
           CPackets foot=new CPackets(this);
-                  
           foot.add("Address", dec_payload.target_adr);
           foot.add("Unfollow Address", dec_payload.unfollow_adr);
           foot.write();

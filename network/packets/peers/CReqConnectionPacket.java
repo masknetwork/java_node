@@ -42,7 +42,7 @@ public class CReqConnectionPacket extends CPacket
 	   
 	   // Check if connection is possible
 	   if (UTILS.NETWORK.peers.conectedTo(peer.adr)==true)
-               aproved=false;
+               throw new Exception("Already connected");
            else
                UTILS.NETWORK.peers.addPeer(peer, this.server_port);
            

@@ -16,9 +16,6 @@ public class CPacket implements java.io.Serializable
    // Tip
    public String tip;
    
-   // Payload 
-   public byte[] payload=null;
-   
    // Hash
    public String hash;
    
@@ -34,7 +31,10 @@ public class CPacket implements java.io.Serializable
    // Signature
    public String sign;
    
-   static final long serialVersionUID=2569233717176233596L;
+   // Payload 
+   public byte[] payload=null;
+   
+   static final long serialVersionUID=1L;
    
    
    public CPacket(String tip)  throws Exception
@@ -49,13 +49,7 @@ public class CPacket implements java.io.Serializable
    
    public String hash()  throws Exception
    {
-	// Hash
-        if (this.payload!=null)
 	return UTILS.BASIC.hash(this.tip+
-                                this.tstamp+
-			        UTILS.BASIC.hash(this.payload));
-        else
-        return UTILS.BASIC.hash(this.tip+
                                 this.tstamp);
         
    }

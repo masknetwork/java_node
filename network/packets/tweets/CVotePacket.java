@@ -13,7 +13,7 @@ import wallet.network.packets.blocks.*;
 public class CVotePacket extends CBroadcastPacket 
 {
    // Serial
-   private static final long serialVersionUID = 100L;
+   private static final long serialVersionUID = 1L;
    
    public CVotePacket(String fee_adr,
                       String adr,
@@ -34,7 +34,8 @@ public class CVotePacket extends CBroadcastPacket
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
 			
 	   // Network fee
-	   fee=new CFeePayload(fee_adr,  0.0001);
+           CFeePayload fee=new CFeePayload(fee_adr,  0.0001);
+	   this.fee_payload=UTILS.SERIAL.serialize(fee);
 	   
 	   // Sign packet
            this.sign();
@@ -48,14 +49,17 @@ public class CVotePacket extends CBroadcastPacket
    	  
    	  // Check type
    	  if (!this.tip.equals("ID_VOTE_PACKET")) 
-             throw new Exception("Invalid packet type - CLikePacket.java");
+             throw new Exception("Invalid packet type - CVotePacket.java");
    	  
    	  // Deserialize transaction data
    	  CVotePayload dec_payload=(CVotePayload) UTILS.SERIAL.deserialize(payload);
           
+          // Deserialize payload
+          CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
+                    
           // Check fee
-	  if (this.fee.amount<0.0001)
-	      throw new Exception("Invalid packet type - CLikePacket.java");
+	  if (fee.amount<0.0001)
+	      throw new Exception("Invalid packet type - CVotePacket.java");
           
           // Check payload
           dec_payload.check(block);

@@ -141,99 +141,36 @@ public class CCPUMinerUtils
        f9=new SHA512();
         
     }
-    
+   
+                                                      
     public boolean checkHash(String prev_hash, 
                              long block_no, 
                              String payload_hash, 
                              String block_signer, 
-                             long signer_balance, 
                              long timestamp, 
                              long nonce,
                              String check_block_hash,
-                             String net_dif,
-                             String tab_1,
-                             String tab_2,
-                             String tab_3,
-                             String tab_4,
-                             String tab_5,
-                             String tab_6,
-                             String tab_7,
-                             String tab_8,
-                             String tab_9,
-                             String tab_10,
-                             String tab_11,
-                             String tab_12,
-                             String tab_13,
-                             String tab_14,
-                             String tab_15,
-                             String tab_16,
-                             String tab_17,
-                             String tab_18,
-                             String tab_19,
-                             String tab_20,
-                             String tab_21,
-                             String tab_22,
-                             String tab_23,
-                             String tab_24,
-                             String tab_25,
-                             String tab_26,
-                             String tab_27,
-                             String tab_28,
-                             String tab_29,
-                             String tab_30) throws Exception
+                             String net_dif) throws Exception
     {
         String hash=UTILS.BASIC.hash(prev_hash+
-                                    "ID_BLOCK"+
-                                    String.valueOf(block_no)+
-                                    payload_hash+
-                                    block_signer+
-                                    String.valueOf(Math.round(signer_balance))+
-                                    String.valueOf(timestamp)+
-                                    String.valueOf(nonce)+
-                                    net_dif+
-                                    tab_1+
-                                    tab_2+
-                                    tab_3+
-                                    tab_4+
-                                    tab_5+
-                                    tab_6+
-                                    tab_7+
-                                    tab_8+
-                                    tab_9+
-                                    tab_10+
-                                    tab_11+
-                                    tab_12+
-                                    tab_13+
-                                    tab_14+
-                                    tab_15+
-                                    tab_16+
-                                    tab_17+
-                                    tab_18+
-                                    tab_19+
-                                    tab_20+
-                                    tab_21+
-                                    tab_22+
-                                    tab_23+
-                                    tab_24+
-                                    tab_25+
-                                    tab_26+
-                                    tab_27+
-                                    tab_28+
-                                    tab_29+
-                                    tab_30);
-
-      
+                                     String.valueOf(block_no)+
+                                     payload_hash+
+                                     block_signer+
+                                     String.valueOf(timestamp)+
+                                     String.valueOf(nonce)+
+                                     net_dif);
+        
         // Get hash
         hash=this.getHash(prev_hash, hash);
-              
+           
         // Get number
         BigInteger num=new BigInteger(hash, 16);
+       
+        // Delegate power
+        BigInteger del_power=BigInteger.valueOf(UTILS.DELEGATES.getPower(block_signer));
         
-        // Signer power
-        long signer_power=UTILS.DELEGATES.getPower(block_signer);
-        
-        // Found solution
-        if (num.compareTo(new BigInteger(net_dif, 16).multiply(BigInteger.valueOf(signer_power)))<0 &&
+        // Check nonce
+        if (num.compareTo(new BigInteger(net_dif, 16).multiply(del_power))<0 &&
             hash.equals(check_block_hash)) 
             return true;
         else

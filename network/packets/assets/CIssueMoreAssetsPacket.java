@@ -30,7 +30,8 @@ public class CIssueMoreAssetsPacket extends CBroadcastPacket
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
            
 	   // Network fee
-	   fee=new CFeePayload(fee_adr, dec_payload.qty*0.0001);
+	  CFeePayload fee=new CFeePayload(fee_adr,  0.0001*dec_payload.qty);
+	  this.fee_payload=UTILS.SERIAL.serialize(fee);
 	   
 	   // Sign packet
 	   this.sign(packet_sign);
@@ -48,9 +49,12 @@ public class CIssueMoreAssetsPacket extends CBroadcastPacket
    	  
           // Deserialize transaction data
    	  CIssueMoreAssetsPayload dec_payload=(CIssueMoreAssetsPayload) UTILS.SERIAL.deserialize(payload);
-           
+          
+          // Deserialize payload
+          CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
+        
           // Check fee
-	  if (this.fee.amount<dec_payload.qty*0.0001)
+	  if (fee.amount<dec_payload.qty*0.0001)
 	      throw new Exception("Invalid fee - CIssueMoreAssetsPacket.java");
           
           // Check payload

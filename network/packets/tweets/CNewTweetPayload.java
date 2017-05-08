@@ -34,7 +34,7 @@ public class CNewTweetPayload extends CPayload
    long days;
    
    // Serial
-   private static final long serialVersionUID = 100L;
+   private static final long serialVersionUID = 1L;
    
    public CNewTweetPayload(String adr, 
 		           String title, 
@@ -79,13 +79,14 @@ public class CNewTweetPayload extends CPayload
    
    public void check(CBlockPayload block) throws Exception
    {
-        // Super class
-   	super.check(block);
+        // Days
+        if (days<1)
+            throw new Exception("Invalid days - CNewTweetPayload.java");
         
-        // Check tweetID
-   	if (!UTILS.BASIC.validID(this.tweetID))
-           throw new Exception ("Invalid tweet ID - CNewTweetPayload.java");
-        
+        // ID valid ?
+        if (UTILS.BASIC.existID(this.tweetID))
+           throw new Exception("Invalid tweetID - CNewTweetPayload.java");
+            
         // Not a retweet
         if (this.retweet_tweet_ID==0)
         {
@@ -102,29 +103,13 @@ public class CNewTweetPayload extends CPayload
             if (!UTILS.BASIC.isPic(this.pic))
                 throw new Exception ("Invalid pic - CNewTweetPayload.java");
         }
-        else
-        {
-            // Title or pic
-            if (!this.pic.equals("") || 
-                !this.title.equals(""))
-            throw new Exception ("Invalid entry data - CNewTweetPayload.java");
-        }
             
         // Check if retweet ID exist
         if (this.retweet_tweet_ID>0)
-        {
-                // Retweet
-                ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                                   + "FROM tweets "
-                                                  + "WHERE tweetID='"+this.retweet_tweet_ID+"'");
-                
-                // Has data
-                if (!UTILS.DB.hasData(rs))
-                   throw new Exception ("Invalid retweet ID - CNewTweetPayload.java");
-        }
+           if (!UTILS.BASIC.targetValid("ID_POST", this.retweet_tweet_ID))
+              throw new Exception("Invalid retweet_tweet_ID - CNewTweetPayload.java");
         
-            
-	// Check Hash
+        // Check Hash
 	String h=UTILS.BASIC.hash(this.getHash()+
  			          this.title+
                                   this.mes+

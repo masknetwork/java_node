@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Timer;
 import java.util.TimerTask;
-import wallet.agents.CAgent;
 import wallet.network.CPeer;
 import wallet.network.packets.blocks.CBlockPayload;
 
@@ -18,6 +17,9 @@ public class CCrons
     
    // Task
    RemindTask task;
+  
+   // Last agent ID
+   long last_agentID;
    
    public CCrons()
    {
@@ -27,6 +29,219 @@ public class CCrons
        timer.schedule(task, 0, 1000);
    }
    
+   public void checkSpecPos(long block, CBlockPayload block_payload) throws Exception
+    {
+         // Load positions
+         ResultSet rs=UTILS.DB.executeQuery("SELECT fsmp.*, "
+                                             + "fsm.last_price, "
+                                             + "fsm.cur, "
+                                             + "fsm.adr AS mkt_adr, "
+                                             + "adr.balance AS mkt_adr_balance "
+                                        + "FROM feeds_spec_mkts_pos AS fsmp "
+                                        + "JOIN feeds_spec_mkts AS fsm ON fsm.mktID=fsmp.mktID "
+                                        + "JOIN adr ON adr.adr=fsm.adr"
+                                      + " WHERE fsmp.status='ID_MARKET'");
+            
+            /// Next
+            while (rs.next())
+            {
+                 // Last price
+                 double last_price=rs.getDouble("last_price");
+            
+                 // SL
+                 double sl=rs.getDouble("sl");
+            
+                 // TP
+                 double tp=rs.getDouble("tp");
+            
+                 // Open
+                 double open=rs.getDouble("open");
+            
+                 // Qty
+                 double qty=rs.getDouble("qty");
+            
+                 // Tip
+                 String tip=rs.getString("tip");
+            
+                 // Margin
+                 double margin=rs.getDouble("margin");
+            
+                 // Position address
+                 String pos_adr=rs.getString("adr");
+            
+                 // Market address
+                 String mkt_adr=rs.getString("mkt_adr");
+            
+                 // Market currency
+                 String mkt_cur=rs.getString("cur");
+            
+                 // PL
+                 double pl=0;
+                 if (tip.equals("ID_BUY"))
+                    pl=(last_price-open)*qty;
+                 else
+                    pl=(open-last_price)*qty;
+                
+                 // Close
+                 boolean close=false;
+                 
+                // Close pposition ?
+                if (pl<0 && Math.abs(pl)>=margin) 
+                {
+                    close=true;
+                    pl=-margin;
+                    System.out.println("Closed : "+pl+", margin : "+margin);
+                }
+                
+                // SL hit
+                if (tip.equals("ID_BUY") && (last_price<=sl || last_price>=tp)) 
+                {
+                    close=true;
+                     System.out.println("Closed : "+last_price+", sl : "+sl+", tp : "+tp);
+                }
+                
+                // TP hit
+                if (tip.equals("ID_SELL") && (last_price>=sl || last_price<=tp)) 
+                {
+                    close=true;
+                     System.out.println("Closed : "+last_price+", sl : "+sl+", tp : "+tp);
+                }
+                
+                // Close
+                if (close)
+                {
+                   // To pay
+                   if (pl+margin>=0)
+                   {
+                       // To pay
+                       double to_pay=pl+margin;
+                       
+                       // To bay higher than colateral ?
+                       if (to_pay>rs.getDouble("mkt_adr_balance")) to_pay=rs.getDouble("mkt_adr_balance");
+                       
+                       // Pay
+                       if (to_pay>0)
+                       {
+                            UTILS.ACC.newTrans(pos_adr, 
+                                                 mkt_adr,
+                                                 to_pay,
+                                                 true,
+                                                 mkt_cur, 
+                                                 "One of your speculative positions was closed ", 
+                                                 "", 
+                                                 UTILS.BASIC.hash(String.valueOf(rs.getString("mktID"))), 
+                                                 block,
+                                                 block_payload,
+                                                 0);
+                       
+                            // Take money from market
+                            UTILS.ACC.newTrans(mkt_adr, 
+                                                 pos_adr,
+                                                 -to_pay,
+                                                 true,
+                                                 mkt_cur, 
+                                                 "One of positions was closed ", 
+                                                 "", 
+                                                 UTILS.BASIC.hash(String.valueOf(rs.getString("mktID"))), 
+                                                 block,
+                                                 block_payload,
+                                                 0);
+                       
+                            // Clear
+                            UTILS.ACC.clearTrans(UTILS.BASIC.hash(String.valueOf(rs.getString("mktID"))), "ID_ALL", UTILS.NET_STAT.last_block);
+                       }
+                       
+                       // Close position
+                       UTILS.DB.executeUpdate("UPDATE feeds_spec_mkts_pos "
+                                               + "SET status='ID_CLOSED', "
+                                                   + "pl='"+UTILS.FORMAT_8.format(pl)+"', "
+                                                   + "closed_pl='"+UTILS.FORMAT_8.format(pl)+"', "
+                                                   + "closed_margin='"+margin+"', "
+                                                   + "block_end='"+block+"' "
+                                             + "WHERE posID='"+rs.getString("posID")+"'");
+                   }
+                }
+                else
+                {
+                    UTILS.DB.executeUpdate("UPDATE feeds_spec_mkts_pos "
+                                            + "SET pl='"+UTILS.FORMAT_8.format(pl)+"' "
+                                          + "WHERE posID='"+rs.getLong("posID")+"'");
+                }
+                
+         
+            }
+            
+            
+      
+    }
+
+    public void openOrder(long orderID, long block) throws Exception
+    {
+        // Load order data
+        ResultSet rs=UTILS.DB.executeQuery("SELECT fsmp.*, "
+                                         + "fsm.last_price, "
+                                         + "fsm.spread "
+                                    + "FROM feeds_spec_mkts_pos AS fsmp "
+                                    + "JOIN feeds_spec_mkts AS fsm ON fsm.mktID=fsmp.mktID "
+                                   + "WHERE fsmp.posID='"+orderID+"'");
+        
+        // Next
+        rs.next();
+        
+        // Margin
+        double spread=rs.getDouble("spread");
+        
+        // Open val
+        double open=0;
+        if (rs.getString("tip").equals("ID_BUY"))
+            open=rs.getDouble("open")+spread;
+        else
+            open=rs.getDouble("open")-spread;
+        
+        // Open order
+        UTILS.DB.executeUpdate("UPDATE feeds_spec_mkts_pos "
+                                + "SET status='ID_MARKET', "
+                                    + "open='"+open+"' "
+                                    + "block_open='"+block+"' "
+                              + "WHERE posID='"+orderID+"'");
+        
+       
+        
+    }
+    
+    public void checkPendingOrders(long block) throws Exception
+    {
+        // Load pending orders
+        ResultSet rs=UTILS.DB.executeQuery("SELECT fsmp.*, fsm.last_price "
+                                   + " FROM feeds_spec_mkts_pos AS fsmp "
+                                   + " JOIN feeds_spec_mkts AS fsm ON fsm.mktID=fsmp.mktID "
+                                  + " WHERE fsmp.status='ID_PENDING'");
+        
+        // Check
+        while (rs.next())
+        {
+            // Buy order
+            if (rs.getString("tip").equals("ID_BUY"))
+            {
+                // Above open line
+                if (rs.getString("open_line").equals("ID_ABOVE") && 
+                    rs.getDouble("last_price")<=rs.getDouble("open"))
+                this.openOrder(rs.getLong("posID"), block);
+                
+                // Below open line
+                if (rs.getString("open_line").equals("ID_BELOW") && 
+                    rs.getDouble("last_price")>=rs.getDouble("open"))
+                this.openOrder(rs.getLong("posID"), block);
+            }
+            else
+            {
+                
+            }
+        }
+        
+        
+    }
+    
    public void closeOption(long uid, String result, CBlockPayload block_payload) throws Exception
     {
         try
@@ -348,78 +563,12 @@ public class CCrons
         return -1000000000;
     }
     
-    public void updateMarkets(String table) throws Exception
+    public void updateSpecMarkets(String feed, String branch, double price) throws Exception
     {
-        // Price 1
-           ResultSet rs=UTILS.DB.executeQuery("SELECT fsm.*, "
-                                             + "branch_1.val AS p1, "
-                                             + "branch_2.val AS p2, "
-                                             + "branch_3.val AS p3 "
-                                       + "FROM "+table+" AS fsm "
-                                  + "LEFT JOIN feeds_branches AS branch_1 ON (branch_1.feed_symbol=fsm.feed_1 "
-                                                                           + "AND branch_1.symbol=fsm.branch_1) "
-                                  + "LEFT JOIN feeds_branches AS branch_2 ON (branch_2.feed_symbol=fsm.feed_2 "
-                                                                           + "AND branch_2.symbol=fsm.branch_2) "
-                                  + "LEFT JOIN feeds_branches AS branch_3 ON (branch_3.feed_symbol=fsm.feed_3 "
-                                                                           + "AND branch_3.symbol=fsm.branch_3)");
-          
-           
-           // Load markets
-           double price=0;
-           while (rs.next())
-           {
-               // One feed
-               if (rs.getString("feed_2").length()!=6  && 
-                   rs.getString("feed_3").length()!=6)
-               {
-                   // Set price
-                   price=rs.getDouble("p1");
-                   
-                   UTILS.DB.executeUpdate("UPDATE "+table
-                                       + " SET last_price='"+rs.getDouble("p1")
-                                    +"' WHERE betID='"+rs.getLong("betID")+"'");
-               }
-               
-               // Two feeds
-               if (rs.getString("feed_2").length()==6  && 
-                   rs.getString("feed_3").length()!=6)
-               {
-                     UTILS.DB.executeUpdate("UPDATE "+table
-                                       + " SET last_price='"+this.getPrice(rs.getDouble("p1"), 
-                                                                          rs.getDouble("p2"), 
-                                                                          5)
-                                    +"' WHERE betID='"+rs.getLong("betID")+"'");
-                     
-                     // Set price
-                     price=this.getPrice(rs.getDouble("p1"), 
-                                         rs.getDouble("p2"), 5);
-               }
-               
-               // Three feeds
-               if (rs.getString("feed_2").length()==6  && 
-                   rs.getString("feed_3").length()==6)
-               {
-                    UTILS.DB.executeUpdate("UPDATE "+table
-                                       + " SET last_price='"+this.getPrice(rs.getDouble("p1"), 
-                                                                          rs.getDouble("p2"), 
-                                                                          rs.getDouble("p3"), 
-                                                                          5)
-                                    +"' WHERE betID='"+rs.getLong("betID")+"'");
-                    
-                    // Set price
-                    price=this.getPrice(rs.getDouble("p1"), 
-                                        rs.getDouble("p2"), 
-                                        rs.getDouble("p3"), 
-                                        5);
-;               
-               }
-               
-           }
-           
-           // Close
-          
-           
-       
+       UTILS.DB.executeUpdate("UPDATE feeds_spec_mkts "
+                               + "SET last_price='"+price+"' "
+                             + "WHERE feed='"+feed+"' "
+                               + "AND branch='"+branch+"'");
     }
    
     
@@ -428,116 +577,37 @@ public class CCrons
      {
         // Run options
         this.checkOptions(block, block_payload);
-         
-        // Update markets
-        this.updateMarkets("feeds_bets");
-     }
-     
-    
-     public void checkMyAgents() throws Exception
-     {
-         try
-         {
-         // Statement
-         
-         
-         // Load agents
-         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                     + "FROM agents_mine "
-                                    + "WHERE compiler='SURfUEVORElORw=='");
-         
-         // Compile
-         while (rs.next())
-         {
-             CAgent agent=new CAgent(rs.getLong("ID"), true, UTILS.NET_STAT.last_block);
-             agent.parse();
-         }
-         
-         // Load agents
-         rs=UTILS.DB.executeQuery("SELECT * "
-                           + "FROM agents_mine "
-                           + "WHERE run='ID_PENDING'");
-         
-         // Compile
-         while (rs.next())
-         {
-             UTILS.DB.executeUpdate("UPDATE agents_mine "
-                                     + "SET run='' "
-                                   + "WHERE ID='"+rs.getLong("ID")+"'");
-              
-             CAgent agent=new CAgent(rs.getLong("ID"), true, UTILS.NET_STAT.last_block);
-             
-             // Load transaction
-             if (rs.getString("simulate_target").equals("ID_TRANS"))
-             agent.VM.SYS.EVENT.loadTrans(rs.getString("trans_sender"), 
-                                          rs.getDouble("trans_amount"), 
-                                          rs.getString("trans_cur"), 
-                                          UTILS.BASIC.base64_decode(rs.getString("trans_mes")), 
-                                          rs.getString("trans_escrower"), 
-                                          UTILS.BASIC.hash(String.valueOf(Math.random())));
-             
-             // Message
-             if (rs.getString("simulate_target").equals("ID_MES"))
-             agent.VM.SYS.EVENT.loadMessage(rs.getString("mes_sender"), 
-                                            UTILS.BASIC.base64_decode(rs.getString("mes_subj")),
-                                            UTILS.BASIC.base64_decode(rs.getString("mes_mes")),
-                                            UTILS.BASIC.hash(String.valueOf(Math.random())));
-             
-             // Block
-             if (rs.getString("simulate_target").equals("ID_BLOCK"))
-             agent.VM.SYS.EVENT.loadBlock(rs.getString("block_hash"), 
-                                          rs.getLong("block_no"),
-                                          rs.getLong("block_nonce"));
-            
-             // Target
-             switch (rs.getString("simulate_target"))
-             {
-                 case "ID_TRANS" : agent.execute("#transaction#", true, rs.getLong("block_no")); 
-                                   break;
-                                   
-                 case "ID_MES" : agent.execute("#message#", true, rs.getLong("block_no")); 
-                                 break;
-                                 
-                 case "ID_BLOCK" : agent.execute("#block#", true, rs.getLong("block_no")); 
-                                   break;
-                                   
-                 case "ID_DEFAULT" : agent.execute("#start#", true, rs.getLong("block_no")); 
-                                     break;
-             }
-             
-            
-         }
-         
-           
-           
-         }
-         catch (Exception ex)
-         {
-            throw new Exception(ex.getMessage());
-         }
      }
      
      public void setStatus()throws Exception
      {
-         // Get runtime
-           Runtime runtime = Runtime.getRuntime();
-           
            // Low memory ?
-           if (runtime.freeMemory()<200000) 
+           if (UTILS.runtime.freeMemory()<2000) 
            {
-               UTILS.LOG.log("ID_ERROR", "Exit virtual machine (run out of memory)", "CStatus.java", 146);
+               System.out.println("Exit virtual machine (run out of memory)");
                System.exit(0);
            }
            
            // Update
            UTILS.DB.executeUpdate("UPDATE web_sys_data "
                                    + "SET last_ping='"+UTILS.BASIC.tstamp()+"', "
-                                       + "max_memory='"+runtime.maxMemory()+"', "
+                                       + "max_memory='"+UTILS.runtime.maxMemory()+"', "
                                        + "version='0.9.0', "
-                                       + "free_memory='"+runtime.freeMemory()+"', "
-                                       + "total_memory='"+runtime.totalMemory()+"', "
-                                       + "procs='"+runtime.availableProcessors()+"', "
+                                       + "free_memory='"+UTILS.runtime.freeMemory()+"', "
+                                       + "total_memory='"+UTILS.runtime.totalMemory()+"', "
+                                       + "procs='"+UTILS.runtime.availableProcessors()+"', "
                                        + "threads_no='"+Thread.getAllStackTraces().size()+"'");
+           
+           // Insert into log
+           UTILS.DB.executeUpdate("INSERT INTO status_log "
+                                        + "SET total_mem='"+UTILS.runtime.totalMemory()+"', "
+                                            + "free_mem='"+UTILS.runtime.freeMemory()+"', "
+                                            + "threads='"+Thread.getAllStackTraces().size()+"', "
+                                            + "tstamp='"+UTILS.BASIC.tstamp()+"'");
+           
+           // Delete old records
+           UTILS.DB.executeUpdate("DELETE FROM status_log "
+                                      + "WHERE tstamp<"+(UTILS.BASIC.tstamp()-86400));
      }
      
      class RemindTask extends TimerTask 
@@ -552,9 +622,6 @@ public class CCrons
                
                // Sync
                if (UTILS.SYNC!=null) UTILS.SYNC.tick();
-               
-               // My agents
-               checkMyAgents();
                
                // Status
                setStatus();

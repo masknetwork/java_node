@@ -22,7 +22,7 @@ public class CFollowPayload extends CPayload
    long months;
    
    // Serial
-   private static final long serialVersionUID = 100L;
+   private static final long serialVersionUID = 1;
    
    public CFollowPayload(String adr, 
 		         String follow_adr,
@@ -58,14 +58,16 @@ public class CFollowPayload extends CPayload
        // Follow address valid
        if (!UTILS.BASIC.isAdr(this.follow_adr))
           throw new Exception("Invalid follow address - CFollowPayload.java");
-             
-       // Address has tweets ?
+       
+       // Already follow ?
        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                          + "FROM tweets "
-                                         + "WHERE adr='"+this.follow_adr+"'");
-             
-       if (!UTILS.DB.hasData(rs))
-          throw new Exception("Address has no twits - CFollowPayload.java");
+                                          + "FROM tweets_follow "
+                                         + "WHERE adr='"+this.target_adr+"' "
+                                           + "AND follows='"+this.follow_adr+"'");
+       
+       // Has data
+       if (UTILS.DB.hasData(rs))
+           throw new Exception("Already following - CFollowPayload.java");
        
        // Months
        if (this.months<1)
@@ -82,9 +84,6 @@ public class CFollowPayload extends CPayload
    
    public void commit(CBlockPayload block) throws Exception
    {
-       // Superclass
-       super.commit(block);
-       
        UTILS.DB.executeUpdate("INSERT INTO tweets_follow "
                                     + "SET adr='"+this.target_adr+"', "
                                         + "follows='"+this.follow_adr+"', "

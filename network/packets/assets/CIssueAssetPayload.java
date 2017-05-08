@@ -125,9 +125,6 @@ public class CIssueAssetPayload extends CPayload
         // Super class
         super.check(block);
         
-        // Valid asset ID
-        if (!UTILS.BASIC.validID(this.assetID))
-           throw new Exception("Invalid asset ID - CIssueAssetPayload.java");
         
         // Symbol length
         if (!UTILS.BASIC.isSymbol(this.symbol))
@@ -182,18 +179,13 @@ public class CIssueAssetPayload extends CPayload
             throw new Exception("Invalid transaction fee address - CIssueAssetPayload.java");
         
         // Transaction fee
-        if (this.trans_fee<0.01 || this.trans_fee>10)
+        if (this.trans_fee<0 || this.trans_fee>10)
             throw new Exception("Invalid transaction fee - CIssueAssetPayload.java");
        
         // Sealed ? 
         if (UTILS.BASIC.isSealed(this.target_adr))
            throw new Exception("Sealed address - CIssueAssetPayload.java");
-        
-         // Mkt address ?
-        if (UTILS.BASIC.isMktAdr(this.target_adr) || 
-            UTILS.BASIC.isContractAdr(this.target_adr))
-        throw new Exception("Market address - CIssueAssetPayload.java");
-            
+           
         // Calculates hash
         String h=UTILS.BASIC.hash(this.getHash()+
                                  this.assetID+

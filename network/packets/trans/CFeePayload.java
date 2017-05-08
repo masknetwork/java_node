@@ -3,6 +3,7 @@
 
 package wallet.network.packets.trans;
 
+import wallet.kernel.UTILS;
 import wallet.network.*;
 import wallet.network.packets.blocks.*;
 
@@ -23,6 +24,7 @@ public class CFeePayload extends CTransPayload
 	  
     public  CFeePayload(String src, double amount) throws Exception
     {
+         // Constructor
          super(src, 
     	       "default", 
     	       amount,
@@ -47,5 +49,9 @@ public class CFeePayload extends CTransPayload
         // Currency
     	if (!this.cur.equals("MSK")) 
            throw new Exception("Invalid currency - CFeePayload.java");
+        
+        // Can spend ?
+        if (!UTILS.BASIC.canSpend(this.target_adr))
+            throw new Exception("Network fee address can't spend funds - CFeePayload.java");
     }
 }

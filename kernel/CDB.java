@@ -19,7 +19,10 @@ public class CDB
 {
 	// Connection
 	public Connection con;
-  
+        
+        // File location
+        public String fileLoc;
+        
 	ArrayList<Statement> cons=new ArrayList<Statement>();
         int a=0;
         
@@ -38,16 +41,16 @@ public class CDB
   	   } 
 	   catch (SQLException ex) 
 	   { 
-		   UTILS.LOG.log("SQLException", ex.getMessage(), "CDB.java", 28);
+		   System.out.println(ex.getMessage());
                    System.exit(0);
 	   }
 	   catch (Exception ex) 
 	   {
-		   UTILS.LOG.log("Exception", ex.getMessage(), "CDB.java", 28); 
+		   System.out.println(ex.getMessage());
                    System.exit(0);
   	   }
      
-           this.executeUpdate("SET SESSION group_concat_max_len=10000000000");
+           this.executeUpdate("SET GLOBAL TRANSACTION ISOLATION LEVEL SERIALIZABLE");
 	   System.out.println("DB initialized...");
            
    }
@@ -63,9 +66,7 @@ public class CDB
 	       con = DriverManager.getConnection("jdbc:mysql://localhost:3306/"+UTILS.SETTINGS.db_name,
 					         UTILS.SETTINGS.db_user,
 					         UTILS.SETTINGS.db_pass);
-                 
-                 
-            
+               
               // Abort
               if (con.isClosed()) System.exit(0);
           }
@@ -76,12 +77,12 @@ public class CDB
        }
        catch (SQLException ex) 
        { 
-	    UTILS.LOG.log("SQLException", ex.getMessage(), "CDB.java", 28);
+	    System.out.println(ex.getMessage());
             System.exit(0);
        }
        catch (Exception ex) 
        {
-            UTILS.LOG.log("Exception", ex.getMessage(), "CDB.java", 28); 
+            System.out.println(ex.getMessage());
             System.exit(0);
        }
        
@@ -91,6 +92,9 @@ public class CDB
    
    public ResultSet executeQuery(String query) throws Exception
    {
+       if (UTILS.SETTINGS.db_debug.equals("true"))
+          System.out.println(query);
+           
        // Check connection
        this.checkConnection();
        
@@ -104,10 +108,12 @@ public class CDB
       cons.add(s);
       
       // Size limit ?
-      if (cons.size()>10000 && UTILS.CONSENSUS.status.equals("ID_WAITING")) 
+      if (UTILS.NETWORK!=null)
       {
-          for (int a=0; a<=(cons.size()-10000); a++)
-          {
+         if (cons.size()>10000) 
+         {
+            for (int a=0; a<=100; a++)
+            {
               // Close
               Statement st=cons.get(a);
               
@@ -116,12 +122,13 @@ public class CDB
               
               // Remove
               cons.remove(a);
-          }
+            }
+        }
       }
-      
       
       return rs;
    }
+   
    
     // Checks if result set contains any data 
     public boolean hasData(ResultSet rs) throws Exception
@@ -134,22 +141,30 @@ public class CDB
 	       return true;
     }
 	
-   public Statement executeUpdate(String query) throws Exception
+   public void executeUpdate(String query) throws Exception
+   {
+      this.checkConnection();
+      PreparedStatement p=con.prepareStatement(query);
+      p.execute();
+      p.close(); 
+   } 
+   
+    public void executeUpdate(Connection c, String query) throws Exception
    {
        // Check connection
        this.checkConnection();
        
        try
        {
-	      PreparedStatement p=con.prepareStatement(query);
+	      PreparedStatement p=c.prepareStatement(query);
               p.execute();
               p.close(); 
               
-              return null;     
+              
 	}
-	catch (Exception e) 
+	catch (Exception ex) 
 	{ 
-	      UTILS.LOG.log("Query Error", e.getMessage()+query, "CDB.java", 176);
+	      System.out.println(ex.getMessage());
               throw new Exception("Query error");
 	}
    } 
@@ -174,6 +189,24 @@ public class CDB
    public void rollback() throws Exception
    {
        this.executeUpdate("ROLLBACK");
+   }
+   
+   public void loadFileLoc() throws Exception
+   {
+       ResultSet rs=UTILS.DB.executeQuery("SHOW VARIABLES LIKE 'secure_file_priv'");
+       
+       if (!UTILS.DB.hasData(rs))
+       {
+           this.fileLoc="";
+       }
+       else
+       {
+           rs.next();
+           this.fileLoc=rs.getString("Value");
+       }
+       
+       // Print
+       System.out.println("DB secure file set to "+this.fileLoc+".");
    }
   
 }

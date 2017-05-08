@@ -190,7 +190,8 @@ public class CAddress
 	{
             return Base64.encodeBase64String(this.public_key);
         }
-	
+        
+        
 	public String getPrivate() 
 	{
            return Base64.encodeBase64String(this.private_key);

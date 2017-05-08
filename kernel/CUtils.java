@@ -58,7 +58,7 @@ public class CUtils
 	}
 	
 	
-	public boolean addressExist(String adr) throws Exception
+	public boolean adrExist(String adr) throws Exception
 	{
             // Checks if address is valid
 	    if (this.isAdr(adr)==false)
@@ -233,7 +233,7 @@ public class CUtils
                 else
                 {
                     // Return
-                    return "";
+                    return domain;
                 }
 	}
 	
@@ -347,23 +347,7 @@ public class CUtils
         return Math.round(Math.random()*999999999999999999L);
     }
     
-    public boolean isContractAdr(String adr) throws Exception
-    {
-       // Found
-       boolean found;
-       
-       // Load data
-       ResultSet rs=UTILS.DB.executeQuery("SELECT * FROM agents WHERE adr='"+adr+"'");
-       
-       if (UTILS.DB.hasData(rs))
-           found=true;
-       else
-           found=false;
-       
-       // Return
-       return found;
-    }
-    
+   
     public String toHexStr(byte[] data) throws Exception
     {
         return new String(Hex.encodeHex(data));
@@ -392,55 +376,70 @@ public class CUtils
        return found;
     }
     
+    public boolean isSpecMktAddress(String adr) throws Exception
+    {
+       // Load data
+       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                          + "FROM feeds_spec_mkts "
+                                         + "WHERE adr='"+adr+"'");
+       
+       // Return
+       if (UTILS.DB.hasData(rs))
+           return true;
+       else 
+           return false;
+    }
+    
     public boolean isAssetAdr(String adr) throws Exception
     {
-        // Found
-       boolean found;
-       
-       
        // Load data
        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                           + "FROM assets "
-                                         + "WHERE adr='"+adr+"' "
-                                           + "AND linked_mktID>0");
+                                         + "WHERE adr='"+adr+"' ");
        
        if (UTILS.DB.hasData(rs))
-           found=true;
+           return true;
        else
-           found=false;
-        
-       // Return
-       return found;
+           return false;
     }
     
     
     public boolean isAsset(String symbol) throws Exception
     {
-        // Found
-       boolean found;
+       // Symbol
+       if (!this.isSymbol(symbol))
+           return false;
        
-      
        // Load data
        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                   + "FROM assets "
-                                  + "WHERE symbol='"+symbol+"'");
+                                          + "FROM assets "
+                                         + "WHERE symbol='"+symbol+"'");
        
        if (UTILS.DB.hasData(rs))
-           found=true;
+           return true;
        else
-           found=false;
-      
-       // Return
-       return found;
+           return false;
     }
     
-    public boolean canSpend(String adr, long block) throws Exception
+    public boolean canSpend(String adr) throws Exception
     {
-        if (this.isContractAdr(adr)==false || 
-            this.isBlockSigner(adr, block))
+        if (this.isSpecMktAddress("adr") ||
+            this.hasAttr(adr, "ID_RES_REC"))
+        return false;
+           else
+        return true;
+    }
+    
+    public boolean voted(String adr, long block) throws Exception
+    {
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM votes "
+                                          + "WHERE adr='"+adr+"' "
+                                            + "AND block>"+(block-1440));
+        if (UTILS.DB.hasData(rs))
             return true;
         else
-            return false;
+            return false;            
     }
     
     public boolean isBlockSigner(String adr, long block) throws Exception
@@ -454,15 +453,6 @@ public class CUtils
             return true;
         else
             return false;
-    }
-    
-    public boolean isMktAdr(String adr) throws Exception
-    {
-        if (this.isAssetAdr(adr)==false && 
-            this.isMktPeggedAssetAdr(adr)==false)
-            return false;
-        else
-            return true;
     }
     
     public boolean isLong(String var) throws Exception
@@ -509,8 +499,7 @@ public class CUtils
     {
 	for (int a=0; a<=str.length()-1; a++)
         {
-            //System.out.println(str.charAt(a));
-	    if (Character.codePointAt(str, 0)<32 || 
+            if (Character.codePointAt(str, 0)<32 || 
                 Character.codePointAt(str, 0)>126)
                 return false;
         }
@@ -747,66 +736,7 @@ public class CUtils
             return false;
     }
     
-    public long getAssetContract(String symbol) throws Exception
-    {
-        long aID=0;
-        
-        // Statement
-        
-        
-        // Load asset data
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * FROM assets WHERE symbol='"+symbol+"'");
-        
-        // Next
-        rs.next();
-        
-        // Asset address
-        String adr=rs.getString("adr");
-        
-        // Contract ?
-        rs=UTILS.DB.executeQuery("SELECT * FROM agents WHERE adr='"+adr+"'");
-        
-        if (UTILS.DB.hasData(rs))
-        {
-            // Next
-            rs.next();
-            
-            // ID
-            aID=rs.getLong("aID");
-        }
-       
-        return aID;
-    }
-    
-    public long getMarketContract(long mktID, String table) throws Exception
-    {
-       // Load market data
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                           + "FROM "+table
-                                          + " WHERE mktID='"+mktID+"'");
-        
-        // Next
-        rs.next();
-        
-        // Load contract
-        rs=UTILS.DB.executeQuery("SELECT * "
-                                 + "FROM agents "
-                                + "WHERE adr='"+rs.getString("adr")+"'");
-        
-        // Has data
-        if (UTILS.DB.hasData(rs))
-        {
-            // Next
-            rs.next();
-            
-            // ID
-            return rs.getLong("aID");
-        }
-       
-        
-        // Return
-        return 0;
-    }
+   
     
     public void commited(String block_hash, 
                          long block_no, 
@@ -840,35 +770,56 @@ public class CUtils
         return res;
     }
     
-    public boolean validID(long ID) throws Exception
+    // Check if the ID was already used
+    public boolean existID(long ID) throws Exception
     {
-        // Is asset
+        // Search tweets
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                           + "FROM assets "
-                                          + "WHERE assetID='"+ID+"'");
-        if (UTILS.DB.hasData(rs)) return false;
-                
-        // Is post ID
-        rs=UTILS.DB.executeQuery("SELECT * "
-                                 + "FROM tweets "
-                                + "WHERE tweetID='"+ID+"'");
-        if (UTILS.DB.hasData(rs)) return false;
+                                           + "FROM tweets "
+                                          + "WHERE tweetID='"+ID+"'");
         
-        // IS comment ID
+        // Has data ?
+        if (UTILS.DB.hasData(rs)) 
+            return true;
+                            
+        // Comments
         rs=UTILS.DB.executeQuery("SELECT * "
                                  + "FROM comments "
                                 + "WHERE comID='"+ID+"'");
-        if (UTILS.DB.hasData(rs)) return false;
         
-        // Is app ID
+        // Has data ?
+        if (UTILS.DB.hasData(rs)) 
+            return true;
+                                
+        // Feeds
         rs=UTILS.DB.executeQuery("SELECT * "
-                                 + "FROM agents "
-                                + "WHERE aID='"+ID+"'");
-        if (UTILS.DB.hasData(rs)) return false;
+                                 + "FROM feeds "
+                                + "WHERE feedID='"+ID+"'");
         
+        // Has data ?
+        if (UTILS.DB.hasData(rs)) 
+            return true;
+                                
+        // Bets
+        rs=UTILS.DB.executeQuery("SELECT * "
+                                 + "FROM feeds_bets "
+                                + "WHERE betID='"+ID+"'");
+           
+        // Has data ?
+        if (UTILS.DB.hasData(rs)) 
+            return true;
+        
+        // Assets
+        rs=UTILS.DB.executeQuery("SELECT * "
+                                 + "FROM assets "
+                                + "WHERE assetID='"+ID+"'");
+        
+        // Has data ?
+        if (UTILS.DB.hasData(rs)) 
+            return true;
         
         // Return
-        return true;
+        return false;
     }
     
     public boolean targetValid(String target_type, long targetID) throws Exception
@@ -880,7 +831,9 @@ public class CUtils
            !target_type.equals("ID_BET") && 
            !target_type.equals("ID_APP") && 
            !target_type.equals("ID_ASSET") &&
-           !target_type.equals("ID_ASSET_MKT"))
+           !target_type.equals("ID_ASSET_MKT") &&
+           !target_type.equals("ID_ADR") &&
+           !target_type.equals("ID_MARGIN_MKT"))
         return false;
        
        // Result
@@ -909,20 +862,13 @@ public class CUtils
                                                     + "WHERE betID='"+targetID+"'");
                                 break;    
                                 
-            case "ID_APP" : rs=UTILS.DB.executeQuery("SELECT * "
-                                                     + "FROM agents "
-                                                    + "WHERE aID='"+targetID+"'");
-                                break;  
-                                
+                               
             case "ID_ASSET" : rs=UTILS.DB.executeQuery("SELECT * "
                                                        + "FROM assets "
                                                       + "WHERE assetID='"+targetID+"'");
                                 break;  
                                 
-            case "ID_ASSET_MKT" : rs=UTILS.DB.executeQuery("SELECT * "
-                                                           + "FROM assets_mkts "
-                                                          + "WHERE mktID='"+targetID+"'");
-                                break;  
+           
        }
              
        // Like tweet exist ?
@@ -961,21 +907,18 @@ public class CUtils
                                                     + "WHERE betID='"+targetID+"'");
                                 break;    
                                 
-            case "ID_APP" : rs=UTILS.DB.executeQuery("SELECT * "
-                                                     + "FROM agents "
-                                                    + "WHERE aID='"+targetID+"'");
-                                break;  
                                 
             case "ID_ASSET" : rs=UTILS.DB.executeQuery("SELECT * "
                                                        + "FROM assets "
                                                       + "WHERE assetID='"+targetID+"'");
                                 break;  
                                 
-            case "ID_ASSET_MKT" : rs=UTILS.DB.executeQuery("SELECT * "
-                                                           + "FROM assets_mkts "
-                                                          + "WHERE mktID='"+targetID+"'");
-                                break;  
+           
        }
+       
+       // Has data
+       if (!UTILS.DB.hasData(rs))
+          return "";
        
        // Next
        rs.next();
@@ -984,19 +927,59 @@ public class CUtils
        return rs.getString("adr");
     }
     
-    public long getAgentID(String adr) throws Exception
+    public boolean targetExist(String target_type, long targetID) throws Exception
     {
-       // Load agent data
-       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                          + "FROM agents "
-                                         + "WHERE adr='"+adr+"'");
-       // Next
-       rs.next();
+       // Result
+       ResultSet rs=null;
        
-       // Return
-       return rs.getLong("aID");
+       // Target
+       if (!target_type.equals("ID_POST") && 
+           !target_type.equals("ID_COM") && 
+           !target_type.equals("ID_FEED") && 
+           !target_type.equals("ID_BET") && 
+           !target_type.equals("ID_ASSET"))
+        return false;
+       
+       // Load  data
+       switch (target_type)
+       {
+           case "ID_POST" : rs=UTILS.DB.executeQuery("SELECT * "
+                                                     + "FROM tweets "
+                                                    + "WHERE tweetID='"+targetID+"'");
+                            break;    
+                            
+           case "ID_COM" : rs=UTILS.DB.executeQuery("SELECT * "
+                                                        + "FROM comments "
+                                                       + "WHERE comID='"+targetID+"'");
+                                break;    
+                                
+           case "ID_FEED" : rs=UTILS.DB.executeQuery("SELECT * "
+                                                     + "FROM feeds "
+                                                    + "WHERE feedID='"+targetID+"'");
+                                break;    
+                                
+            case "ID_BET" : rs=UTILS.DB.executeQuery("SELECT * "
+                                                     + "FROM feeds_bets "
+                                                    + "WHERE betID='"+targetID+"'");
+                                break;    
+                                
+                                
+            case "ID_ASSET" : rs=UTILS.DB.executeQuery("SELECT * "
+                                                       + "FROM assets "
+                                                      + "WHERE assetID='"+targetID+"'");
+                                break;  
+                                
+           
+       }
+       
+       // Has data
+       if (!UTILS.DB.hasData(rs))
+          return false;
+       else
+          return true;
     }
     
+   
     public double getReward(String target) throws Exception
     {
         // Load address
@@ -1008,33 +991,97 @@ public class CUtils
         rs.next();
         
         // Undistributed
-        double unspend=21000000-rs.getDouble("balance");
+        double unspend=rs.getDouble("balance");
         
         // Per day
-        double per_day=unspend/365;
+        double per_day=unspend/365/20;
         
         // Reward
         double reward=0;
         
         switch (target)
         {
-            // Miners - 20%
-            case "ID_MINER" : reward=UTILS.BASIC.round(per_day*0.2/1440.0, 4); break;
-            
-            // Content - 30%
-            case "ID_CONTENT" : reward=per_day*0.3; break;
-            
-            // Voters - 20%
-            case "ID_VOTER" : reward=per_day*0.2; break;
-            
-            // Commenters - 15%
-            case "ID_COM" : reward=per_day*0.15; break;
-            
-            // Applications - 15%
-            case "ID_APP" : reward=per_day*0.15; break;
+            // Posts
+            case "ID_POST" : reward=per_day*0.2; break;
+			
+	    // Comments
+	    case "ID_COM" : reward=per_day*0.1; break;
+			
+	    // Feeds
+	    case "ID_FEEDS" : reward=per_day*0.05; break;
+			
+	    // Assets
+	    case "ID_ASSETS" : reward=per_day*0.05; break;
+			
+	    // Bets
+	    case "ID_BETS" : reward=per_day*0.1; break;
+			
+	    // Margin
+	    case "ID_MKTS" : reward=per_day*0.1; break;
+			
+	    // Miners
+	    case "ID_MINER" : reward=per_day*0.4/1440; break;
         }
         
         // Return
         return reward;
+    }
+    
+    public boolean hasAttr(String adr, String attr) throws Exception
+    {
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM adr_attr "
+                                          + "WHERE adr='"+adr+"' "
+                                            + "AND attr='"+attr+"'");
+       // Has data ?
+       if (UTILS.DB.hasData(rs))
+           return true;
+       else
+           return false;
+    }
+    
+    
+    
+    public void voteTarget(String adr, 
+                           String target_type, 
+                           long targetID, 
+                           long block) throws Exception
+    {
+        // Voted ?
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM votes "
+                                          + "WHERE adr='"+adr+"' "
+                                            + "AND target_type='ID_ASSET' "
+                                            + "AND targetID='"+targetID+"'");
+                      
+        // Has data
+        if (!UTILS.DB.hasData(rs))
+           UTILS.DB.executeUpdate("INSERT INTO votes "
+                                       + "SET target_type='ID_ASSET', "
+                                           + "targetID='"+targetID+"', "
+                                           + "type='ID_UP', "
+                                           + "adr='"+adr+"', "
+                                           + "block='"+block+"'");
+    }
+    
+    public long getFeedID(String symbol) throws Exception
+    {
+        // Load asset
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM feeds "
+                                          + "WHERE symbol='"+symbol+"'");
+        
+        // Has data
+        if (UTILS.DB.hasData(rs))
+        {
+            // NExt
+            rs.next();
+            
+            // Return
+            return rs.getLong("feedID");
+        }
+        
+        // Return
+        return 0;
     }
 }

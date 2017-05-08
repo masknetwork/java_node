@@ -13,7 +13,7 @@ import wallet.network.packets.blocks.*;
 public class CProfilePacket extends CBroadcastPacket 
 {
    // Serial
-   private static final long serialVersionUID = 100L;
+   private static final long serialVersionUID = 1L;
     
    public CProfilePacket(String fee_adr, 
 		         String target_adr, 
@@ -39,10 +39,11 @@ public class CProfilePacket extends CBroadcastPacket
 		                                           days);
 			
 	   // Build the payload
-	   this.payload=UTILS.SERIAL.serialize(dec_payload);
+	   this.payload=UTILS.SERIAL.serialize (dec_payload);
 			
 	   // Network fee
-	   fee=new CFeePayload(fee_adr, 0.0001*days);
+	  CFeePayload fee=new CFeePayload(fee_adr,  0.0001*days);
+	  this.fee_payload=UTILS.SERIAL.serialize(fee);
 	   
 	   // Sign packet
            this.sign();
@@ -59,9 +60,12 @@ public class CProfilePacket extends CBroadcastPacket
 		  
 	// Deserialize
 	CProfilePayload payload=(CProfilePayload) UTILS.SERIAL.deserialize(this.payload);
-		  
+        
+        // Deserialize payload
+        CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
+        
 	// Check fee
-	if (this.fee.amount<payload.days*0.0001)
+	if (fee.amount<payload.days*0.0001)
 	   throw new Exception("Invalid fee - CProfilePacket.java");
 		  
 	// Check payload

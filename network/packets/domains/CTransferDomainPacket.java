@@ -35,7 +35,8 @@ public class CTransferDomainPacket extends CBroadcastPacket
         this.payload=UTILS.SERIAL.serialize(dec_payload);
 						
 	// Network fee
-	fee=new CFeePayload(fee_adr);
+	CFeePayload fee=new CFeePayload(fee_adr,  0.0001);
+	this.fee_payload=UTILS.SERIAL.serialize(fee);
 				   
 	// Sign packet
 	this.sign();
@@ -56,14 +57,16 @@ public class CTransferDomainPacket extends CBroadcastPacket
 	   
         // Check payoad
         dec_payload.check(block);
-         
+        
+        // Deserialize payload
+        CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
+     
         // Check fee
-        if (this.fee.amount<0.0001)
+        if (fee.amount<0.0001)
                throw new Exception("Invalid fee - CTransferDomainPacket.java");
             
         // Footprint
         CPackets foot=new CPackets(this);
-           
         foot.add("Domain", dec_payload.domain);
         foot.add("To Address", dec_payload.to_adr);
         foot.write();

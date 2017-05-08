@@ -15,6 +15,7 @@ import javax.swing.JFrame;
 import javax.swing.JList;
 
 import wallet.kernel.*;
+import wallet.kernel.net_stat.consensus.CConsensus;
 import wallet.network.packets.*;
 import wallet.network.*;
 import wallet.network.packets.blocks.*;
@@ -38,8 +39,13 @@ public class CNetwork extends Thread
     public static CEscrowedPool ESCROWED_POOL=null;
     
     // Multisig pool ?
-    public static CMultisigPool MULTISIG_POOL=null;
-	
+    public static CMultisigPool MULTISIG_POOL=null; 
+    
+    // Consensus
+    public  CConsensus CONSENSUS=null;
+    
+    // Last hash
+    public String last_hash; 
 
     public CNetwork()  throws Exception
     {
@@ -52,6 +58,8 @@ public class CNetwork extends Thread
         // Transaction pooll
         this.TRANS_POOL=new CTransPool();
        
+        // Consensus
+        this.CONSENSUS=new CConsensus();
     }
 	
 	  public void init() throws Exception
@@ -69,7 +77,7 @@ public class CNetwork extends Thread
               }
               catch (Exception ex) 
        	      {  
-       		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
+       		UTILS.LOG.log("SQLException", ex.getMessage(), "CNetwork.java", 57);
               }
 	  }
 	  
@@ -93,14 +101,21 @@ public class CNetwork extends Thread
                                     + "WHERE peer='"+adr+"'");
           }
           
-	  public void processRequest(CPacket packet, CPeer sender) throws Exception
+	  public synchronized void processRequest(CPacket packet, CPeer sender) throws Exception
 	  {
+             // Last hash
+             if (packet.hash.equals(this.last_hash))
+                 return;
+             
+             // Last hash
+             this.last_hash=packet.hash;
+              
 	     try
 	     { 
-		  // Last seen
-                  if (sender!=null) seen(sender.adr);
-		  
-                   // Already processed
+		  // Seen
+                  seen(sender.adr);
+                  
+		  // Already processed
 		  if (this.packetExist(packet, sender)) return;
                   
                   // Timestamp
@@ -117,14 +132,17 @@ public class CNetwork extends Thread
                   // Sync ?
                   if (UTILS.STATUS.engine_status.equals("ID_SYNC"))
                   {
-                      if (packet.tip.equals("ID_DELIVER_BLOCKCHAIN_PACKET") || 
-                          packet.tip.equals("ID_DELIVER_BLOCKS_PACKET") ||
-                          packet.tip.equals("ID_DELIVER_TABLE_PACKET") || 
+                      if (packet.tip.equals("ID_DELIVER_BLOCKS_PACKET") ||
                           packet.tip.equals("ID_REQ_CON_RESPONSE_PACKET") || 
                           packet.tip.equals("ID_REQ_DATA_PACKET") || 
-                          packet.tip.equals("ID_PUT_BLOCK_PACKET"))
+                          packet.tip.equals("ID_PUT_BLOCK_PACKET") || 
+                          packet.tip.equals("ID_NETSTAT_PACKET"))
                       packet.check(sender);
                       
+                  }
+                  else if (packet.tip.equals("ID_PING_PACKET"))
+                  {
+                     packet.check(sender); 
                   }
                   else
                   {
@@ -150,7 +168,7 @@ public class CNetwork extends Thread
                             CBlockPacket block=(CBlockPacket) packet;
                                 
                             // Load block
-                            UTILS.CONSENSUS.blockReceived(block);
+                            this.CONSENSUS.blockReceived(block);
                         }
                         else packet.check(sender);
                     }
@@ -159,7 +177,7 @@ public class CNetwork extends Thread
                   }
 		  catch (Exception ex)
 		  {
-			  UTILS.LOG.log("Exception", ex.getMessage(), "CNetwork.java", 220);
+                      System.out.println(ex.getMessage()+" CNetwork.java - 165");
 		  }
 	  }
 	  
@@ -255,25 +273,5 @@ public class CNetwork extends Thread
              this.peers.removePeer(adr);
          }
          
-         public void executeBlock(String hash) throws Exception
-         {
-              // File
-	        File f = new File(UTILS.WRITEDIR+"blocks/"+hash+".block");
-		
-                // Exist
-                if (f.exists())
- 		{
-		    // Read image from disk
-		    FileInputStream f_in = new FileInputStream(UTILS.WRITEDIR+"blocks/"+hash+".block");
-
-		    // Read object using ObjectInputStream
-		    ObjectInputStream obj_in = new ObjectInputStream (f_in);
-
-		    // Read an object
-		    CBlockPacket obj = (CBlockPacket)obj_in.readObject();
-                    
-                    // Commit
-                    obj.commit();
-                }
-         }
+        
 }

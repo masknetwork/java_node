@@ -51,19 +51,27 @@ public class CDeliverBlocksPacket extends CPacket
         // End
         this.end=end;
         
+        // Result 
+        ResultSet rs;
+        
         for (long block=start; block<=end; block++)
 	{
-		// Finds the block
-                String bhash=this.getHash(block);
+		 // Load block
+                 rs=UTILS.DB.executeQuery("SELECT * "
+                                          + "FROM blocks "
+                                         + "WHERE block='"+block+"' "
+                                           + "AND commited>0");
                 
-                // File
-	        File f = new File(UTILS.WRITEDIR+"blocks/"+bhash+".block");
+                 while (rs.next())
+                 {
+                    // File
+	            File f = new File(UTILS.WRITEDIR+"blocks/"+rs.getString("hash")+".block");
 		
-                // Exist
-                if (f.exists())
- 		{
+                    // Exist
+                    if (f.exists())
+ 		    {
 		        // Read image from disk
-		        FileInputStream f_in = new FileInputStream(UTILS.WRITEDIR+"blocks/"+bhash+".block");
+		        FileInputStream f_in = new FileInputStream(UTILS.WRITEDIR+"blocks/"+rs.getString("hash")+".block");
 
 		        // Read object using ObjectInputStream
 		        ObjectInputStream obj_in = new ObjectInputStream (f_in);
@@ -73,8 +81,13 @@ public class CDeliverBlocksPacket extends CPacket
 				     
 			// Add block
 			this.addBlock(obj);
-		}
-                else throw new Exception("Could not find block "+block);
+		   }
+                   else
+                   {
+                      System.out.println("Kernel panic (corrupted blockhain). Exiting...."+rs.getString("hash")+", "+rs.getLong("block"));
+                      System.exit(0);
+                   }
+                 }
         }
 			
 	// Hash
@@ -83,32 +96,6 @@ public class CDeliverBlocksPacket extends CPacket
                                    String.valueOf(UTILS.SERIAL.serialize(this.blocks)));
    }
    
-    public String getHash(long block) throws Exception
-    {
-        // Statement
-        
-        
-        // Load block
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                           + "FROM blocks "
-                                          + "WHERE block='"+block+"'");
-        
-        // Has data
-        if (UTILS.DB.hasData(rs))
-        {
-            // Next
-            rs.next();
-            
-            // Hash
-            String hash=rs.getString("hash");
-            
-            // Return
-            return hash;
-        }
-        
-        // Return
-        return "";
-    }
     
     public void addBlock(CBlockPacket block) throws Exception
     {
@@ -120,22 +107,40 @@ public class CDeliverBlocksPacket extends CPacket
     { 
         CResult res=null;
         
-        for (int a=0; a<=this.blocks.size()-1; a++)
+        // Processing
+        UTILS.DB.executeUpdate("UPDATE sync "
+                                   + "SET status='ID_PROCESSING', "
+                                        + "tstamp='"+UTILS.BASIC.tstamp()+"' "
+                                 + "WHERE type='ID_BLOCKS' "
+                                   + "AND start='"+this.start+"'"); 
+           
+        try
         {
-	    CBlockPacket block=(CBlockPacket)this.blocks.get(a);
-	    if (UTILS.SYNC.blockchain.commited(block.hash)) 
-                block.commit();
-				
-            System.out.println(".");
-        }
+           // Sync
+           if (!UTILS.STATUS.engine_status.equals("ID_SYNC"))
+               return;
+        
+           for (int a=0; a<=this.blocks.size()-1; a++)
+           {
+               // Block
+	       CBlockPacket block=(CBlockPacket)this.blocks.get(a);
+               
+	       // Send to consensus
+               UTILS.NETWORK.CONSENSUS.blockReceived(block);
+            }
 				   
-	// Delete from sync
-	UTILS.DB.executeUpdate("DELETE FROM sync "
-	                           + "WHERE type='ID_BLOCKS' "
-			             + "AND start='"+this.start+"'");
-                            
-                            
-        //System.out.println("Done.");
+	    // Delete from sync
+   	    UTILS.DB.executeUpdate("DELETE FROM sync "
+	                               + "WHERE type='ID_BLOCKS' "
+			                 + "AND start='"+this.start+"'");
+        }
+        catch (Exception ex)
+        {
+            System.out.println("Invalid block during sync ( "+ex.getMessage()+" ). Exiting !!!");
+            UTILS.DB.rollback();
+            System.exit(0);
+        }
+             
     }
     
     

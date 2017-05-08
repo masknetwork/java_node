@@ -156,7 +156,6 @@ public class CCurBlock
    
    public void setNonce(long nonce) throws Exception
    {
-      this.payload.hash();
       this.nonce=nonce;
    }
    
@@ -178,8 +177,8 @@ public class CCurBlock
             this.signer_balance=UTILS.DELEGATES.getPower(signer);
               
             // Payload
-            if (this.payload!=null) this.payload.target_adr=signer;
-              
+            if (this.payload!=null) 
+                this.payload.target_adr=signer;
        }
        else
        {
@@ -244,6 +243,9 @@ public class CCurBlock
        // Last tstamp
        UTILS.NET_STAT.last_block_tstamp=last_tstamp;
        
+        // New block
+       this.payload=new CBlockPayload(this.signer);
+       
        // Payload hash
        this.payload_hash=UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload));
        
@@ -256,16 +258,9 @@ public class CCurBlock
                                    + "last_block_hash='"+UTILS.NET_STAT.last_block_hash+"', "
                                     + "net_dif='"+UTILS.BASIC.formatDif(UTILS.NET_STAT.net_dif.toString(16))+"'");
        
-       // New block
-       this.payload=new CBlockPayload(this.signer);
-       
       
        // Nonce
        this.nonce=0;
-       
-       // Reset consensus
-       if (UTILS.STATUS.engine_status.equals("ID_ONLINE"))
-           UTILS.CONSENSUS.newBlock();
        
        // Set block data
        UTILS.NET_STAT.actual_block_hash="";
@@ -294,6 +289,8 @@ public class CCurBlock
                                          + "WHERE hash='"+last_hash+"' "
                                       + "ORDER BY block ASC");
        
+       if (UTILS.DB.hasData(rs)) 
+       {
        // Next
        rs.next();
        
@@ -311,9 +308,9 @@ public class CCurBlock
        {
             // Load
             rs=UTILS.DB.executeQuery("SELECT *  "
-                              + "FROM blocks "
-                             + "WHERE hash='"+last_hash+"' "
-                          + "ORDER BY block ASC");
+                                     + "FROM blocks "
+                                    + "WHERE hash='"+last_hash+"' "
+                                 + "ORDER BY block ASC");
        
             if (UTILS.DB.hasData(rs))
             {
@@ -328,13 +325,18 @@ public class CCurBlock
                     no++;
                 
                 // Last hash
-                last_hash=rs.getString("prev_hash");
+                last_hash=rs.getString("prev_hash"); 
             } 
+            else
+            {
+                System.out.println("Corrupted blockchain");
+                System.exit(0);
+            }
        }
        
        // Number
        if (no==0) no=1;
-       //System.out.println("Generated blocks "+no);
+       System.out.println("Generated blocks "+no);
        
        // New dif
        BigInteger new_dif=new BigInteger("0");
@@ -349,6 +351,12 @@ public class CCurBlock
        
        // Return
        return new_dif;
+       }
+       else
+       {
+           BigInteger new_dif=new BigInteger("0");
+           return new_dif;
+       }
    }
    
    public void stopMiners() throws Exception

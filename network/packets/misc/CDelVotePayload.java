@@ -44,8 +44,8 @@ public class CDelVotePayload extends CPayload
             throw new Exception("Invalid delegate address");
         
         // Balance
-        if (UTILS.ACC.getBalance(this.target_adr, "MSK")<1)
-            throw new Exception("Minimum balance is 1 MSK");
+        if (UTILS.ACC.getBalance(this.target_adr, "MSK")<10)
+            throw new Exception("Minimum balance is 10 MSK");
         
         // Type
         if (!this.type.equals("ID_UP") && 

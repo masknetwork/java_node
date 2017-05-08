@@ -39,10 +39,18 @@ public class CTransPacket extends CBroadcastPacket
 		this.payload=UTILS.SERIAL.serialize(dec_payload);
 				
 		// Network fee
+                double f=0;
                 if (cur.equals("MSK"))
-		  fee=new CFeePayload(fee_adr,  0.0001);
-		else
-                  fee=new CFeePayload(fee_adr,  amount*0.0001);
+		    f=amount*0.0001;
+                else
+                    f=0.0001*amount;
+                
+                // Min fee ?
+                if (f<0.0001) f=0.0001;
+	        
+                // Fee
+                CFeePayload fee=new CFeePayload(fee_adr,  f);
+	        this.fee_payload=UTILS.SERIAL.serialize(fee);
                 
                 // Hash
                 UTILS.DB.executeUpdate("UPDATE web_ops "
@@ -66,22 +74,25 @@ public class CTransPacket extends CBroadcastPacket
 	      // Deserialize transaction data
 	      CTransPayload dec_payload=(CTransPayload) UTILS.SERIAL.deserialize(payload);
 	      dec_payload.check(block);
-	   	    
+	      
+              // Deserialize payload
+              CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
+        
               if (dec_payload.cur.equals("MSK"))
-                  {
-                     if (this.fee.amount<0.0001)
+              {
+                     if (fee.amount<0.0001)
                         throw new Exception("Invalid fee - CTransPacket.java");
-                  }
-                  else
-                  {
-                     if (this.fee.amount<(dec_payload.amount*0.0001))
+              }
+              else
+              {
+                     if (fee.amount<(dec_payload.amount*0.0001))
                         throw new Exception("Invalid fee - CTransPacket.java");
-                  }
+              }
 	   	  
                   // Footprint
                   CPackets foot=new CPackets(this);
                   
-                 foot.add("Source", dec_payload.src);
+                 foot.add("Source", dec_payload.target_adr);
                  foot.add("Recipient", dec_payload.dest);
                  foot.add("Amount", UTILS.FORMAT_8.format(dec_payload.amount));
                  foot.add("Currency", dec_payload.cur);

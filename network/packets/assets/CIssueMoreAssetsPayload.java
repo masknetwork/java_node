@@ -81,12 +81,13 @@ public class CIssueMoreAssetsPayload extends CPayload
  	   
            // Update assets
            UTILS.DB.executeUpdate("UPDATE assets "
-                                   + "SET qty=qty+"+this.qty+" "
+                                   + "SET qty=qty+"+this.qty+", "
+                                       + "block='"+this.block+"' "
                                  + "WHERE symbol='"+this.symbol+"'");
            
            // Update assets owners
            UTILS.DB.executeUpdate("UPDATE assets_owners "
-                                   + "SET qty=qty+"+this.qty+" "
+                                   + "SET qty=qty+"+this.qty+", block='"+this.block+"' "
                                  + "WHERE symbol='"+this.symbol+"' "
                                    + "AND owner='"+this.target_adr+"'");
   

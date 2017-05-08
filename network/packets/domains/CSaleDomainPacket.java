@@ -34,7 +34,8 @@ public class CSaleDomainPacket extends CBroadcastPacket
 	this.payload=UTILS.SERIAL.serialize(dec_payload);
 					
 	// Network fee
-	fee=new CFeePayload(fee_adr,  0.0001);
+	CFeePayload fee=new CFeePayload(fee_adr,  0.0001);
+	this.fee_payload=UTILS.SERIAL.serialize(fee);
 			   
 	// Sign packet
 	this.sign();
@@ -54,10 +55,20 @@ public class CSaleDomainPacket extends CBroadcastPacket
 	   
         // Check payoad
         dec_payload.check(block);
+        
+        // Deserialize payload
+        CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
            
 	// Check fee
-        if (this.fee.amount<0.0001)
+        if (fee.amount<0.0001)
 	   throw new Exception("Invalid packet type - CSaleDomainPacket.java");
+        
+        // Footprint
+        CPackets foot=new CPackets(this);
+        foot.add("Address", dec_payload.target_adr);
+        foot.add("Domain", dec_payload.domain);
+        foot.add("Sale Price", dec_payload.sale_price);
+        foot.write();
     }
 }
 

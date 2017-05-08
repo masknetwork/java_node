@@ -13,7 +13,7 @@ import wallet.network.packets.blocks.*;
 public class CNewTweetPacket extends CBroadcastPacket 
 {
    // Serial
-   private static final long serialVersionUID = 100L;
+   private static final long serialVersionUID = 1L;
    
    public CNewTweetPacket(String fee_adr, 
 		          String adr, 
@@ -38,10 +38,8 @@ public class CNewTweetPacket extends CBroadcastPacket
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
 			
 	   // Network fee
-           if (days<=30)
-	       fee=new CFeePayload(fee_adr,  0.0001);
-           else
-	       fee=new CFeePayload(fee_adr,  0.0001*days);
+           CFeePayload fee=new CFeePayload(fee_adr,  0.0001*days);
+	   this.fee_payload=UTILS.SERIAL.serialize(fee);
            
 	   // Sign packet
            this.sign();
@@ -63,20 +61,13 @@ public class CNewTweetPacket extends CBroadcastPacket
           // Check payload
           dec_payload.check(block);
           
-          // Calculates fee
-          double fee=0;
-          if (dec_payload.days<=30)
-	       fee=0.0001;
-           else
-	       fee=dec_payload.days*0.0001;
+          // Deserialize payload
+          CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
           
           // Check fee
-	  if (this.fee.amount<fee)
+	  if (fee.amount<dec_payload.days*0.0001)
 	     throw new Exception("Invalid fee - CNewTweetPacket.java");
-
-          // Check payload
-          dec_payload.check(block);
-          
+ 
           // Footprint
           CPackets foot=new CPackets(this);
           foot.add("Address", dec_payload.target_adr);

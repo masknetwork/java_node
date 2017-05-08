@@ -51,8 +51,8 @@ public class CWallet
    public CWallet() throws Exception
    {
 	// Check if settings file exists
-	f=new File(UTILS.WRITEDIR+"wallet.msk");
-		  
+	f=new File(UTILS.WRITEDIR+"wallet.MSK");
+        	  
 	// File exist ?
 	if (f.exists()==false)
 	{
@@ -76,6 +76,9 @@ public class CWallet
         }
 	else
         {
+            // Display
+            System.out.println("Decrypting wallet file...");
+        
             // Input Streqm
 	    String wallet = FileUtils.readFileToString(f, "UTF-8");
 	    wallet=UTILS.AES.decrypt(wallet, UTILS.SETTINGS.getWalletPass());
@@ -89,13 +92,13 @@ public class CWallet
 		CAddress address=new CAddress(adr[0], adr[1], adr[2], Float.parseFloat(adr[3])); 
 		this.addresses.add(address);
 		this.balance=this.balance+address.balance;
-	    }
+            }
         }
      }
    
      public void save() throws Exception
      {
-    	 String w="";
+         String w="";
     	 
     	 // Get wallet data
     	 for (int a=0; a<=this.addresses.size()-1; a++)
@@ -111,7 +114,8 @@ public class CWallet
     	 // Encrypt
     	 try
     	 {
-    	     String enc=UTILS.AES.encrypt(w, UTILS.SETTINGS.getWalletPass()); 
+             System.out.println(UTILS.SETTINGS.getWalletPass());
+             String enc=UTILS.AES.encrypt(w, UTILS.SETTINGS.getWalletPass()); 
     	     FileUtils.writeStringToFile(f, enc, "UTF-8");
     	 }
     	 catch (Exception ex) 
@@ -164,21 +168,21 @@ public class CWallet
         return adr.getPublic();
      }
      
-     public boolean add(CAddress adr) throws Exception
+     public void add(CAddress adr) throws Exception
      {
-    	 // Generate an address
-		 this.addresses.add(adr);
+        // Already in wallet ?
+        if (this.adrExist(adr))
+            return;
+            
+    	// Add address
+        this.addresses.add(adr);
 		 
-		 // Save wallet
-		 save();
-		 
-		
-		 
-		 // Last generated
-		 this.last_adr=adr;
+	// Save wallet
+	save();
 	
-    	 return true;
-     }
+        // Last generated
+	this.last_adr=adr;
+    }
      
      public String getFirst() throws Exception
      {
@@ -208,5 +212,27 @@ public class CWallet
     	 throw new Exception("Address doesn't exist");
      }
      
+     public void list()
+     {
+         for (int a=0; a<=this.addresses.size()-1; a++)
+         {
+            CAddress adr=(CAddress)this.addresses.get(a);
+            System.out.println("Address : "+adr.getPublic());
+            System.out.println("Address : "+adr.getPrivate());
+            System.out.println("-------------------------------------------");
+         }
+     }
+     
+     public boolean adrExist(CAddress address)
+     {
+         for (int a=0; a<=this.addresses.size()-1; a++)
+         {
+            CAddress adr=(CAddress)this.addresses.get(a);
+            if (adr.getPublic().equals(address.getPublic()))
+                return true;
+         }
+         
+         return false;
+     }
    
 }

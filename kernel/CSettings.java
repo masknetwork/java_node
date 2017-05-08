@@ -13,7 +13,7 @@ public class CSettings
   public int port=10000;
   
   // Chk block
-  public long chk_blocks=10;
+  public long chk_blocks=100;
   
   // Database type
   public String db_engine="mysql";
@@ -28,10 +28,13 @@ public class CSettings
   public String db_pass="";
   
   // Wallet file pass
-  public String wallet_pass="";
+  public String wallet_pass="wallet";
   
   // Min peers
   public int min_peers;
+  
+  // Db debug
+  public String db_debug="false";
   
   // Settings
   Properties settings = new Properties();
@@ -66,7 +69,7 @@ public class CSettings
           // Db pass
           if (settings.containsKey("db_pass")) 
               this.db_pass=settings.getProperty("db_pass");
-  
+      
       }
   }
   

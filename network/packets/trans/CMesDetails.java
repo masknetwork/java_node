@@ -24,20 +24,8 @@ public class CMesDetails implements java.io.Serializable
    
    public CMesDetails(String mes, String adr) throws Exception
    {
-       // Has contract attached ?
-       if (!UTILS.BASIC.isContractAdr(adr))
-       {
-           // Secure random
-          String k=UTILS.BASIC.randString(25);
-          
-          // Encrypt message
-          this.mes=UTILS.AES.encrypt(mes, k);
-       
-          // Encrypt key
-          CECC enc=new CECC(adr);
-          this.key=enc.encrypt(k);
-       }
-       else this.mes=mes;
+       // Message
+       this.mes=mes;
        
        // Hash
        this.hash=UTILS.BASIC.hash(this.key+this.mes);
@@ -45,19 +33,6 @@ public class CMesDetails implements java.io.Serializable
    
    public void getMessage(String adr, String trans_hash) throws Exception
    {
-       // Has contract attached ?
-       if (!UTILS.BASIC.isContractAdr(adr))
-       {
-          // Load address
-          CAddress a=UTILS.WALLET.getAddress(adr);
-       
-          // Decrypt key
-          String k=a.decrypt(this.key);
-       
-          // Decrypt message
-          this.mes=UTILS.AES.decrypt(mes, k);
-       }
-       
        // Insert trans details
        UTILS.DB.executeUpdate("UPDATE my_trans "
                                + "SET mes='"+UTILS.BASIC.base64_encode(this.mes)+"' "

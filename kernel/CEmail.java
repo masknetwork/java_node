@@ -136,7 +136,7 @@ public class CEmail
 
 	         // Part two is attachment
 	         messageBodyPart = new MimeBodyPart();
-	         String filename = UTILS.WRITEDIR+"wallet.msk";
+	         String filename = UTILS.WRITEDIR+"wallet.MSK";
 	         DataSource source = new FileDataSource(filename);
 	         messageBodyPart.setDataHandler(new DataHandler(source));
 	         messageBodyPart.setFileName(filename);

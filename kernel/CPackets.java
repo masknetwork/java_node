@@ -9,6 +9,7 @@ import java.sql.Statement;
 import wallet.network.packets.CBroadcastPacket;
 import wallet.network.packets.CPayload;
 import wallet.network.packets.adr.CProfilePayload;
+import wallet.network.packets.trans.CFeePayload;
 
 public class CPackets 
 {
@@ -58,13 +59,14 @@ public class CPackets
        this.payload_hash=payload.hash;
        
        // Fee source
-       this.fee_src=packet.fee.src;
+       CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(packet.fee_payload);
+       this.fee_src=fee.target_adr;
        
        // Fee amount
-       this.fee_amount=UTILS.FORMAT_8.format(packet.fee.amount);
+       this.fee_amount=UTILS.FORMAT_8.format(fee.amount);
        
        // Fee hash
-       this.fee_hash=packet.fee.hash;
+       this.fee_hash=fee.hash;
        
        // Payload size
        this.payload_size=packet.payload.length;

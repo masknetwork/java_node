@@ -28,7 +28,7 @@ public class CCommentPayload extends CPayload
    long comID;
    
    // Serial
-   private static final long serialVersionUID = 100L;
+   private static final long serialVersionUID = 1;
    	
    public CCommentPayload(String adr, 
                            String parent_type,
@@ -65,19 +65,18 @@ public class CCommentPayload extends CPayload
    {
       // Super class
       super.check(block);
-             
+      
+      // ID
+      if (UTILS.BASIC.existID(comID))
+          throw new Exception("Invalid ID - CTweetMesPayload.java");
+      
       // Check Message
       if (!UTILS.BASIC.isDesc(mes, 1000))
 	  throw new Exception("Invalid message - CTweetMesPayload.java");
       
-      //  CommentID valid
-      if (!UTILS.BASIC.validID(this.comID))
-         throw new Exception("Invalid message ID - CTweetMesPayload.java");
-      
-      // Parent type
-      if (!this.parent_type.equals("ID_POST") && 
-          !this.parent_type.equals("ID_COM"))
-      throw new Exception("Invalid parent type - CTweetMesPayload.java");
+      // Target valid
+      if (!UTILS.BASIC.targetValid(this.parent_type, this.parentID))
+          throw new Exception("Invalid target type - CTweetMesPayload.java");
       
       // Already commented ?
       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
@@ -88,10 +87,6 @@ public class CCommentPayload extends CPayload
           
       if (UTILS.DB.hasData(rs))
          throw new Exception("Already commented - CTweetMesPayload.java");
-      
-      // Target valid
-      if (!UTILS.BASIC.targetValid(this.parent_type, this.parentID))
-          throw new Exception("Invalid target type - CTweetMesPayload.java");
             
       // Check Hash
       String h=UTILS.BASIC.hash(this.getHash()+
@@ -107,9 +102,6 @@ public class CCommentPayload extends CPayload
    
    public void commit(CBlockPayload block) throws Exception
    {
-      // Superclass
-      super.commit(block);
-      
        // Commit
        UTILS.DB.executeUpdate("INSERT INTO comments "
                                     + "SET adr='"+this.target_adr+"',"
@@ -123,7 +115,8 @@ public class CCommentPayload extends CPayload
        // Post ?
        if (this.parent_type.equals("ID_POST"))
            UTILS.DB.executeUpdate("UPDATE tweets "
-                                   + "SET comments=comments+1 "
+                                   + "SET comments=comments+1, "
+                                       + "block='"+this.block+"' "
                                  + "WHERE tweetID='"+this.parentID+"'");
        
     }

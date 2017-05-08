@@ -3,7 +3,7 @@
 
 package wallet.kernel;
 
-import interfata.misc.CPanel;
+
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -38,9 +38,6 @@ public class CLoader extends Thread
     
     // Password
     String pass;
-    
-    // Parent
-    CPanel parent=null;
     
     // Params
     String params_str="";
@@ -85,20 +82,6 @@ public class CLoader extends Thread
                     this.params_str.concat(name+value);
 	}
 	
-	public CLoader(CPanel parent, String link)  throws Exception
-	{
-		 try 
-		 {
-		    this.url=new URL(link);
-		    this.parent=parent;
-		 }
-		 catch (MalformedURLException ex) 
-	     {
-	        UTILS.LOG.log("MalformedURLException", ex.getMessage(), "CLoader.java", 34);
-	     } 
-	}
-	
-	
 	
 	 public void run()
 	 {	 
@@ -142,11 +125,10 @@ public class CLoader extends Thread
 		 } 
 		 catch (Exception ex) 
 		 {
-		    if (parent!=null) this.parent.loaderError();
+		    System.out.println(ex.getMessage()+", CLoader.java - Line 128");
 		 }
 		 
-		 if (parent!=null) 
-			 this.parent.loaded(this.data);
+		 
 		 
 	 }
 }

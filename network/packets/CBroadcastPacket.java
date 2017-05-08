@@ -8,13 +8,12 @@ import wallet.kernel.*;
 import wallet.network.packets.trans.*;
 import wallet.network.packets.*;
 import wallet.network.packets.blocks.*;
-import wallet.network.packets.tweets.CFollowPayload;
 
 public class CBroadcastPacket extends CPacket 
 {	
 	 // Net fee
-	 public CFeePayload fee=null;
-	   
+	 public byte[] fee_payload=null;
+           
 	 // Block
 	 public Long block;
          
@@ -39,20 +38,71 @@ public class CBroadcastPacket extends CPacket
             
              // Check hash
              String h=UTILS.BASIC.hash(this.tip+
+                                       this.tstamp+
                                        String.valueOf(this.block)+
-				       UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.fee))+
-				       UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload)));
+				       UTILS.BASIC.hash(this.fee_payload)+
+				       UTILS.BASIC.hash(this.payload));
 	     
              if (!h.equals(this.hash))
 	        throw new Exception("Invalid hash - CBroadcastPacket.java");
 	    
              // Block number
              if (block!=null)
+             {
                if (this.block!=block.block)
                  throw new Exception("Invalid block number - CBroadcastPacket.java");
+             }
+             else
+             {
+                // For actual block ?
+                if (this.block!=(UTILS.NET_STAT.last_block+1))
+                    throw new Exception("Invalid block number - CBroadcastPacket.java");
+             }
+             
+             // Check duplicates
+             if (block!=null)
+             {
+                 // Packet hash
+                 long no_packet_hashes=0;
+                 String packet_hash=this.hash;
+                 
+                 // Fee hash
+                 long no_fee_hashes=0;
+                 String fee_hash=UTILS.BASIC.hash(this.fee_payload);
+                 
+                 // Payload hash
+                 long no_payload_hashes=0;
+                 String payload_hash=UTILS.BASIC.hash(this.payload);
+                 
+                 // Parse packets
+                 for (int a=0; a<=block.packets.size()-1; a++)
+                 {
+                     // Load packet
+                     CBroadcastPacket packet=block.packets.get(a);
+                     
+                     // Packet hash
+                     if (packet_hash.equals(packet.hash))
+                         no_packet_hashes++;
+                     
+                     // Packet hash
+                     if (fee_hash.equals(UTILS.BASIC.hash(packet.fee_payload)))
+                         no_fee_hashes++;
+                     
+                     // Payload hash
+                     if (payload_hash.equals(UTILS.BASIC.hash(packet.payload)))
+                         no_payload_hashes++;
+                 }
+                 
+                // check duplicates
+                if (no_packet_hashes>1 || 
+                     no_fee_hashes>1 || 
+                     no_payload_hashes>1)
+                throw new Exception("Duplicate found - CBroadcastPacket.java");
+             }
              
             // Check fee
-            this.fee.check(block);
+            CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
+            fee.check(block);
             
 	    // Check signature
 	    if (this.checkSign()==false)
@@ -62,61 +112,65 @@ public class CBroadcastPacket extends CPacket
 	
 	public void commit(CBlockPayload block) throws Exception
 	{
-	    // Commit
-	    super.commit(block);
+            // Deserialize transaction data
+            CPayload dec_payload=(CPayload) UTILS.SERIAL.deserialize(payload);
             
-            // Commit fee
-	    if (!this.tip.equals("ID_BLOCK"))
-                 this.fee.commit(block);
-	    
-            // Check
-            this.check(block);
+            // Deserialize payload
+            CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
             
             try
             {
-                // Begin
-                UTILS.DB.begin();
+                // Check
+                this.check(block);
                 
-                // Deserialize transaction data
-                CPayload dec_payload=(CPayload) UTILS.SERIAL.deserialize(payload);
+                // Commit fee
+	        if (!this.tip.equals("ID_BLOCK"))
+                    fee.commit(block);
+            }
+            catch (Exception ex)
+            {
+               System.out.println(ex.getMessage());
+               return;
+            }
+            
+            try
+            {
+                // Commit
+	        dec_payload.commit(block);
                 
+                // Commited
                 UTILS.BASIC.commited(UTILS.NET_STAT.actual_block_hash, 
                                      UTILS.NET_STAT.actual_block_no, 
                                      this.hash, 
                                      dec_payload.hash, 
-                                     this.fee.hash);
-                
-	        // Commit
-	        dec_payload.commit(block);
-	    
-                // Commit
-                UTILS.DB.commit();
+                                     fee.hash);
             }
             catch (Exception ex)
             {
-                // Rollback
-                UTILS.DB.rollback();
-                
-                // Exception
-                throw new Exception(ex.getMessage());
+               System.out.println(ex.getMessage());
             }
-	 
-           
 	}
 	
 	public void sign(String sig) throws Exception
 	{
             // Packet hash
             this.hash=UTILS.BASIC.hash(this.tip+
+                                       this.tstamp+
 				       String.valueOf(this.block)+
-				       UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.fee))+
-				       UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload)));
+				       UTILS.BASIC.hash(this.fee_payload)+
+				       UTILS.BASIC.hash(this.payload));
 		   
             // Signature address
             if (sig.equals(""))
             {
-              CAddress adr=UTILS.WALLET.getAddress(this.fee.target_adr);
-	      this.sign=adr.sign(this.hash);
+                // Deserialize payload
+                CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
+                
+                // Address
+                CAddress adr=UTILS.WALLET.getAddress(fee.target_adr);
+	        
+                // Sign
+                this.sign=adr.sign(this.hash);
             }
             else 
                 this.sign=sig;
@@ -126,12 +180,16 @@ public class CBroadcastPacket extends CPacket
 	{
             // Packet hash
             this.hash=UTILS.BASIC.hash(this.tip+
+                                       this.tstamp+
 				       String.valueOf(this.block)+
-				       UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.fee))+
-				       UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload)));
-		   
+				       UTILS.BASIC.hash(this.fee_payload)+
+				       UTILS.BASIC.hash(this.payload));
+            
+            // Deserialize payload
+            CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
+                    
             // Signature address
-            CAddress adr=UTILS.WALLET.getAddress(this.fee.target_adr);
+            CAddress adr=UTILS.WALLET.getAddress(fee.target_adr);
 	      this.sign=adr.sign(this.hash);
            
         }
@@ -139,7 +197,10 @@ public class CBroadcastPacket extends CPacket
 	
 	public boolean checkSign() throws Exception
 	{
-	    CECC ecc=new CECC(this.fee.target_adr);
+            // Deserialize payload
+            CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
+                    
+	    CECC ecc=new CECC(fee.target_adr);
 		return (ecc.checkSig(hash, this.sign));
 	}
 	

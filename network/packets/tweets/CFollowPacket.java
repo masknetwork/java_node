@@ -13,7 +13,7 @@ import wallet.network.packets.blocks.*;
 public class CFollowPacket extends CBroadcastPacket 
 {
    // Serial
-   private static final long serialVersionUID = 100L;
+   private static final long serialVersionUID = 1L;
    
    public CFollowPacket(String fee_adr,
                         String adr, 
@@ -32,7 +32,8 @@ public class CFollowPacket extends CBroadcastPacket
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
 			
 	   // Network fee
-	   fee=new CFeePayload(fee_adr,  0.0001*months);
+           CFeePayload fee=new CFeePayload(fee_adr,  0.0001*months);
+	   this.fee_payload=UTILS.SERIAL.serialize(fee);
 	   
 	   // Sign packet
            this.sign();
@@ -51,8 +52,11 @@ public class CFollowPacket extends CBroadcastPacket
    	  // Deserialize transaction data
    	  CFollowPayload dec_payload=(CFollowPayload) UTILS.SERIAL.deserialize(payload);
           
+          // Deserialize payload
+          CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
+          
           // Check fee
-	  if (this.fee.amount<0.0001*dec_payload.months)
+	  if (fee.amount<0.0001*dec_payload.months)
 	      throw new Exception("Invalid fee - CFollowPacket.java");
           
           // Check payload
@@ -60,9 +64,9 @@ public class CFollowPacket extends CBroadcastPacket
           
           // Footprint
           CPackets foot=new CPackets(this);
-                  
           foot.add("Address", dec_payload.target_adr);
           foot.add("Follows", dec_payload.follow_adr);
+          foot.add("Months", dec_payload.months);
           foot.write();
    }
    

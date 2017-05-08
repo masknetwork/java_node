@@ -40,6 +40,6 @@ public class CPutBlockPacket extends CPacket
     public void check(CPeer sender) throws Exception
     {
         if (this.block!=null)
-            UTILS.CONSENSUS.blockReceived(block);
+            UTILS.NETWORK.CONSENSUS.blockReceived(block);
     }
 }

@@ -191,7 +191,7 @@ public class CCPUMiner extends Thread
                 UTILS.NETWORK.peers.peers.size()>=0 &&
                 !UTILS.CBLOCK.signer.equals("") &&
                 UTILS.STATUS.engine_status.equals("ID_ONLINE") &&
-                UTILS.CONSENSUS.status.equals("ID_WAITING"))
+                UTILS.NETWORK.CONSENSUS.status.equals("ID_WAITING"))
             {
               // Nonce
               nonce++;
@@ -200,48 +200,14 @@ public class CCPUMiner extends Thread
               ts=UTILS.BASIC.tstamp();
               
               // Hash
-              if ((UTILS.NET_STAT.last_block+1)%UTILS.SETTINGS.chk_blocks!=0)
               hash=UTILS.BASIC.hash(UTILS.NET_STAT.last_block_hash+
-                                    "ID_BLOCK"+
                                     String.valueOf(UTILS.NET_STAT.last_block+1)+
                                     UTILS.CBLOCK.payload_hash+
                                     UTILS.CBLOCK.signer+
-                                    String.valueOf(UTILS.CBLOCK.signer_balance)+
                                     String.valueOf(ts)+
                                     String.valueOf(nonce)+
                                     String.valueOf(UTILS.BASIC.formatDif(UTILS.NET_STAT.net_dif.toString(16))));
-              else
-              hash=UTILS.BASIC.hash(UTILS.NET_STAT.last_block_hash+
-                                    "ID_BLOCK"+
-                                    String.valueOf(UTILS.NET_STAT.last_block+1)+
-                                    UTILS.CBLOCK.payload_hash+
-                                    UTILS.CBLOCK.signer+
-                                    String.valueOf(UTILS.CBLOCK.signer_balance)+
-                                    String.valueOf(ts)+
-                                    String.valueOf(nonce)+
-                                    String.valueOf(UTILS.BASIC.formatDif(UTILS.NET_STAT.net_dif.toString(16)))+
-                                    UTILS.NET_STAT.getHash("adr")+
-                                    UTILS.NET_STAT.getHash("ads")+
-                                    UTILS.NET_STAT.getHash("agents")+
-                                    UTILS.NET_STAT.getHash("agents_feeds")+
-                                    UTILS.NET_STAT.getHash("assets")+
-                                    UTILS.NET_STAT.getHash("assets_owners")+
-                                    UTILS.NET_STAT.getHash("assets_mkts")+
-                                    UTILS.NET_STAT.getHash("assets_mkts_pos")+
-                                    UTILS.NET_STAT.getHash("comments")+
-                                    UTILS.NET_STAT.getHash("del_votes")+
-                                    UTILS.NET_STAT.getHash("domains")+
-                                    UTILS.NET_STAT.getHash("escrowed")+
-                                    UTILS.NET_STAT.getHash("feeds")+
-                                    UTILS.NET_STAT.getHash("feeds_branches")+
-                                    UTILS.NET_STAT.getHash("feeds_bets")+
-                                    UTILS.NET_STAT.getHash("feeds_bets_pos")+
-                                    UTILS.NET_STAT.getHash("profiles")+
-                                    UTILS.NET_STAT.getHash("storage")+
-                                    UTILS.NET_STAT.getHash("tweets")+
-                                    UTILS.NET_STAT.getHash("tweets_follow")+
-                                    UTILS.NET_STAT.getHash("votes"));
-              
+             
               ihash=hash;
               
               // Step
@@ -254,12 +220,12 @@ public class CCPUMiner extends Thread
               num=new BigInteger(hash, 16);
               
               // Speed
-              if (step%10000==0) 
+              if (step%1000==0) 
               {
                   if (UTILS.BASIC.tstamp()>start) 
-                       speed=Math.round(10000/(UTILS.BASIC.tstamp()-start));
+                       speed=Math.round(1000/(UTILS.BASIC.tstamp()-start));
                   else
-                       speed=10000;
+                       speed=1000;
                   
                   // Start
                   start=UTILS.BASIC.tstamp();
@@ -272,14 +238,24 @@ public class CCPUMiner extends Thread
               
               // Found solution
               if (num.compareTo(UTILS.NET_STAT.net_dif.multiply(BigInteger.valueOf(UTILS.CBLOCK.signer_balance)))<0) 
-              {   
+              {  
+                  // Timestamp
                   UTILS.CBLOCK.last_tstamp=ts;
-                  UTILS.CBLOCK.nonce=nonce;
-                  UTILS.CBLOCK.setNonce(nonce);
-                  UTILS.CBLOCK.block_hash=UTILS.BASIC.formatDif(hash);
-                  UTILS.CBLOCK.broadcast();
-                  nonce=Math.round(Math.random()*10000000000L);
                   
+                  // Nonce
+                  UTILS.CBLOCK.nonce=nonce;
+                  
+                  // Set nonce
+                  UTILS.CBLOCK.setNonce(nonce);
+                  
+                  // Block hash
+                  UTILS.CBLOCK.block_hash=UTILS.BASIC.formatDif(hash);
+                  
+                  // Broadcast
+                  UTILS.CBLOCK.broadcast();
+                  
+                  // New nonce
+                  nonce=Math.round(Math.random()*10000000000L);
               }
             }
           }

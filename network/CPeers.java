@@ -15,6 +15,7 @@ import java.util.TimerTask;
 import wallet.kernel.*;
 import wallet.network.packets.*;
 import wallet.network.packets.peers.*;
+import wallet.network.packets.sync.CPing;
 
 public class CPeers
 {
@@ -136,11 +137,7 @@ public class CPeers
            CPeer p=(CPeer) this.peers.get(a);   
 	   if (p.adr.equals(peer)) this.removePeer(p);
        } 
-       
-      for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
-         System.out.println(ste);
-      }
-       
+      
        // Delete from db
        UTILS.DB.executeUpdate("DELETE FROM peers WHERE peer='"+peer+"'"); 
        
@@ -149,7 +146,7 @@ public class CPeers
        }
        catch (Exception ex) 
        	      {  
-       		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
+       		UTILS.LOG.log("SQLException", ex.getMessage(), "CPeers.java", 152);
               }
    }
    
@@ -223,7 +220,7 @@ public class CPeers
                // Connect
                if (this.conectedTo(rs.getString("peer"))==false) 
                {
-                  System.out.println("Connecting to "+rs.getString("peer")+"+..");
+                  System.out.println("Connecting to "+rs.getString("peer")+"...");
                   UTILS.NETWORK.connectTo(rs.getString("peer"), rs.getInt("port"));
                }
              }
@@ -232,10 +229,10 @@ public class CPeers
    
    public void removeInactives() throws Exception
    {
-       // Load data
-       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                          + "FROM peers "
-                                             + "WHERE last_seen<"+String.valueOf(UTILS.BASIC.tstamp()-600));
+        // Load data
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM peers "
+                                          + "WHERE last_seen<"+String.valueOf(UTILS.BASIC.tstamp()-300));
            
         // Remove peers
         while (rs.next()) 
@@ -264,10 +261,17 @@ public class CPeers
                // Check peers pool connectivity
                if (tick % 60==0) 
                    checkPeersConn();
+               
+               // Ping
+               if (tick % 60==0) 
+               {
+                  CPing ping=new CPing();
+                  UTILS.NETWORK.broadcast(ping);
+               }
            }
            catch (Exception ex) 
        	   {  
-       		UTILS.LOG.log("Exception", ex.getMessage(), "CBuyDomainPayload.java", 57);
+                UTILS.LOG.log("Exception", ex.getMessage(), "CPeers.java", 270);
            }
        }
    }
@@ -368,23 +372,16 @@ public class CPeers
        
            // Port
            int port=so.getPort();
-       
-           // Self
-           if (IP.equals("127.0.0.1"))
+           
+           // Sync ?
+           if (UTILS.STATUS.engine_status.equals("ID_SYNC"))
                return false;
        
-           // Already connected
+            // Already connected
            if (this.conectedTo(IP))
                return false;
        
-           // Search for the same IP
-           ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                              + "FROM con_log "
-                                             + "WHERE IP='"+IP+"' "
-                                               + "AND tstamp>"+(UTILS.BASIC.tstamp()-5));
-           if (UTILS.DB.hasData(rs)==true)
-               return false;
-       
+           
            // Record connection
            UTILS.DB.executeUpdate("INSERT INTO con_log "
                                         + "SET IP='"+IP+"', "
@@ -424,28 +421,26 @@ public class CPeers
 	    	  CPeer p=new CPeer(this, s);
 	    	  p.start();
                 }
-                else System.out.println("Conn refused.");
+                else 
+                {
+                    System.out.println("Conn refused.");
+                    s.close();
+                }
                
 	     }
 	   }
 	   catch (SocketTimeoutException ex) 
 	   { 
 	       UTILS.LOG.log("SocketTimeoutException", ex.getMessage(), "CPeers.java", 88);
-               UTILS.LOG.log("Exiting application", "EXIT", "CPeers.java", 471);
-               System.exit(0); 
-	   }
+           }
 	   catch (SocketException ex) 
 	   { 
 	       UTILS.LOG.log("SocketException", ex.getMessage(), "CPeers.java", 88);
-               UTILS.LOG.log("Exiting application", "EXIT", "CPeers.java", 478);
-               System.exit(0); 
-	   }
+           }
 	   catch (IOException ex) 
 	   { 
 	       UTILS.LOG.log("IOException", ex.getMessage(), "CPeers.java", 88);
-               UTILS.LOG.log("Exiting application", "EXIT", "CPeers.java", 485);
-               System.exit(0); 
-	   }
+           }
    }
    
 }

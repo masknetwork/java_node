@@ -8,8 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.crypto.SealedObject;
-import wallet.agents.CAgent;
-import wallet.agents.VM.VM;
 import wallet.kernel.*;
 import wallet.network.*;
 import wallet.network.packets.*;
@@ -17,9 +15,6 @@ import wallet.network.packets.blocks.*;
 
 public class CTransPayload extends CPayload 
 {
-	// Source
-	public String src="";
-	
 	// Destination
 	public String dest="";
 	
@@ -48,10 +43,7 @@ public class CTransPayload extends CPayload
         {
            // Constructo
            super(src);
-           
-	   // Source
-	   this.src=src;
-		
+          
            // Destination
 	   this.dest=dest;
 		
@@ -74,8 +66,7 @@ public class CTransPayload extends CPayload
            
            // Digest
            this.hash=UTILS.BASIC.hash(this.getHash()+
-		                        this.src+
-                                        this.dest+
+		                        this.dest+
                                         this.amount+
                                         this.cur+
                                         this.escrower+
@@ -91,21 +82,36 @@ public class CTransPayload extends CPayload
              // Super class
 	     super.check(block);
 	     
-	     // Check source
-	     if (!UTILS.BASIC.addressExist(this.src))
-	    	     throw new Exception("Invalid source address, CTransPayload");
+	     // Free address
+             if (UTILS.BASIC.isSpecMktAddress(this.target_adr))
+                throw new Exception("Source can't spend funds - CTransPayload");
+             
+             // Restrcited rec
+             if (UTILS.BASIC.hasAttr(this.target_adr, "ID_RES_REC"))
+             {
+                 // Load data
+                 ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                                    + "FROM adr_attr "
+                                                   + "WHERE adr='"+this.target_adr+"' "
+                                                     + "AND attr='ID_RES_REC'");
                  
-             // Free address
-	     if (!UTILS.BASIC.canSpend(this.src, this.block))
-                     throw new Exception("Invalid source address, CTransPayload");
+                 // Next
+                 rs.next();
                  
+                 // Check recipients
+                 if (!rs.getString("s1").equals(this.dest) &&
+                     !rs.getString("s2").equals(this.dest) &&
+                     !rs.getString("s3").equals(this.dest))
+                 throw new Exception("Source is restricted - CTransPayload");
+             }
+             
              // Check dest
 	     if (!UTILS.BASIC.isAdr(this.dest))
-	        throw new Exception("Invalid destination address, CTransPayload");
+	        throw new Exception("Invalid destination address - CTransPayload");
              
              // Source and destination the same
-             if (this.src.equals(this.dest))
-	         throw new Exception("Source and destination address can't be the same, CTransPayload");
+             if (this.target_adr.equals(this.dest))
+	         throw new Exception("Source and destination address can't be the same - CTransPayload");
              
              // Check amount
              if (this.cur.equals("MSK"))
@@ -119,41 +125,17 @@ public class CTransPayload extends CPayload
 	      	   throw new Exception("Invalid amount, CTransPayload");
              }
             
-             // Message included ?
-             if (this.mes!=null)
-             {
-                if (!this.mes.check())
-                   throw new Exception("Invalid message, CTransPayload");
-             }
-            
             // Message 
             String mes_hash="";
             if (this.mes!=null)
             {
                // Check message
                if (!mes.check())
-                  throw new Exception("Invalid message, CTransPayload");
+                  throw new Exception("Invalid message - CTransPayload");
                
                // Hash
                mes_hash=this.mes.hash;
             }
-            
-            // Digest
-            String h=UTILS.BASIC.hash(this.getHash()+
-		                            this.src+
-                                            this.dest+
-                                            this.amount+
-                                            this.cur+
-                                            this.escrower+
-                                            mes_hash); 
-                  
-            // Hash format
-            if (!UTILS.BASIC.isHash(this.hash))
-               throw new Exception("Invalid hash, CTransPayload");
-                  
-            // Check hash
-            if (!this.hash.equals(h))
-               throw new Exception("Invalid hash, CTransPayload");
             
             // Check cur
 	    if (!this.cur.equals("MSK"))
@@ -165,6 +147,16 @@ public class CTransPayload extends CPayload
                 // Asset exist ?
                 if (!UTILS.BASIC.isAsset(this.cur))
                    throw new Exception("Invalid currency, CTransPayload");
+                
+                // Recipient trust asset ?
+                ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                                   + "FROM adr_attr "
+                                                  + "WHERE adr='"+this.dest+"' "
+                                                    + "AND attr='ID_TRUST_ASSET'");
+                
+                // No data ?
+                if (!UTILS.DB.hasData(rs))
+                    throw new Exception("Recipient doesn't trust asset, CTransPayload");
             }
             
             // Check escrower
@@ -175,19 +167,31 @@ public class CTransPayload extends CPayload
 	    }
 	    
 	    // Check source balance
-            double balance=UTILS.ACC.getBalance(this.src, this.cur, block);
+            double balance=UTILS.ACC.getBalance(this.target_adr, this.cur, block);
                   
             // Insufficient funds
             if (balance<this.amount) 
 	       throw new Exception("Insuficient funds, CTransPayload.java");
+            
+            // Digest
+            String h=UTILS.BASIC.hash(this.getHash()+
+		                      this.dest+
+                                      this.amount+
+                                      this.cur+
+                                      this.escrower+
+                                      mes_hash); 
+                  
+            // Check hash
+            if (!this.hash.equals(h))
+               throw new Exception("Invalid hash, CTransPayload");
 	    
             // Insert pending transaction
-	    UTILS.ACC.newTrans(this.src, 
+	    UTILS.ACC.newTrans(this.target_adr, 
                                  this.dest,
                                  -this.amount,
                                  true,
                                  this.cur, 
-                                 "Transaction to another address "+this.src, 
+                                 "Transaction to another address "+this.target_adr, 
                                  this.escrower, 
                                  this.hash, 
                                  this.block,
@@ -197,11 +201,11 @@ public class CTransPayload extends CPayload
             // To destination
             if (this.escrower.equals(""))
             UTILS.ACC.newTrans(this.dest, 
-                                 this.src,
+                                 this.target_adr,
                                  this.amount,
                                  true,
                                  this.cur, 
-                                 "Transaction from address "+this.src, 
+                                 "Transaction from address "+this.target_adr, 
                                  this.escrower, 
                                  this.hash, 
                                  this.block,
@@ -221,9 +225,6 @@ public class CTransPayload extends CPayload
          
          public void checkIPN(String status) throws Exception
          {
-            // Load details
-            
-                    
             // IPN
             ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                         + "FROM ipn "
@@ -238,7 +239,7 @@ public class CTransPayload extends CPayload
                    CLoader loader=new CLoader(rs.getString("web_link"), rs.getString("web_pass"));
                    
                    // Source
-                   loader.addParam("src", this.src);
+                   loader.addParam("src", this.target_adr);
                    
                    // Dest
                    loader.addParam("dest", this.dest);
@@ -270,32 +271,6 @@ public class CTransPayload extends CPayload
          
          public void commit(CBlockPayload block) throws Exception
 	 { 
-            if (UTILS.BASIC.isContractAdr(this.dest))
-                {
-                    // Load VM
-                    CAgent AGENT=new CAgent(UTILS.BASIC.getAgentID(this.dest), false, this.block);
-                    
-                    // Message ?
-                    String message="";
-                    if (this.mes!=null) 
-                       message=this.mes.mes;
-                    
-                    // Set transaction
-                    AGENT.VM.SYS.EVENT.loadTrans(this.src,
-                                                 this.amount, 
-                                                 this.cur, 
-                                                 message,
-                                                 this.escrower, 
-                                                 this.hash);
-                    
-                    // Execute
-                    AGENT.execute("#transaction#", false, this.block);
-                    
-                    // Refund ?
-                    if (!AGENT.transAproved()) 
-                        throw new Exception("Rejected by application, CTransPayload.java");
-                }
-                
                 // Take coins
                 UTILS.ACC.clearTrans(hash, "ID_SEND", this.block);
                 
@@ -309,7 +284,7 @@ public class CTransPayload extends CPayload
                 {
                       UTILS.DB.executeUpdate("INSERT INTO escrowed "
                                                    + "SET trans_hash='"+this.hash+"', "
-                                                        + "sender_adr='"+this.src+"', "
+                                                        + "sender_adr='"+this.target_adr+"', "
                                                         + "rec_adr='"+this.dest+"', "
                                                         + "escrower='"+this.escrower+"', "
                                                         + "amount='"+this.amount+"', "
@@ -318,8 +293,25 @@ public class CTransPayload extends CPayload
                                                         + "block='"+this.block+"'");
                 }
                 
-                  
-             
+                if (!this.cur.equals("MSK"))
+                {
+                    // Load asset ID
+                    ResultSet rs = UTILS.DB.executeQuery("SELECT * "
+                                                         + "FROM assets "
+                                                        + "WHERE symbol='"+this.cur+"'");
+                    
+                    if (UTILS.DB.hasData(rs))
+                    {
+                       // Next
+                      rs.next();
+                      
+                      // Asset ID
+                      long assetID=rs.getLong("assetID");
+                      
+                      // Vote
+                      UTILS.BASIC.voteTarget(this.target_adr, "ID_ASSET", assetID, block.block);
+                    }
+               }
 	}
 	 
 }

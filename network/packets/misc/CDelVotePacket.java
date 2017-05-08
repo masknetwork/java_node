@@ -28,7 +28,8 @@ public class CDelVotePacket extends CBroadcastPacket
           
          
 	// Network fee
-	fee=new CFeePayload(fee_adr, 0.0001);
+        CFeePayload fee=new CFeePayload(fee_adr,  0.0001);
+	this.fee_payload=UTILS.SERIAL.serialize(fee);
        
         // Sign packet
         this.sign();
@@ -46,9 +47,12 @@ public class CDelVotePacket extends CBroadcastPacket
    	  
         // Deserialize transaction data
    	CDelVotePayload dec_payload=(CDelVotePayload) UTILS.SERIAL.deserialize(payload);
-          
+        
+        // Deserialize payload
+        CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
+     
         // Check fee
-	if (this.fee.amount<0.0001)
+	if (fee.amount<0.0001)
 	   throw new Exception("Invalid fee - CRenewPacket.java");
           
         // Check payload

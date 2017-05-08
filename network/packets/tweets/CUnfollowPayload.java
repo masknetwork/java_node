@@ -19,7 +19,7 @@ public class CUnfollowPayload extends CPayload
    String unfollow_adr;
    
    // Serial
-   private static final long serialVersionUID = 100L;
+   private static final long serialVersionUID = 1;
    
    public CUnfollowPayload(String adr, 
                            String unfollow_address) throws Exception
@@ -66,9 +66,6 @@ public class CUnfollowPayload extends CPayload
    
    public void commit(CBlockPayload block) throws Exception
    {
-        // Superclass
-        super.commit(block);
-          
         // Unfollow
         UTILS.DB.executeUpdate("DELETE FROM tweets_follow "
                                      + "WHERE adr='"+this.target_adr+"' "

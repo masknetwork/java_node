@@ -92,13 +92,9 @@ public class CPeer extends Thread
               // Console
               System.out.println("New peer created to "+adr+" : "+port);
            }
-	   catch (IOException ex) 
+	   catch (Exception ex) 
 	   { 
-	       UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 67); 
-           }
-           catch (Exception ex) 
-	   { 
-	       UTILS.LOG.log("Exception", ex.getMessage(), "CPeer.java", 67); 
+	       UTILS.LOG.log("Exception", ex.getMessage(), "CPeer.java", 101); 
            }
 	}
 	
@@ -162,11 +158,6 @@ public class CPeer extends Thread
    }
    
    
-   public void startMonitor() throws Exception
-   {
- 	 
-   }
-  
    
    class RemindTask extends TimerTask 
    {  
@@ -186,7 +177,7 @@ public class CPeer extends Thread
            }
            catch (Exception ex) 
        	   {  
-       		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
+       		UTILS.LOG.log("SQLException", ex.getMessage(), "CPeer.java", 184);
            }
        }
    }
@@ -215,41 +206,32 @@ public class CPeer extends Thread
 	      // Mode
               if (this.mode.equals("ID_MODE_TO"))
                  UTILS.DB.executeUpdate("UPDATE peers_pool "
-                                + "SET accept_con='ID_YES', "
-                                + "con_att_no=0, "
-                                + "con_att_last=0, "
-                                + "last_seen='"+UTILS.BASIC.tstamp()+"'"
-                              + "WHERE peer='"+this.adr+"'");
+                                         + "SET accept_con='ID_YES', "
+                                             + "con_att_no=0, "
+                                             + "con_att_last=0, "
+                                             + "last_seen='"+UTILS.BASIC.tstamp()+"'"
+                                       + "WHERE peer='"+this.adr+"'");
               
                // Wait for data
 	       while (true)
                {
-                 CPacket packet=(CPacket)in.readObject(); 
+                 CPacket packet=(CPacket)in.readObject();
 		 UTILS.NETWORK.processRequest(packet, this); 
                }
 	   }
 	   catch (EOFException ex) 
 	   { 
-               UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 93);
+               UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 233);
                
                try { this.peers.removePeer(this); }
-               catch (Exception e) {  UTILS.LOG.log("SQLException", e.getMessage(), "CBuyDomainPayload.java", 57); }
-	   }
-	   catch (IOException ex) 
-	   { 
-		   UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 93);
-                   
-                   try { this.peers.removePeer(this); }
-                   catch (Exception e) {  UTILS.LOG.log("SQLException", e.getMessage(), "CBuyDomainPayload.java", 57); }
-	   }
-	   catch (ClassNotFoundException ex) 
-	   { 
-		   UTILS.LOG.log("ClassNotFoundException", ex.getMessage(), "CPeer.java", 93);
+               catch (Exception e) {  UTILS.LOG.log("SQLException", e.getMessage(), "CPeer.java", 237); }
+               
+               
 	   }
 	   catch (Exception ex) 
 	   { 
-		   UTILS.LOG.log("Exception", ex.getMessage(), "CPeer.java", 93);
-	   }
+		  
+           }
    }
    
    public void writePacket(CPacket packet)
@@ -259,15 +241,9 @@ public class CPeer extends Thread
 	       out.writeObject(packet);
                out.flush();
            }
-	   catch (IOException ex) 
+	   catch (Exception e) 
 	   { 
-		   UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 252); 
-                   try { this.peers.removePeer(this); }
-                   catch (Exception e) {  UTILS.LOG.log("SQLException", e.getMessage(), "CBuyDomainPayload.java", 57); }
-	   }
-           catch (Exception e) 
-	   { 
-		UTILS.LOG.log("Exception", e.getMessage(), "CPeer.java", 267); 
+		
            }
    }
 }

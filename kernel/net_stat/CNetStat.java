@@ -23,17 +23,29 @@ public class CNetStat
     // Addresses
     public CAdrTable table_adr;
     
+    // Addresses
+    public CAdrAttrTable table_adr_attr;
+    
     // Ads
     public CAdsTable table_ads;
     
     // Assets
     public CAssetsTable table_assets;
     
+    // Assets markets
+    public CAssetsMktsTable table_assets_mkts;
+    
+    // Assets
+    public CAssetsMktsPosTable table_assets_mkts_pos;
+    
     // Assets owners
     public CAssetsOwnersTable table_assets_owners;
     
     // Domains
     public CDomainsTable table_domains;
+    
+    // Delegates
+    public CDelegatesTable table_delegates;
     
     // Delegates votes
     public CDelVotesTable table_del_votes;
@@ -44,23 +56,35 @@ public class CNetStat
     // Profiles
     public CProfilesTable table_profiles;
     
+    // Comments
+    public CCommentsTable table_com;
+    
+    // Feeds
+    public CFeedsTable table_feeds;
+    
+    // Feeds branches
+    public CFeedsBranchesTable table_feeds_branches;
+    
+    // Feeds bets
+    public CFeedsBetsTable table_feeds_bets;
+    
+    // Feeds bets pos
+    public CFeedsBetsPosTable table_feeds_bets_pos;
+    
+    // Feeds spec mkts
+    public CFeedsSpecMktsTable table_feeds_spec_mkts;
+    
+    // Feeds spec mkts pos
+    public CFeedsSpecMktsPosTable table_feeds_spec_mkts_pos;
+    
     // Tweets
     public CTweetsTable table_tweets;
-    
-    // Tweets comments
-    public CCommentsTable table_comments;
-    
-    // Tweets likes
-    public CVotesTable table_votes;
     
     // Tweets follow
     public CTweetsFollowTable table_tweets_follow;
     
-    // Agents
-    public CAgentsTable table_agents;
-    
-    // Storage
-    public CStorageTable table_storage;
+    // Votes
+    public CVotesTable table_votes;
     
     // Last block
     public long last_block;
@@ -76,49 +100,7 @@ public class CNetStat
     
     // SQL log
     String sql_log_status;
-    
-    // Addresses
-    String adr;
-    
-   // Ads
-    String ads;
-    
-    // Agents
-    String agents;
-    
-    // Assets
-    String assets;
-    
-    // Assets owners
-    String assets_owners;
-    
-    // Domains
-    String domains;
-    
-    // Delegates votes
-    String del_votes;
-    
-    // Escrowed
-    String escrowed;
-    
-    // Profiles
-    String profiles;
-    
-    // Tweets
-    String tweets;
-    
-    // Tweets Comments
-    String comments;
-    
-    // Tweets Follow
-    String tweets_follow;
-    
-    // Tweets Links
-    String votes;
-    
-    // Storage
-    String storage;
-    
+   
     // Block confirmation minimum baalance
     public double block_conf_min_balance=1;
     
@@ -140,6 +122,9 @@ public class CNetStat
     // Delegate
     public String delegate="";
     
+    // No checkpoints
+    public boolean reorg=false;
+    
     public CNetStat() throws Exception
     {
         // Online
@@ -150,6 +135,7 @@ public class CNetStat
            
         // Next
         rs.next();
+        
            
         // Last block
         this.last_block=rs.getLong("last_block");
@@ -165,247 +151,149 @@ public class CNetStat
            
         // Confirm min balance
         this.block_conf_min_balance=rs.getDouble("block_confirm_min_balance");
-           
-        // Addresses
-        this.adr=rs.getString("adr");
-    
-        // Ads
-        this.ads=rs.getString("ads");
-    
-        // Agents
-        this.agents=rs.getString("agents");
         
-        // Assets 
-        this.assets=rs.getString("assets");
-        
-        // Assets owners
-        this.assets_owners=rs.getString("assets_owners");
-        
-        // Domains
-        this.domains=rs.getString("domains");
-        
-        // Delegates votes
-        this.del_votes=rs.getString("del_votes");
-    
-        // Escrowed
-        this.escrowed=rs.getString("escrowed");
-    
-        // Profiles
-        this.profiles=rs.getString("profiles");
-    
-        // Tweets
-        this.tweets=rs.getString("tweets");
-    
-        // Tweets Comments
-        this.comments=rs.getString("comments");
-    
-        // Tweets Follow
-        this.tweets_follow=rs.getString("tweets_follow");
-    
-        // Tweets Links
-        this.votes=rs.getString("votes");
-           
-        // Delegates
-        this.delegate=rs.getString("delegate");
-        
-        // Delegates
-        this.storage=rs.getString("storage");
-      
         // Addresses
         this.table_adr=new CAdrTable();
+        
+        // Adr attr
+        this.table_adr_attr=new CAdrAttrTable();
            
         // Ads
         this.table_ads=new CAdsTable();
-           
-        // Agents
-        this.table_agents=new CAgentsTable();
            
         // Assets
         this.table_assets=new CAssetsTable();
            
         // Assets owners
         this.table_assets_owners=new CAssetsOwnersTable();
+        
+        // Assets markets
+        this.table_assets_mkts=new CAssetsMktsTable();
+        
+        // Assets markets_pos
+        this.table_assets_mkts_pos=new CAssetsMktsPosTable();
            
         // Domains
         this.table_domains=new CDomainsTable();
            
         // Del votes
         this.table_del_votes=new CDelVotesTable();
+        
+        // Delegates
+        this.table_delegates=new CDelegatesTable();
            
         // Escrowed
         this.table_escrowed=new CEscrowedTable();
            
         // Profiles
         this.table_profiles=new CProfilesTable();
-           
+        
+        // Comments
+        this.table_com=new CCommentsTable();
+        
+        // Feeds
+        this.table_feeds=new CFeedsTable();
+        
+        // Feeds branches
+        this.table_feeds_branches=new CFeedsBranchesTable();
+        
+        // Feeds bets
+        this.table_feeds_bets=new CFeedsBetsTable();
+        
+        // Feeds bets pos
+        this.table_feeds_bets_pos=new CFeedsBetsPosTable();
+        
+        // Feeds spec mkts
+        this.table_feeds_spec_mkts=new CFeedsSpecMktsTable();
+        
+        // Feeds spec mkts pos
+        this.table_feeds_spec_mkts_pos=new CFeedsSpecMktsPosTable();
+        
         // Tweets
         this.table_tweets=new CTweetsTable();
-           
-        // Tweets comments
-        this.table_comments=new CCommentsTable();
-           
-        // Tweets follows
+        
+        // Tweets follow
         this.table_tweets_follow=new CTweetsFollowTable();
-           
-        // Tweets likes
+        
+        // Votes
         this.table_votes=new CVotesTable();
-           
-        // Feeds bets pos
-        this.table_storage=new CStorageTable();
            
         // Network time
         this.net_time=UTILS.BASIC.tstamp();
     }
     
         
-    public void refreshTables(long block) throws Exception
+    public void refreshTables(long block, String hash) throws Exception
     {
         // Init
         UTILS.DB.executeUpdate("SET group_concat_max_len = 1000000000000000");
         
         // Adr
-        this.table_adr.refresh(block);
+        this.table_adr.refresh(block, hash);
+        
+        // Adr attr
+        this.table_adr_attr.refresh(block, hash);
         
         // Ads
-        this.table_ads.refresh(block);
-        
-        // Agents
-        this.table_agents.refresh(block);
+        this.table_ads.refresh(block, hash);
         
         // Assets
-        this.table_assets.refresh(block);
+        this.table_assets.refresh(block, hash);
         
         // Assets owners
-        this.table_assets_owners.refresh(block);
+        this.table_assets_owners.refresh(block, hash);
+        
+        // Assets markets
+        this.table_assets_mkts.refresh(block, hash);
+        
+        // Assets markets pos
+        this.table_assets_mkts_pos.refresh(block, hash);
          
         // Domains
-        this.table_domains.refresh(block);
+        this.table_domains.refresh(block, hash);
         
         // Escrowed
-        this.table_escrowed.refresh(block);
+        this.table_escrowed.refresh(block, hash);
         
         // Profiles
-        this.table_profiles.refresh(block);
-        
-        // Tweets
-        this.table_tweets.refresh(block);
-        
-        // Tweets comments
-        this.table_comments.refresh(block);
-        
-        // Tweets likes
-        this.table_votes.refresh(block);
-        
-        // Tweets follow
-        this.table_tweets_follow.refresh(block);
+        this.table_profiles.refresh(block, hash);
         
         // Delegates votes
-        this.table_del_votes.refresh(block);
+        this.table_del_votes.refresh(block, hash);
         
-        // Storage
-        this.table_storage.refresh(block);
-    }
-    
-    
-    public void setHash(String tab, String hash) throws Exception
-    {
-        UTILS.DB.executeUpdate("UPDATE net_stat SET "+tab+"='"+hash+"'");
+        // Delegates 
+        this.table_delegates.refresh(block, hash);
         
-        switch (tab)
-        {
-            // Addresses
-            case "adr" : this.adr=hash; break;
-            
-            // Ads
-            case "ads" : this.ads=hash; break;
-            
-            // Agents
-            case "agents" : this.agents=hash; break;
-            
-            // Assets
-            case "assets" : this.assets=hash; break;
-            
-            // Assets owners
-            case "assets_owners" : this.assets_owners=hash; break;
-            
-            // Domains
-            case "domains" : this.domains=hash; break;
-            
-            // Delegates votes
-            case "del_votes" : this.del_votes=hash; break;
-            
-            // Escrowed
-            case "escrowed" : this.escrowed=hash; break;
-            
-            // Profiles
-            case "profiles" : this.profiles=hash; break;
-            
-            // Tweets
-            case "tweets" : this.tweets=hash; break;
-            
-            // Tweets comments
-            case "comments" : this.comments=hash; break;
-            
-            // Tweets likes
-            case "votes" : this.votes=hash; break;
-            
-            // Tweets follow
-            case "tweets_follow" : this.tweets_follow=hash; break;
-            
-            // Storage
-            case "storage" : this.storage=hash; break;
-          
-        }
-    }
-    
-    public String getHash(String tab) throws Exception
-    {
-        // Addresses
-        if (tab.equals("adr")) return this.adr;
+        // Comments
+        this.table_com.refresh(block, hash);
         
-        // Ads
-        if (tab.equals("ads")) return this.ads;
+        // Feeds
+        this.table_feeds.refresh(block, hash);
         
-        // Agents
-        if (tab.equals("agents")) return this.agents;
+        // Feeds branches
+        this.table_feeds_branches.refresh(block, hash);
         
-        // Assets
-        if (tab.equals("assets")) return this.assets;
+        // Feeds bets
+        this.table_feeds_bets.refresh(block, hash);
         
-        // Assets owners
-        if (tab.equals("assets_owners")) return this.assets_owners;
+        // Feeds bets pos
+        this.table_feeds_bets_pos.refresh(block, hash);
         
-        // Domains
-        if (tab.equals("domains")) return this.domains;
+        // Feeds spec mkts
+        this.table_feeds_spec_mkts.refresh(block, hash);
         
-        // Delegates votes
-        if (tab.equals("del_votes")) return this.del_votes;
-        
-        // Escrowed
-        if (tab.equals("escrowed")) return this.escrowed;
-        
-        // Profiles
-        if (tab.equals("profiles")) return this.profiles;
+        // Feeds spec mkts pos
+        this.table_feeds_spec_mkts_pos.refresh(block, hash);
         
         // Tweets
-        if (tab.equals("tweets")) return this.tweets;
-        
-        // Tweets comments
-        if (tab.equals("comments")) return this.comments;
-        
-        // Tweets likes
-        if (tab.equals("votes")) return this.votes;
+        this.table_tweets.refresh(block, hash);
         
         // Tweets follow
-        if (tab.equals("tweets_follow")) return this.tweets_follow;
+        this.table_tweets_follow.refresh(block, hash);
         
-        // Storage
-        if (tab.equals("storage")) return this.storage;
-        
-        
-        return "";
+        // Votes
+        this.table_votes.refresh(block, hash);
     }
-    
      
      public void setDifficulty(BigInteger dif)
      {
@@ -413,7 +301,7 @@ public class CNetStat
         this.net_dif=dif;
          
         // Debug
-        //System.out.println("New difficulty : "+UTILS.BASIC.formatDif(dif.toString(16)));
+        System.out.println("New difficulty : "+UTILS.BASIC.formatDif(dif.toString(16)));
      }
      
      

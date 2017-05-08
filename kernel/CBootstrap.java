@@ -31,7 +31,6 @@ public class CBootstrap
          {
              CAdrTable adr=new CAdrTable();
              adr.create(); 
-             adr.init();
          }
          
         
@@ -51,8 +50,36 @@ public class CBootstrap
 			 	 	 	          + "block BIGINT NOT NULL DEFAULT 0, "
 			 	 	 	          + "tstamp BIGINT NOT NULL DEFAULT 0)");
 				    
-	    UTILS.DB.executeUpdate("CREATE INDEX blocks_pool_hash ON blocks_pool(block)");
-	
+	    UTILS.DB.executeUpdate("CREATE UNIQUE INDEX blocks_pool_hash ON blocks_pool(hash)");
+	    UTILS.DB.executeUpdate("CREATE INDEX blocks_pool_block ON blocks_pool(block)");
+         }
+         
+         // ------------------------------------- Votes stats ------------------------------------------------
+         if (tab.equals("votes_stats"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE votes_stats(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                +"target_type VARCHAR(50) NOT NULL DEFAULT '', "
+                                                                +"targetID BIGINT NOT NULL DEFAULT 0, "
+                                                                +"upvotes_24 BIGINT NOT NULL DEFAULT 0, "
+                                                                +"upvotes_power_24 FLOAT(9,2) NOT NULL DEFAULT 0, "
+                                                                +"downvotes_24 BIGINT NOT NULL DEFAULT 0, "
+                                                                +"downvotes_power_24 FLOAT(9,2) NOT NULL DEFAULT 0, "
+                                                                +"tstamp BIGINT NOT NULL DEFAULT 0, "
+                                                                +"pay FLOAT(9,4) NOT NULL DEFAULT '0')");
+             
+              UTILS.DB.executeUpdate("CREATE INDEX votes_stats_target_type ON votes_stats(target_type)");
+              UTILS.DB.executeUpdate("CREATE INDEX votes_stats_targetID ON votes_stats(targetID)");
+         }
+         
+         // ------------------------------------- Votes stats ------------------------------------------------
+         if (tab.equals("votes_power"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE votes_power(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                             +"voteID BIGINT NOT NULL DEFAULT 0, "
+                                                             +"vote_power FLOAT(20, 4) NOT NULL DEFAULT 0, "
+                                                             +"vote_pay FLOAT(20, 4) NOT NULL DEFAULT 0)");
+             
+              UTILS.DB.executeUpdate("CREATE INDEX votes_power_voteID ON votes_power(voteID)");
          }
          
          // ------------------------------- Blocks --------------------------------------
@@ -70,42 +97,14 @@ public class CBootstrap
                                                      + "net_dif VARCHAR(100) NOT NULL DEFAULT '0', "
                                                      + "commited BIGINT NOT NULL DEFAULT 0, "
                                                      + "confirmations BIGINT NOT NULL DEFAULT 0, "
-                                                     + "payload_hash VARCHAR(250) NOT NULL DEFAULT '', "
-                                                     + "tab_1 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_2 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_3 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_4 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_5 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_6 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_7 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_8 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_9 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_10 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_11 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_12 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_13 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_14 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_15 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_16 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_17 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_18 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_19 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_20 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_21 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_22 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_23 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_24 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_25 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_26 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_27 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_28 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_29 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "tab_30 VARCHAR(100) NOT NULL DEFAULT '', "
-                                                     + "signer_balance BIGINT NOT NULL DEFAULT 0)");
+                                                     + "reward FLOAT(20, 8) NOT NULL DEFAULT 0, "
+                                                     + "payload_hash VARCHAR(250) NOT NULL DEFAULT '')");
 				    
-	    UTILS.DB.executeUpdate("CREATE INDEX blocks_hash ON blocks(block)");
-	    UTILS.DB.executeUpdate("CREATE INDEX blocks_block ON blocks(signer)");
-	    UTILS.DB.executeUpdate("CREATE INDEX blocks_signer ON blocks(hash)");
+	    UTILS.DB.executeUpdate("CREATE UNIQUE INDEX blocks_hash ON blocks(hash)");
+	    UTILS.DB.executeUpdate("CREATE INDEX blocks_block ON blocks(block)");
+	    UTILS.DB.executeUpdate("CREATE INDEX blocks_signer ON blocks(signer)");
+            UTILS.DB.executeUpdate("CREATE INDEX blocks_prev_hash ON blocks(prev_hash)");
+     
             
             UTILS.DB.executeUpdate("INSERT INTO blocks "
                                          + "SET hash='0000000000000000000000000000000000000000000000000000000000000000', "
@@ -113,14 +112,13 @@ public class CBootstrap
                                              + "prev_hash='0000000000000000000000000000000000000000000000000000000000000000', "
                                              + "signer='default', "
                                              + "packets='0', "
-                                             + "tstamp='"+UTILS.BASIC.tstamp()+"', "
+                                             + "tstamp='0', "
                                              + "nonce='0', "
                                              + "size='0', "
-                                             + "commited='"+UTILS.BASIC.tstamp()+"', "
+                                             + "commited='0', "
                                              + "confirmations='0', "
-                                             + "net_dif='0000000fffffffffffffffffffffffffffffffffffffffffffffffffffffffff', "
-                                             + "payload_hash='0000000000000000000000000000000000000000000000000000000000000000', "
-                                             + "signer_balance='0'");
+                                             + "net_dif='0000000fdc8eb4c424a4ab9659f606c254071192c1abd28ca94ee63f88323bbf', "
+                                             + "payload_hash='0000000000000000000000000000000000000000000000000000000000000000'");
          }
          
          // ---------------------------------- Connection Log--------------------------------------
@@ -141,15 +139,50 @@ public class CBootstrap
            domains.create();
 	}
         
-        
-        
-        // ------------------------------- Storage --------------------------------------
-	if (tab.equals("storage"))
+         // ------------------------------- Assets mkts --------------------------------------
+	if (tab.equals("assets_mkts"))
 	{
-	   CStorageTable storage=new CStorageTable();
-           storage.create();
+	   CAssetsMktsTable assets_mkts=new CAssetsMktsTable();
+           assets_mkts.create();
 	}
+        
+         // ------------------------------- Assets mkts pos --------------------------------------
+	if (tab.equals("assets_mkts_pos"))
+	{
+	   CAssetsMktsPosTable assets_mkts_pos=new CAssetsMktsPosTable();
+           assets_mkts_pos.create();
+	}
+        
+        // ------------------------------------- Tweets ------------------------------------------------
+         if (tab.equals("tweets"))
+         {
+             CTweetsTable tweets=new CTweetsTable();
+             tweets.create();
+         }
          
+         // ------------------------------------- Tweets Comments ------------------------------------------------
+         if (tab.equals("comments"))
+         {
+             CCommentsTable comments=new CCommentsTable();
+             comments.create();
+            
+         }
+         
+         // ------------------------------------- Tweets Follow ------------------------------------------------
+         if (tab.equals("tweets_follow"))
+         {
+             CTweetsFollowTable tweets_follow=new CTweetsFollowTable();
+             tweets_follow.create();
+         }
+         
+         // ------------------------------------- Tweets Likes ------------------------------------------------
+         if (tab.equals("votes"))
+         {
+             CVotesTable votes=new CVotesTable();
+             votes.create();
+         }
+     
+        
          // ---------------------------------- Error Log--------------------------------------
 	 if (tab.equals("err_log"))
          {
@@ -271,35 +304,16 @@ public class CBootstrap
 				    		       + "last_block_hash VARCHAR(250) NOT NULL DEFAULT '',"
                                                        + "block_confirm_min_balance DOUBLE(20,4) DEFAULT 1,"
                                                        + "net_dif VARCHAR(100) NOT NULL DEFAULT '0',"
-                                                       + "sql_log_status VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "adr VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "ads VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "agents VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "agents_feeds VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "assets VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "assets_owners VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "assets_mkts VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "assets_mkts_pos VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "domains VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "escrowed VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "profiles VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "tweets VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "storage VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "comments VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "tweets_follow VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "votes VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "del_votes VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "feeds VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "feeds_branches VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "feeds_bets VARCHAR(100) NOT NULL DEFAULT '',"
-                                                       + "feeds_bets_pos VARCHAR(100) NOT NULL DEFAULT '',"
                                                        + "delegate VARCHAR(500) NOT NULL DEFAULT '',"
+                                                       + "sql_log_status VARCHAR(100) NOT NULL DEFAULT '',"
+                                                       + "sync_target BIGINT NOT NULL DEFAULT 0, "
+                                                       + "sync_start BIGINT NOT NULL DEFAULT 0, "
                                                        + "last_tstamp BIGINT NOT NULL DEFAULT 0)");
             
             UTILS.DB.executeUpdate("INSERT INTO net_stat "
                                          + "SET last_block='0', "
                                              + "last_block_hash='0000000000000000000000000000000000000000000000000000000000000000', "
-                                             + "net_dif='0000000fffffffffffffffffffffffffffffffffffffffffffffffffffffffff'");
+                                             + "net_dif='0000000fdc8eb4c424a4ab9659f606c254071192c1abd28ca94ee63f88323bbf'");
 	}
         
         // ----------------------------------- My Trans --------------------------------------
@@ -326,6 +340,8 @@ public class CBootstrap
 	    UTILS.DB.executeUpdate("CREATE INDEX mt_adr ON my_trans(adr)");
             UTILS.DB.executeUpdate("CREATE INDEX mt_hash ON my_trans(hash)");
             UTILS.DB.executeUpdate("CREATE INDEX mt_block ON my_trans(block)");
+            UTILS.DB.executeUpdate("CREATE INDEX mt_cur ON my_trans(cur)");
+            UTILS.DB.executeUpdate("CREATE INDEX mt_block_hash ON my_trans(block_hash)");
 	}
          
          // --------------------------------IPN Log -------------------------------------
@@ -422,32 +438,8 @@ public class CBootstrap
                                                       +"in_traffic BIGINT NOT NULL DEFAULT 0,"
                                                       +"out_traffic BIGINT NOT NULL DEFAULT 0,"
                                                       +"last_seen BIGINT NOT NULL DEFAULT 0,"
+                                                      +"ver VARCHAR(10) NOT NULL DEFAULT '',"
                                                       +"tstamp BIGINT NOT NULL DEFAULT 0)");
-	  }
-         
-         // ---------------------------------- Peers ---------------------------------------
-	 if (tab.equals("req_data"))
-	 {
-	    UTILS.DB.executeUpdate("CREATE TABLE req_data(ID BIGINT AUTO_INCREMENT PRIMARY KEY," 
-                                                        +"adr VARCHAR(250) NOT NULL DEFAULT '',"
-                                                        +"field_1_name VARCHAR(250) NOT NULL DEFAULT '',"
-                                                        +"field_1_min BIGINT NOT NULL DEFAULT 0,"
-                                                        +"field_1_max BIGINT NOT NULL DEFAULT 0,"
-                                                        +"field_2_name VARCHAR(250) NOT NULL DEFAULT '',"
-                                                        +"field_2_min BIGINT NOT NULL DEFAULT 0,"
-                                                        +"field_2_max BIGINT NOT NULL DEFAULT 0,"
-                                                        +"field_3_name VARCHAR(250) NOT NULL DEFAULT '',"
-                                                        +"field_3_min BIGINT NOT NULL DEFAULT 0,"
-                                                        +"field_3_max BIGINT NOT NULL DEFAULT 0,"
-                                                        +"field_4_name VARCHAR(250) NOT NULL DEFAULT '',"
-                                                        +"field_4_min BIGINT NOT NULL DEFAULT 0,"
-                                                        +"field_4_max BIGINT NOT NULL DEFAULT 0,"
-                                                        +"field_5_name VARCHAR(250) NOT NULL DEFAULT '',"
-                                                        +"field_5_min BIGINT NOT NULL DEFAULT 0,"
-                                                        +"field_5_max BIGINT NOT NULL DEFAULT 0,"
-                                                        +"block BIGINT NOT NULL DEFAULT 0,"
-                                                        +"rowhash VARCHAR(250) NOT NULL DEFAULT '',"
-                                                        +"mes VARCHAR(1000) NOT NULL DEFAULT '')");
 	  }
          
          
@@ -608,9 +600,9 @@ public class CBootstrap
                                                              +"cpu_24_power FLOAT(9,2) NOT NULL DEFAULT '0', "
                                                              +"version VARCHAR(20) NOT NULL DEFAULT '0.0.1', "
                                                              +"engine_status VARCHAR(20) NOT NULL DEFAULT 'ID_ONLINE', "
-                                                             +"msk_price DOUBLE(9,4) NOT NULL DEFAULT 0)");
+                                                             +"MSK_price DOUBLE(9,4) NOT NULL DEFAULT 0)");
              
-             UTILS.DB.executeUpdate("INSERT INTO web_sys_data(status, msk_price) VALUES('ID_OFFLINE', '1')");
+             UTILS.DB.executeUpdate("INSERT INTO web_sys_data(status, MSK_price) VALUES('ID_OFFLINE', '1')");
          }
          
           // ------------------------------------- Sync ------------------------------------------------
@@ -627,71 +619,7 @@ public class CBootstrap
              
             
          }
-         
-         // ------------------------------------- Tweets ------------------------------------------------
-         if (tab.equals("tweets"))
-         {
-             CTweetsTable tweets=new CTweetsTable();
-             tweets.create();
-         }
-         
-         // ------------------------------------- Tweets Comments ------------------------------------------------
-         if (tab.equals("comments"))
-         {
-             CCommentsTable comments=new CCommentsTable();
-             comments.create();
-            
-         }
-         
-         // ------------------------------------- Tweets Follow ------------------------------------------------
-         if (tab.equals("tweets_follow"))
-         {
-             CTweetsFollowTable tweets_follow=new CTweetsFollowTable();
-             tweets_follow.create();
-         }
-         
-         // ------------------------------------- Tweets Likes ------------------------------------------------
-         if (tab.equals("votes"))
-         {
-             CVotesTable votes=new CVotesTable();
-             votes.create();
-         }
-         
-         // ------------------------------------- Tweets trends ------------------------------------------------
-         if (tab.equals("tweets_trends"))
-         {
-             UTILS.DB.executeUpdate("CREATE TABLE tweets_trends(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                                +"term BIGINT NOT NULL DEFAULT '0', "
-                                                                +"type VARCHAR(250) NOT NULL DEFAULT '', "
-                                                                +"tweets BIGINT NOT NULL DEFAULT '0', "
-                                                                +"retweets BIGINT NOT NULL DEFAULT '0', "
-                                                                +"likes BIGINT NOT NULL DEFAULT '0', "
-                                                                +"comments BIGINT NOT NULL DEFAULT '0')");
-             
-              UTILS.DB.executeUpdate("CREATE INDEX tweets_trends_term ON tweets_trends(term)");
-              UTILS.DB.executeUpdate("CREATE INDEX tweets_trends_type ON tweets_trends(type)");
-         }
-         
-         // ------------------------------------- Votes stats ------------------------------------------------
-         if (tab.equals("votes_stats"))
-         {
-             UTILS.DB.executeUpdate("CREATE TABLE votes_stats(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                                +"target_type VARCHAR(50) NOT NULL DEFAULT '', "
-                                                                +"targetID BIGINT NOT NULL DEFAULT 0, "
-                                                                +"upvotes_24 BIGINT NOT NULL DEFAULT 0, "
-                                                                +"upvotes_power_24 FLOAT(9,2) NOT NULL DEFAULT 0, "
-                                                                +"downvotes_24 BIGINT NOT NULL DEFAULT 0, "
-                                                                +"downvotes_power_24 FLOAT(9,2) NOT NULL DEFAULT 0, "
-                                                                +"upvotes_total BIGINT NOT NULL DEFAULT 0, "
-                                                                +"upvotes_power_total FLOAT(9,2) NOT NULL DEFAULT 0, "
-                                                                +"downvotes_total BIGINT NOT NULL DEFAULT 0, "
-                                                                +"downvotes_power_total FLOAT(9,2) NOT NULL DEFAULT 0, "
-                                                                +"tstamp BIGINT NOT NULL DEFAULT 0, "
-                                                                +"pay FLOAT(9,4) NOT NULL DEFAULT '0')");
-             
-              UTILS.DB.executeUpdate("CREATE INDEX votes_stats_target_type ON votes_stats(target_type)");
-              UTILS.DB.executeUpdate("CREATE INDEX votes_stats_targetID ON votes_stats(targetID)");
-         }
+        
          
          // ------------------------------------- Profiles ------------------------------------------------
          if (tab.equals("profiles"))
@@ -710,6 +638,7 @@ public class CBootstrap
                                                              +"IP VARCHAR(20) NOT NULL DEFAULT '', "
                                                              +"status VARCHAR(50) NOT NULL DEFAULT '', "
                                                              +"api_key VARCHAR(100) NOT NULL DEFAULT '', "
+                                                             +"ref_adr BIGINT NOT NULL DEFAULT 0, "
                                                              +"tstamp BIGINT NOT NULL DEFAULT 0, "
                                                              + "unread_esc BIGINT NOT NULL DEFAULT 0, "
                                                              + "unread_mes BIGINT NOT NULL DEFAULT 0, "
@@ -789,28 +718,52 @@ public class CBootstrap
             
          }
          
+         // ------------------------------------- Feeds Sources Res ------------------------------------------------
+         if (tab.equals("checkpoints"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE checkpoints(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                              +"block BIGINT NOT NULL DEFAULT 0, "
+                                                              +"hash VARCHAR(100) NOT NULL DEFAULT '')");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX checkpoints_block ON checkpoints(block)");
+             UTILS.DB.executeUpdate("CREATE INDEX checkpoints_hash ON checkpoints(hash)");
+         }
+         
          // ------------------------------------- Assets ------------------------------------------------
          if (tab.equals("assets"))
          {
-             CAssetsTable feeds_bets=new CAssetsTable();
-             feeds_bets.create(); 
+             CAssetsTable assets=new CAssetsTable();
+             assets.create(); 
          }
          
+         // Speculative markets
+         if (tab.equals("feeds_spec_mkts"))
+         {
+             CFeedsSpecMktsTable spec_mkts=new CFeedsSpecMktsTable();
+             spec_mkts.create(); 
+         }
          
          // ------------------------------------- Assets Owners ------------------------------------------------
          if (tab.equals("assets_owners"))
          {
-             CAssetsOwnersTable feeds_bets_pos=new CAssetsOwnersTable();
-             feeds_bets_pos.create(); 
+             CAssetsOwnersTable assets_owners=new CAssetsOwnersTable();
+             assets_owners.create(); 
          }
          
-         
-         // ------------------------------------- Agents  ------------------------------------------------
-         if (tab.equals("agents"))
+          // ------------------------------------- Feeds ------------------------------------------------
+         if (tab.equals("feeds"))
          {
-             CAgentsTable agents=new CAgentsTable();
-             agents.create(); 
+             CFeedsTable feeds=new CFeedsTable();
+             feeds.create(); 
          }
+         
+          // ------------------------------------- Feeds branches ------------------------------------------------
+         if (tab.equals("feeds_branches"))
+         {
+             CFeedsBranchesTable feeds_branches=new CFeedsBranchesTable();
+             feeds_branches.create(); 
+         }
+         
          
          // ------------------------------------- Delegates votes  ------------------------------------------------
          if (tab.equals("del_votes"))
@@ -818,6 +771,35 @@ public class CBootstrap
              CDelVotesTable del_votes=new CDelVotesTable();
              del_votes.create(); 
          }
+         
+         // ----------------------------------- Speculative Markets -----------------------------------------------
+         if (tab.equals("feeds_spec_mkts_pos"))
+         {
+            CFeedsSpecMktsPosTable spec_mkts_pos=new CFeedsSpecMktsPosTable();
+            spec_mkts_pos.create();
+         }
+         
+         // ------------------------------------- Feeds bets  ------------------------------------------------
+         if (tab.equals("feeds_bets"))
+         {
+             CFeedsBetsTable feeds_bets=new CFeedsBetsTable();
+             feeds_bets.create(); 
+         }
+         
+         // ------------------------------------- Feeds bets pos  ------------------------------------------------
+         if (tab.equals("feeds_bets_pos"))
+         {
+             CFeedsBetsPosTable feeds_bets_pos=new CFeedsBetsPosTable();
+             feeds_bets_pos.create(); 
+         }
+         
+         // ------------------------------------- Address atributes  ------------------------------------------------
+         if (tab.equals("adr_attr"))
+         {
+             CAdrAttrTable adr_attr=new CAdrAttrTable();
+             adr_attr.create(); 
+         }
+         
          
          // ------------------------------------- Agents Emails ------------------------------------------------
          if (tab.equals("out_emails"))
@@ -831,108 +813,85 @@ public class CBootstrap
                                                                 +"adr VARCHAR(500) NOT NULL DEFAULT '', "
                                                                 +"tstamp BIGINT NOT NULL DEFAULT 0, "
                                                                 +"status VARCHAR(25) NOT NULL DEFAULT 'ID_PENDING')");
-             
-             UTILS.DB.executeUpdate("CREATE INDEX agents_emails_agentID ON agents(adr)");
          }
          
-         // ------------------------------------- Agents Globals ------------------------------------------------
-         if (tab.equals("agents_globals"))
+         // ------------------------------------- Status Log ------------------------------------------------
+         if (tab.equals("status_log"))
          {
-              UTILS.DB.executeUpdate("CREATE TABLE agents_globals(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                                +"varID VARCHAR(50) NOT NULL DEFAULT '', "
-                                                                +"appID BIGINT NOT NULL DEFAULT 0, "
-                                                                +"name VARCHAR(100) NOT NULL DEFAULT '', "
-                                                                +"data_type VARCHAR(100) NOT NULL DEFAULT 'ID_LONG', "
-                                                                +"expl VARCHAR(1000) NOT NULL DEFAULT '', "
-                                                                +"min FLOAT(20,8) NOT NULL DEFAULT '0', "
-                                                                +"max FLOAT(20,8) NOT NULL DEFAULT '0', "
-                                                                +"val VARCHAR(1000) NOT NULL DEFAULT 0)");
-             
-             UTILS.DB.executeUpdate("CREATE INDEX agents_globals_appID ON agents_globals(appID)");
+              UTILS.DB.executeUpdate("CREATE TABLE status_log(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                +"total_mem BIGINT NOT NULL DEFAULT 0, "
+                                                                +"free_mem BIGINT NOT NULL DEFAULT 0, "
+                                                                +"tstamp BIGINT NOT NULL DEFAULT 0, "
+                                                                +"threads BIGINT NOT NULL DEFAULT 0)");
          }
          
-          // ------------------------------------- Checkpoints ------------------------------------------------
-         if (tab.equals("checkpoints"))
+         // ------------------------------------- Delegates Log ------------------------------------------------
+         if (tab.equals("delegates_log"))
          {
-              UTILS.DB.executeUpdate("CREATE TABLE checkpoints(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                                +"block BIGINT NOT NULL DEFAULT '0', "
-                                                                +"hash VARCHAR(100) NOT NULL DEFAULT '')");
+              UTILS.DB.executeUpdate("CREATE TABLE delegates_log(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                +"delegate VARCHAR(500) NOT NULL DEFAULT '', "
+                                                                +"power BIGINT NOT NULL DEFAULT 0, "
+                                                                +"block BIGINT NOT NULL DEFAULT 0)");
+              
+              UTILS.DB.executeUpdate("CREATE INDEX delegates_log_delegate ON delegates_log(delegate)");
+              UTILS.DB.executeUpdate("CREATE INDEX delegates_log_block ON delegates_log(block)");
+         }
+         
+         // ------------------------------------- Rewards ------------------------------------------------
+         if (tab.equals("rewards"))
+         {
+              UTILS.DB.executeUpdate("CREATE TABLE rewards(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                         +"adr VARCHAR(500) NOT NULL DEFAULT '', "
+                                                         +"target_type VARCHAR(50) NOT NULL DEFAULT '', "
+                                                         +"targetID BIGINT NOT NULL DEFAULT 0, "
+                                                         +"reward VARCHAR(100) NOT NULL DEFAULT '', "
+                                                         +"amount FLOAT(9,4) NOT NULL DEFAULT '0', "
+                                                         +"block BIGINT NOT NULL DEFAULT '0')");
              
-             UTILS.DB.executeUpdate("CREATE INDEX checkpoints_block ON checkpoints(block)");
-             UTILS.DB.executeUpdate("CREATE INDEX checkpoints_hash ON checkpoints(hash)");
+             UTILS.DB.executeUpdate("CREATE INDEX rewards_adr ON rewards(adr)");
+             UTILS.DB.executeUpdate("CREATE INDEX rewards_block ON rewards(block)");
+             UTILS.DB.executeUpdate("CREATE INDEX rewards_targetID ON rewards(targetID)");
+         }
+         
+         // ------------------------------------- Rewards ------------------------------------------------
+         if (tab.equals("web_actions"))
+         {
+              UTILS.DB.executeUpdate("CREATE TABLE web_actions(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                              +"userID BIGINT NOT NULL DEFAULT '0', "
+                                                              +"tip VARCHAR(100) NOT NULL DEFAULT '', "
+                                                              +"par_1 VARCHAR(1000) NOT NULL DEFAULT '', "
+                                                              +"par_2 VARCHAR(1000) NOT NULL DEFAULT '', "
+                                                              +"par_3 VARCHAR(1000) NOT NULL DEFAULT '', "
+                                                              +"tstamp BIGINT NOT NULL DEFAULT '0', "
+                                                              +"IP VARCHAR(100) NOT NULL DEFAULT '')");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX web_actions_userID ON web_actions(userID)");
+         }
+         
+          // ------------------------------------- Affiliates stats ------------------------------------------------
+         if (tab.equals("ref_stats"))
+         {
+              UTILS.DB.executeUpdate("CREATE TABLE ref_stats(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                              +"userID BIGINT NOT NULL DEFAULT '0', "
+                                                              +"year BIGINT NOT NULL DEFAULT 0, "
+                                                              +"month BIGINT NOT NULL DEFAULT 0, "
+                                                              +"day BIGINT NOT NULL DEFAULT 0, "
+                                                              +"hits BIGINT NOT NULL DEFAULT 0, "
+                                                              +"signups BIGINT NOT NULL DEFAULT 0, "
+                                                              +"ctr BIGINT NOT NULL DEFAULT 0, "
+                                                              +"tstamp BIGINT NOT NULL DEFAULT 0)");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX ref_stats_userID ON ref_stats(userID)");
+             UTILS.DB.executeUpdate("CREATE INDEX ref_stats_year ON ref_stats(year)");
+             UTILS.DB.executeUpdate("CREATE INDEX ref_stats_month ON ref_stats(month)");
+             UTILS.DB.executeUpdate("CREATE INDEX ref_stats_day ON ref_stats(day)");
          }
          
           // ------------------------------------- Delegates ------------------------------------------------
          if (tab.equals("delegates"))
          {
-              UTILS.DB.executeUpdate("CREATE TABLE delegates(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                            +"delegate VARCHAR(500) NOT NULL DEFAULT '', "
-                                                            +"power BIGINT NOT NULL DEFAULT 0)");
-             
-         }
-         
-         // ------------------------------------- Agents categs ------------------------------------------------
-         if (tab.equals("agents_categs"))
-         {
-              UTILS.DB.executeUpdate("CREATE TABLE agents_categs(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                                +"categID VARCHAR(50) NOT NULL DEFAULT '', "
-                                                                +"name VARCHAR(250) NOT NULL DEFAULT '', "
-                                                                +"mkt_no BIGINT NOT NULL DEFAULT 0, "
-                                                                +"dir_no BIGINT NOT NULL DEFAULT 0)");
-             
-             UTILS.DB.executeUpdate("INSERT INTO agents_categs(categID, name) VALUES('ID_ALL', 'All')");
-             UTILS.DB.executeUpdate("INSERT INTO agents_categs(categID, name) VALUES('ID_BUSINESS', 'Business')");
-             UTILS.DB.executeUpdate("INSERT INTO agents_categs(categID, name) VALUES('ID_EDUCATION', 'Education')");
-             UTILS.DB.executeUpdate("INSERT INTO agents_categs(categID, name) VALUES('ID_ENTERTAINMENT', 'Entertainment')");
-             UTILS.DB.executeUpdate("INSERT INTO agents_categs(categID, name) VALUES('ID_FINANCE', 'Finance')");
-             UTILS.DB.executeUpdate("INSERT INTO agents_categs(categID, name) VALUES('ID_GAMES', 'Games')");
-             UTILS.DB.executeUpdate("INSERT INTO agents_categs(categID, name) VALUES('ID_GAMBLING', 'Gambling')");
-             UTILS.DB.executeUpdate("INSERT INTO agents_categs(categID, name) VALUES('ID_PRODUCTIVITY', 'Productivity')");
-             UTILS.DB.executeUpdate("INSERT INTO agents_categs(categID, name) VALUES('ID_SHOPPING', 'Shopping')");
-             UTILS.DB.executeUpdate("INSERT INTO agents_categs(categID, name) VALUES('ID_TRADING', 'Trading')");
-             UTILS.DB.executeUpdate("INSERT INTO agents_categs(categID, name) VALUES('ID_UTILITIES', 'Utilities')");
-         }
-         
-         // ------------------------------------- My Agents ------------------------------------------------
-         if (tab.equals("agents_mine"))
-         {
-              UTILS.DB.executeUpdate("CREATE TABLE agents_mine(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                              +"userID BIGINT NOT NULL NOT NULL DEFAULT 0, "
-                                                              +"adr VARCHAR(250) NOT NULL DEFAULT '', "
-                                                              +"globals LONGTEXT, "
-                                                              +"interface LONGTEXT, "
-                                                              +"signals LONGTEXT, "
-                                                              +"code LONGTEXT, "
-                                                              +"storage LONGTEXT, "
-                                                              +"used BIGINT NOT NULL NOT NULL DEFAULT 0, "
-                                                              +"exec_log LONGTEXT NOT NULL, "
-                                                              +"compiler VARCHAR(1000) NOT NULL DEFAULT'', "
-                                                              +"compiler_globals VARCHAR(1000) NOT NULL DEFAULT'', "
-                                                              +"compiler_interface VARCHAR(1000) NOT NULL DEFAULT'', "
-                                                              +"compiler_signals VARCHAR(1000) NOT NULL DEFAULT'', "
-                                                              +"ver VARCHAR(50) NOT NULL DEFAULT '', "
-                                                              +"name VARCHAR(250) NOT NULL DEFAULT '', "
-                                                              +"status VARCHAR(25) NOT NULL DEFAULT 'ID_ONLINE', "
-                                                              +"description VARCHAR(250) NOT NULL DEFAULT '', "
-                                                              +"block BIGINT NOT NULL NOT NULL DEFAULT 0, "
-                                                              +"dir BIGINT NOT NULL NOT NULL DEFAULT 0, "
-                                                              +"expire BIGINT NOT NULL NOT NULL DEFAULT 0, "
-                                                              +"url_pass VARCHAR(250) NOT NULL DEFAULT '',"
-                                                              +"trans_sender VARCHAR(250) NOT NULL DEFAULT '',"
-                                                              +"trans_amount DOUBLE(20,8) NOT NULL NOT NULL DEFAULT 0,"
-                                                              +"trans_cur VARCHAR(10) NOT NULL DEFAULT '',"
-                                                              +"trans_mes VARCHAR(5000) NOT NULL DEFAULT '',"
-                                                              +"trans_escrower VARCHAR(250) NOT NULL DEFAULT '',"
-                                                              +"simulate_target VARCHAR(25) NOT NULL DEFAULT '',"
-                                                              +"run LONGTEXT NOT NULL,"
-                                                              +"mes_sender VARCHAR(250) NOT NULL DEFAULT '',"
-                                                              +"mes_subj VARCHAR(1000) NOT NULL DEFAULT '',"
-                                                              +"mes_mes VARCHAR(5000) NOT NULL DEFAULT '',"
-                                                              +"block_hash VARCHAR(250) NOT NULL DEFAULT '',"
-                                                              +"block_no BIGINT NOT NULL NOT NULL DEFAULT 0,"
-                                                              +"block_nonce BIGINT NOT NULL NOT NULL DEFAULT 0)");
-             
-             UTILS.DB.executeUpdate("CREATE INDEX agents_mine_userID ON agents_mine(userID)");
+              CDelegatesTable delegates=new CDelegatesTable();
+              delegates.create(); 
          }
          
         // Done
@@ -957,7 +916,7 @@ public class CBootstrap
      
      public void checkTables() throws Exception
      {
-	if (this.tableExist("adr")==false)
+         if (this.tableExist("adr")==false)
             this.createTable("adr");
         
         if (this.tableExist("ads")==false)
@@ -974,6 +933,9 @@ public class CBootstrap
         
         if (this.tableExist("domains")==false)
             this.createTable("domains");
+        
+        if (this.tableExist("checkpoints")==false)
+            this.createTable("checkpoints");
         
         if (this.tableExist("err_log")==false)
             this.createTable("err_log");
@@ -1005,9 +967,6 @@ public class CBootstrap
         if (this.tableExist("rec_packets")==false)
             this.createTable("rec_packets");
         
-        if (this.tableExist("req_data")==false)
-            this.createTable("req_data");
-        
         if (this.tableExist("peers")==false)
             this.createTable("peers");
         
@@ -1032,6 +991,73 @@ public class CBootstrap
         if (this.tableExist("profiles")==false)
             this.createTable("profiles");
         
+        if (this.tableExist("assets")==false)
+            this.createTable("assets");
+         
+         if (this.tableExist("assets_owners")==false)
+            this.createTable("assets_owners");
+         
+         if (this.tableExist("assets_mkts")==false)
+            this.createTable("assets_mkts");
+         
+         if (this.tableExist("assets_mkts_pos")==false)
+            this.createTable("assets_mkts_pos");
+         
+         if (this.tableExist("assets_mkts_trades")==false)
+            this.createTable("assets_mkts_trades");
+         
+         if (this.tableExist("sync")==false)
+            this.createTable("sync");
+         
+        if (this.tableExist("out_emails")==false)
+            this.createTable("out_emails");
+          
+          if (this.tableExist("delegates")==false)
+            this.createTable("delegates");
+          
+           if (this.tableExist("rewards")==false)
+            this.createTable("rewards");
+
+           if (this.tableExist("web_actions")==false)
+            this.createTable("web_actions");
+           
+            if (this.tableExist("ref_stats")==false)
+              this.createTable("ref_stats");
+            
+            if (this.tableExist("feeds_sources")==false)
+              this.createTable("feeds_sources");
+            
+            if (this.tableExist("feeds_data")==false)
+              this.createTable("feeds_data");
+            
+            if (this.tableExist("feeds_pos_data")==false)
+              this.createTable("feeds_pos_data");
+            
+            if (this.tableExist("feeds_sources_res")==false)
+              this.createTable("feeds_sources_res");
+            
+             if (this.tableExist("feeds")==false)
+              this.createTable("feeds");
+             
+              if (this.tableExist("feeds_branches")==false)
+              this.createTable("feeds_branches");
+              
+              if (this.tableExist("feeds_bets")==false)
+            this.createTable("feeds_bets");
+         
+         if (this.tableExist("feeds_bets_pos")==false)
+            this.createTable("feeds_bets_pos");
+         
+         if (this.tableExist("feeds_spec_mkts_pos")==false)
+            this.createTable("feeds_spec_mkts_pos");
+         
+         
+        if (this.tableExist("status_log")==false)
+            this.createTable("status_log");
+        
+        if (this.tableExist("feeds_spec_mkts")==false)
+            this.createTable("feeds_spec_mkts");
+        
         if (this.tableExist("tweets")==false)
             this.createTable("tweets");
         
@@ -1044,82 +1070,106 @@ public class CBootstrap
         if (this.tableExist("votes")==false)
             this.createTable("votes");
         
-         if (this.tableExist("tweets_trends")==false)
-            this.createTable("tweets_trends");
-         
-         if (this.tableExist("assets")==false)
-            this.createTable("assets");
-         
-         if (this.tableExist("assets_owners")==false)
-            this.createTable("assets_owners");
-         
-         if (this.tableExist("sync")==false)
-            this.createTable("sync");
-         
-         if (this.tableExist("agents")==false)
-            this.createTable("agents");
-         
-         if (this.tableExist("agents_mine")==false)
-            this.createTable("agents_mine");
-         
-         if (this.tableExist("out_emails")==false)
-            this.createTable("out_emails");
-         
-         if (this.tableExist("agents_categs")==false)
-            this.createTable("agents_categs");
-         
-         if (this.tableExist("agents_globals")==false)
-            this.createTable("agents_globals");
-         
-         if (this.tableExist("checkpoints")==false)
-            this.createTable("checkpoints");
-         
-         if (this.tableExist("feeds_sources")==false)
-            this.createTable("feeds_sources");
-         
-          if (this.tableExist("agents_feeds")==false)
-            this.createTable("agents_feeds");
-          
-          if (this.tableExist("storage")==false)
-            this.createTable("storage");
-          
-          if (this.tableExist("votes_stats")==false)
+        if (this.tableExist("votes_stats")==false)
             this.createTable("votes_stats");
-          
-          if (this.tableExist("delegates")==false)
-            this.createTable("delegates");
-          
+        
+        if (this.tableExist("votes_power")==false)
+            this.createTable("votes_power");
+        
+        if (this.tableExist("delegates_log")==false)
+            this.createTable("delegates_log");
+        
+        if (this.tableExist("adr_attr")==false)
+            this.createTable("adr_attr");
+                   
           if (this.tableExist("del_votes")==false)
           {
             this.createTable("del_votes");
-            
-UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEChL8MuOMtsKFsPO94FTitGgb2egGSt+ogO5C0x15N1Q8ZdDg/G3XWSaoNzXWw7A/gpB2UZJ/elU=', balance=10000, block=1, created=0, sealed=0");
-UTILS.DB.executeUpdate("INSERT INTO del_votes SET delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE0x6rL6zrSrJoFnwsRjuxn86/JGmvRPkrZDhD+a536Df28UB2OZB5Nc/scf5YQdTx7kkDb/yf++o=', adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEChL8MuOMtsKFsPO94FTitGgb2egGSt+ogO5C0x15N1Q8ZdDg/G3XWSaoNzXWw7A/gpB2UZJ/elU=', type='ID_UP', block=1");
-UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEbbg/tI+KBUyz/tl/0wn0e0Il3xmeMBFGmsSGDL8AzAfZeTANTCEJlpFV/4IUpcRuQ0Ucvyx9tmI=', balance=10000, block=1, created=0, sealed=0");
-UTILS.DB.executeUpdate("INSERT INTO del_votes SET delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE0x6rL6zrSrJoFnwsRjuxn86/JGmvRPkrZDhD+a536Df28UB2OZB5Nc/scf5YQdTx7kkDb/yf++o=', adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEbbg/tI+KBUyz/tl/0wn0e0Il3xmeMBFGmsSGDL8AzAfZeTANTCEJlpFV/4IUpcRuQ0Ucvyx9tmI=', type='ID_UP', block=1");
-
-UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEFYpiA6utjRCs5jK7cHEuloveupOjwXJKww5QTFI9YedJuz4aOand6JtwuYMDNI7lxi7ewKA3pm8=', balance=10000, block=1, created=0, sealed=0");
-UTILS.DB.executeUpdate("INSERT INTO del_votes SET delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEGEAmoJEa25iVpzThVmJUIaAcOqLe0RJ5DUUBwAb8a7j0ijZJ4SwrlFcg2NoAyDuUDpchsLLcbIY=', adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEFYpiA6utjRCs5jK7cHEuloveupOjwXJKww5QTFI9YedJuz4aOand6JtwuYMDNI7lxi7ewKA3pm8=', type='ID_UP', block=1");
-UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEGCE9Tte00n6xUkDpthPniV/0X92qDSCiEJ0+/mKrtbAkKuyrp8F9UgiHLcGsF8C1rYDqisPENPE=', balance=10000, block=1, created=0, sealed=0");
-UTILS.DB.executeUpdate("INSERT INTO del_votes SET delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEGEAmoJEa25iVpzThVmJUIaAcOqLe0RJ5DUUBwAb8a7j0ijZJ4SwrlFcg2NoAyDuUDpchsLLcbIY=', adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEGCE9Tte00n6xUkDpthPniV/0X92qDSCiEJ0+/mKrtbAkKuyrp8F9UgiHLcGsF8C1rYDqisPENPE=', type='ID_UP', block=1");
-
-UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEvpCg0A0RQTbePSr6t+A8cvNxZ05BXsgawBpaOlngKTT4mVujv5LjNt1VOax7yp9Lyzx8a9SSS+A=', balance=10000, block=1, created=0, sealed=0");
-UTILS.DB.executeUpdate("INSERT INTO del_votes SET delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEn9KtEZw4cRyp1YcfT4l8/U3RcZshoTWhI7eTej2dvUiWciIgLKyb8HhTiBoe1Sx9JQJwwfL2GY4=', adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEvpCg0A0RQTbePSr6t+A8cvNxZ05BXsgawBpaOlngKTT4mVujv5LjNt1VOax7yp9Lyzx8a9SSS+A=', type='ID_UP', block=1");
-UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEqefYhXpr3C/GAxyrmoMJEgy2zYfBjAuMP3YQJOZ+nO5seD/RJD/TsB7Y84+S7UoFen5QKNtyZd8=', balance=10000, block=1, created=0, sealed=0");
-UTILS.DB.executeUpdate("INSERT INTO del_votes SET delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEn9KtEZw4cRyp1YcfT4l8/U3RcZshoTWhI7eTej2dvUiWciIgLKyb8HhTiBoe1Sx9JQJwwfL2GY4=', adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEqefYhXpr3C/GAxyrmoMJEgy2zYfBjAuMP3YQJOZ+nO5seD/RJD/TsB7Y84+S7UoFen5QKNtyZd8=', type='ID_UP', block=1");
-
-UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEO1Nps/C8MQ2zV0tVrolGBJjJA1Z2bleM6J+OmVMR9hQLRmEgOFDKiGif3kaYhQwji0jze/P2QlU=', balance=10000, block=1, created=0, sealed=0");
-UTILS.DB.executeUpdate("INSERT INTO del_votes SET delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE/zDLDPsmfWNs0M86sutC+VbzkJmm7mTr+wuqd+wxecBc2/PZrpaAakOvYDBA/G3KxutOB1C3Ux4=', adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEO1Nps/C8MQ2zV0tVrolGBJjJA1Z2bleM6J+OmVMR9hQLRmEgOFDKiGif3kaYhQwji0jze/P2QlU=', type='ID_UP', block=1");
-UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEHVSI2pGsXvX34nkEvq7kDIt5VsCfQGIhQBR1E5BtZMdX46n/8KA2dTdDsmZ2kGKMgu8d9nxpjg4=', balance=10000, block=1, created=0, sealed=0");
-UTILS.DB.executeUpdate("INSERT INTO del_votes SET delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE/zDLDPsmfWNs0M86sutC+VbzkJmm7mTr+wuqd+wxecBc2/PZrpaAakOvYDBA/G3KxutOB1C3Ux4=', adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEHVSI2pGsXvX34nkEvq7kDIt5VsCfQGIhQBR1E5BtZMdX46n/8KA2dTdDsmZ2kGKMgu8d9nxpjg4=', type='ID_UP', block=1");
-
-UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEbn8E3+dARiv9ykwIlPuXEVNWhHl1xbOpC8cNWP691kT3qEEzAYbc8CqDXMnZCFHodfGXJq9YJjM=', balance=10000, block=1, created=0, sealed=0");
-UTILS.DB.executeUpdate("INSERT INTO del_votes SET delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEBJ5f5hTkShrGym2HU1A/yZnen2x/BRHQjCcTd4KFmxlVQuM1/QClnSNJ+BVpbx2iu/ahJ1FzZFM=', adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEbn8E3+dARiv9ykwIlPuXEVNWhHl1xbOpC8cNWP691kT3qEEzAYbc8CqDXMnZCFHodfGXJq9YJjM=', type='ID_UP', block=1");
-UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEStwemRWstVzpEnyYaJit2Xn5I0yVhlOX2OKC7gVTPl1Vnp1Rfbetq44PK5G1qcuyzphKqPLRKZw=', balance=10000, block=1, created=0, sealed=0");
-UTILS.DB.executeUpdate("INSERT INTO del_votes SET delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEBJ5f5hTkShrGym2HU1A/yZnen2x/BRHQjCcTd4KFmxlVQuM1/QClnSNJ+BVpbx2iu/ahJ1FzZFM=', adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEStwemRWstVzpEnyYaJit2Xn5I0yVhlOX2OKC7gVTPl1Vnp1Rfbetq44PK5G1qcuyzphKqPLRKZw=', type='ID_UP', block=1");
-
+            this.createInitAdr();
           }
     }
    
-    
+    public void createInitAdr() throws Exception
+    {
+        // Default
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='default', balance='20000000', created='0', block='0'");
+        
+        
+        // Main addresses
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEVLlfDKbAbXy4pVUwirSVpLt3R2FkZirCzM5nkG50hb7HKt1dhZGpd6YtoYsf0bLLMjvKT2MEXjs=', balance='5000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEUTU9+ZAA+SHf88XGBPRXIJegV4GyP0VRHeEyTTC4NEBcvufT3sXJLQkbkZpAwvKFiYqcR2BMRWw=', balance='5000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEaGY5tE3iGD2TVrtYWuU75TIGAH18u7oSCV4XqMUh4O97FfSc4Ce76lm6O7llN9GPtFVp4YgtDC0=', balance='5000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAExnpgueKLCKlYaDxVaY6E9fOWqO3FObD1yP/VlKyqcGyaliFvkOWoAGmsqI/xgyE+CkZ1B3mFCoE=', balance='5000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEW9QtP5O+jDkEtqMH4EzvT/gpAaxsdOxmzoGzC/lQeDxrut3SiyJnq2ty3t8kdkBJsPOXw67QquI=', balance='5000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE32vMj5rmIlxmuBUxV9zJoRcrVjFUppF3mbs4AUHp66y4UVs8s4IIJdn4pVJcnYrxzFnMIomtdno=', balance='5000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE9wIHV2QyIMCZ8rDsvWxOeibLWb21WawBp/xx+vtQ8XL61xb9ieATWheRzowVfYEE/tnuIRlrcgA=', balance='5000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEnO6qdAakxvlDQIl6dE2W+Q5QzC28m/tUBST3RSCTFySEdTQtaVtdH0jlGlFPntyHx3tv4aQHbN4=', balance='5000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEaNpz2lU2bRvsn8maSbZHH/zsKzknofJ7t6mhopsdkyGY8bOiUxuwMA8rSc6OJc6xxHVS5s+ZYSw=', balance='5000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEwGuPjLPELwp1mJYnd+jskQGUEYN3QWoPXe/uUEsrBHNcKOFZAN/kShEV3H6oQbUr5R9d0IKTZ7c=', balance='5000', created='0', block='0'");
+        
+        // Delegate 1
+        UTILS.DB.executeUpdate("INSERT INTO del_votes "
+                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEVLlfDKbAbXy4pVUwirSVpLt3R2FkZirCzM5nkG50hb7HKt1dhZGpd6YtoYsf0bLLMjvKT2MEXjs=', "
+                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEw/i+NP1xdpTMe2zhworPH3undpx0ReIHqgWsKAbeSlq+H8qQz6NwOr67pXZPB236PcdCiJUfuOM=', "
+                                         + "type='ID_UP', "
+                                         + "block='0'");
+        
+        UTILS.DB.executeUpdate("INSERT INTO del_votes "
+                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEUTU9+ZAA+SHf88XGBPRXIJegV4GyP0VRHeEyTTC4NEBcvufT3sXJLQkbkZpAwvKFiYqcR2BMRWw=', "
+                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEw/i+NP1xdpTMe2zhworPH3undpx0ReIHqgWsKAbeSlq+H8qQz6NwOr67pXZPB236PcdCiJUfuOM=', "
+                                         + "type='ID_UP', "
+                                         + "block='0'");
+        
+        // Delegate 2
+        UTILS.DB.executeUpdate("INSERT INTO del_votes "
+                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEaGY5tE3iGD2TVrtYWuU75TIGAH18u7oSCV4XqMUh4O97FfSc4Ce76lm6O7llN9GPtFVp4YgtDC0=', "
+                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmkqBbYFVGb5gck1P1ZBDb0HhcgRRgZPvmhNFxqm0FQXuAtZgxh7pJcPBvBLn5QDTGQkbmSzAe1c=', "
+                                         + "type='ID_UP', "
+                                         + "block='0'");
+        
+        UTILS.DB.executeUpdate("INSERT INTO del_votes "
+                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAExnpgueKLCKlYaDxVaY6E9fOWqO3FObD1yP/VlKyqcGyaliFvkOWoAGmsqI/xgyE+CkZ1B3mFCoE=', "
+                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmkqBbYFVGb5gck1P1ZBDb0HhcgRRgZPvmhNFxqm0FQXuAtZgxh7pJcPBvBLn5QDTGQkbmSzAe1c=', "
+                                         + "type='ID_UP', "
+                                         + "block='0'");
+        
+        // Delegate 3
+        UTILS.DB.executeUpdate("INSERT INTO del_votes "
+                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEW9QtP5O+jDkEtqMH4EzvT/gpAaxsdOxmzoGzC/lQeDxrut3SiyJnq2ty3t8kdkBJsPOXw67QquI=', "
+                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE8hJcN8OPeFBsGPZbFL7d6Y3UpSl/7UOal/H+PCEgBcZouH6qhkgKHmFKP9OvBWUIMwH1NHHnYAU=', "
+                                         + "type='ID_UP', "
+                                         + "block='0'");
+        
+        UTILS.DB.executeUpdate("INSERT INTO del_votes "
+                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE32vMj5rmIlxmuBUxV9zJoRcrVjFUppF3mbs4AUHp66y4UVs8s4IIJdn4pVJcnYrxzFnMIomtdno=', "
+                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE8hJcN8OPeFBsGPZbFL7d6Y3UpSl/7UOal/H+PCEgBcZouH6qhkgKHmFKP9OvBWUIMwH1NHHnYAU=', "
+                                         + "type='ID_UP', "
+                                         + "block='0'");
+        
+        // Delegate 4
+        UTILS.DB.executeUpdate("INSERT INTO del_votes "
+                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE9wIHV2QyIMCZ8rDsvWxOeibLWb21WawBp/xx+vtQ8XL61xb9ieATWheRzowVfYEE/tnuIRlrcgA=', "
+                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEAlecggPYFhh9XuL4U78Z7qbGrRQB/wOIzOfvP+1Xong3AuYiLHXCrru/qTrmmECGxEKG4AuVxms=', "
+                                         + "type='ID_UP', "
+                                         + "block='0'");
+        
+        UTILS.DB.executeUpdate("INSERT INTO del_votes "
+                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEnO6qdAakxvlDQIl6dE2W+Q5QzC28m/tUBST3RSCTFySEdTQtaVtdH0jlGlFPntyHx3tv4aQHbN4=', "
+                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEAlecggPYFhh9XuL4U78Z7qbGrRQB/wOIzOfvP+1Xong3AuYiLHXCrru/qTrmmECGxEKG4AuVxms=', "
+                                         + "type='ID_UP', "
+                                         + "block='0'");
+        
+        // Delegate 
+        UTILS.DB.executeUpdate("INSERT INTO del_votes "
+                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEaNpz2lU2bRvsn8maSbZHH/zsKzknofJ7t6mhopsdkyGY8bOiUxuwMA8rSc6OJc6xxHVS5s+ZYSw=', "
+                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEJVc8AvNJRlXEpxmbmppX7RK5BkaMAcZKKPsl83naU7wMtN/N5ghv22QO7gdh0AIeNKGSTvtrymA=', "
+                                         + "type='ID_UP', "
+                                         + "block='0'");
+        
+        UTILS.DB.executeUpdate("INSERT INTO del_votes "
+                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEwGuPjLPELwp1mJYnd+jskQGUEYN3QWoPXe/uUEsrBHNcKOFZAN/kShEV3H6oQbUr5R9d0IKTZ7c=', "
+                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEJVc8AvNJRlXEpxmbmppX7RK5BkaMAcZKKPsl83naU7wMtN/N5ghv22QO7gdh0AIeNKGSTvtrymA=', "
+                                         + "type='ID_UP', "
+                                         + "block='0'");
+    }
 }

@@ -6,7 +6,6 @@ package wallet.network.packets.tweets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import wallet.agents.CAgent;
 import wallet.kernel.*;
 import wallet.network.*;
 import wallet.network.packets.*;
@@ -61,7 +60,7 @@ public class CVotePayload extends CPayload
        super.check(block);
        
        // Balance
-       if (UTILS.ACC.getBalance(this.target_adr, "MSK", block)<1)
+       if (UTILS.ACC.getBalance(this.target_adr, "MSK", block)<0.01)
           throw new Exception("Invalid balance - CVotePayload.java");
        
        // Type
@@ -72,13 +71,13 @@ public class CVotePayload extends CPayload
        // Target type
        if (!this.target_type.equals("ID_POST") && 
            !this.target_type.equals("ID_COM") && 
-           !this.target_type.equals("ID_ASSET") && 
-           !this.target_type.equals("ID_ASSET_MKT") && 
-           !this.target_type.equals("ID_BET") && 
-           !this.target_type.equals("ID_FEED") && 
-           !this.target_type.equals("ID_APP"))
+           !this.target_type.equals("ID_BET"))
        throw new Exception("Invalid target type - CVotePayload.java");
        
+        // Target valid
+        if (!UTILS.BASIC.targetValid(this.target_type, this.targetID))
+          throw new Exception("Invalid target - CVotePayload.java");
+      
         // Already liked ?
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                            + "FROM votes "
@@ -88,30 +87,17 @@ public class CVotePayload extends CPayload
             
         if (UTILS.DB.hasData(rs))
            throw new Exception("Already voted  - CVotePayload.java");
-        
-       // Target valid
-      if (!UTILS.BASIC.targetValid(this.target_type, this.targetID))
-          throw new Exception("Invalid target - CVotePayload.java");
        
        // No more than 100 votes in 24 hours
        rs=UTILS.DB.executeQuery("SELECT COUNT(*) AS total "
                                 + "FROM votes "
-                               + "WHERE adr='"+this.target_adr+"' "
-                                 + "AND block>"+(this.block-1440));
+                               + "WHERE adr='"+this.target_adr+"'");
        rs.next();
        
        // Total
        if (rs.getLong("total")>=100)
-           throw new Exception("Maximum votes reached");
+           throw new Exception("Maximum votes reached - CVotePayload.java");
        
-       // Article
-       if (this.target_type.equals("ID_POST") || 
-           this.target_type.equals("ID_COM"))
-       {
-           String adr=UTILS.BASIC.getTargetAdr(target_type, targetID);
-           if (UTILS.BASIC.isContractAdr(adr))
-               throw new Exception("Article or comment has contract attached");
-       }
        
         // Check Hash
         String h=UTILS.BASIC.hash(this.getHash()+
@@ -125,55 +111,13 @@ public class CVotePayload extends CPayload
    
    public void commit(CBlockPayload block) throws Exception
    {
-        // Superclass
-        super.commit(block);
-        
-        // Target address
-        String target_adr=UTILS.BASIC.getTargetAdr(this.target_type, this.targetID);
-        
         // Like
         UTILS.DB.executeUpdate("INSERT INTO votes "
                                        + "SET adr='"+this.target_adr+"', "
                                            + "target_type='"+this.target_type+"', "
                                            + "targetID='"+this.targetID+"', "
-                                           + "expire='"+(this.block+43200)+"', "
+                                           + "expire='"+(this.block+1440)+"', "
                                            + "type='"+this.type+"', "
                                            + "block='"+this.block+"'");
-        
-        // Number of votes
-        ResultSet rs=UTILS.DB.executeQuery("SELECT COUNT(*) AS total "
-                                           + "FROM votes "
-                                          + "WHERE adr='"+this.target_adr+"' "
-                                            + "AND block>"+(this.block-1440));
-        // Next
-        rs.next();
-        
-        // Number
-        long no=rs.getLong("total");
-        
-        // Balance
-        double balance=UTILS.ACC.getBalance(this.target_adr, "MSK");
-        
-        // Power
-        double power=balance/no;
-        
-        // Update votes
-        UTILS.DB.executeUpdate("UPDATE votes "
-                                + "SET power='"+UTILS.FORMAT_2.format(power)+"' "
-                              + "WHERE adr='"+this.target_adr+"' "
-                                + "AND block>"+(this.block-1440));
-        
-        // Has contract ?
-        if (UTILS.BASIC.isContractAdr(target_adr))
-        {
-            // Load message
-            CAgent AGENT=new CAgent(UTILS.BASIC.getAgentID(target_adr), false, this.block);
-                    
-            // Set Message 
-            AGENT.VM.SYS.EVENT.loadVote(this.target_adr, this.type, power);
-                            
-            // Execute
-            AGENT.execute("#vote#", false, this.block);
-        }
     }
 }

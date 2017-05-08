@@ -82,7 +82,8 @@ public class CSaleDomainPayload extends CPayload
        
        // Update
        UTILS.DB.executeUpdate("UPDATE domains "
-                               + "SET sale_price='"+this.sale_price+"' "
+                               + "SET sale_price='"+this.sale_price+"', "
+                                   + "block='"+block.block+"' "
                              + "WHERE domain='"+this.domain+"'");
    }
    

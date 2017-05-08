@@ -7,7 +7,6 @@ import java.security.SecureRandom;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import wallet.agents.CAgent;
 import wallet.kernel.*;
 import wallet.network.*;
 import wallet.network.packets.*;
@@ -164,26 +163,6 @@ public class CMesPayload extends CPayload
             ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                         + "FROM agents "
                                        + "WHERE adr='"+receiver_adr+"'");
-            
-            // Has data
-            if (UTILS.DB.hasData(rs))
-            {
-                // Next
-                rs.next();
-                     
-                // Load message
-                CAgent AGENT=new CAgent(rs.getLong("aID"), false, this.block);
-                    
-                // Set Message 
-                AGENT.VM.SYS.EVENT.loadMessage(this.target_adr,
-                                               this.subj,
-                                               this.mes, 
-                                               this.hash);
-                    
-                // Execute
-                AGENT.execute("#message#", false, this.block);
-            }
-            
-	}
+        }
     }
 

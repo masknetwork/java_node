@@ -16,67 +16,64 @@ import java.util.Date;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import wallet.agents.CAgent;
-import wallet.agents.VM.CCell;
 import wallet.kernel.*;
 import wallet.kernel.net_stat.consensus.CConsensus;
 import wallet.kernel.net_stat.tables.CAdrTable;
 import wallet.kernel.net_stat.tables.CAdsTable;
-import wallet.kernel.net_stat.tables.CAgentsTable;
+import wallet.kernel.net_stat.tables.CAssetsMktsPosTable;
+import wallet.kernel.net_stat.tables.CAssetsMktsTable;
+import wallet.kernel.net_stat.tables.CAssetsOwnersTable;
 import wallet.kernel.net_stat.tables.CAssetsTable;
+import wallet.kernel.net_stat.tables.CCommentsTable;
+import wallet.kernel.net_stat.tables.CDelVotesTable;
+import wallet.kernel.net_stat.tables.CDelegatesTable;
 import wallet.kernel.net_stat.tables.CDomainsTable;
 import wallet.kernel.net_stat.tables.CEscrowedTable;
+import wallet.kernel.net_stat.tables.CFeedsBetsPosTable;
+import wallet.kernel.net_stat.tables.CFeedsBetsTable;
+import wallet.kernel.net_stat.tables.CFeedsBranchesTable;
+import wallet.kernel.net_stat.tables.CFeedsSpecMktsPosTable;
+import wallet.kernel.net_stat.tables.CFeedsSpecMktsTable;
+import wallet.kernel.net_stat.tables.CFeedsTable;
 import wallet.kernel.net_stat.tables.CProfilesTable;
 import wallet.kernel.net_stat.tables.CTweetsFollowTable;
 import wallet.kernel.net_stat.tables.CTweetsTable;
 import wallet.kernel.net_stat.tables.CVotesTable;
-
-import wallet.kernel.stress_test.CTestBattery;
 import wallet.kernel.x34.SHA256;
 import wallet.network.*;
 import wallet.network.packets.CPacket;
 import wallet.network.packets.CPayload;
 import wallet.network.packets.adr.CProfilePacket;
 import wallet.network.packets.ads.CNewAdPacket;
-import wallet.network.packets.app.CDeployAppNetPacket;
 import wallet.network.packets.blocks.CBlockPayload;
 import wallet.network.packets.domains.CBuyDomainPacket;
 import wallet.network.packets.domains.CRentDomainPacket;
 import wallet.network.packets.domains.CSaleDomainPacket;
 import wallet.network.packets.domains.CTransferDomainPacket;
 import wallet.network.packets.misc.CDelVotePacket;
-import wallet.network.packets.sync.CBlockchain;
 import wallet.network.packets.sync.CDeliverBlocksPacket;
-import wallet.network.packets.sync.CDeliverTablePacket;
 import wallet.network.packets.sync.CGetBlockPacket;
+import wallet.network.packets.sync.CPing;
 import wallet.network.packets.trans.CEscrowedTransSignPacket;
 import wallet.network.packets.trans.CTransPacket;
-import wallet.network.packets.tweets.CFollowPacket;
-import wallet.network.packets.tweets.CVotePacket;
-import wallet.network.packets.tweets.CNewTweetPacket;
-import wallet.network.packets.tweets.CCommentPacket;
-import wallet.network.packets.tweets.CCommentPayload;
-import wallet.network.packets.tweets.CUnfollowPacket;
 
 
 public class main 
 {
-    public static void main(String[] args)
+    public static void main(String[] args) throws Exception
     {
-        try
-        {
-            
+          
         
         // Security provider
 	Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-                
-        // Error log
-        CErrorLog err_log=new CErrorLog();
-        UTILS.LOG=err_log;
         
         // Settings
         CSettings settings=new CSettings();
         UTILS.SETTINGS=settings;
+        
+        // Error log
+        CErrorLog err_log=new CErrorLog();
+        UTILS.LOG=err_log;
         
         // Args
         UTILS.ARGS=new CArgs();
@@ -85,14 +82,14 @@ public class main
         // DB
         CDB db=new CDB();
         UTILS.DB=db;
-        //UTILS.DB.reset(); 
+        UTILS.DB.loadFileLoc();
         
         // Utils
         CUtils utils=new CUtils();
         UTILS.BASIC=utils;
         
         // Accounting
-        CAccounting acc=new CAccounting();
+        CAcc acc=new CAcc();
         UTILS.ACC=acc;
         
          // Serializer
@@ -118,60 +115,48 @@ public class main
         // Delegates
         UTILS.DELEGATES=new CDelegates();
         
+        // Wallet
+        UTILS.WALLET=new CWallet();
+       
         // Network
         UTILS.NETWORK=new CNetwork();
         UTILS.NETWORK.start();
         
-        // Wallet
-        UTILS.WALLET=new CWallet();
-        
         // Current block
         CCurBlock block=new CCurBlock();
         UTILS.CBLOCK=block;
-     
         
         // Web operations
         UTILS.WEB_OPS=new CWebOps();
         
         // Binary Options Engine
         UTILS.CRONS=new CCrons();
-        
-        // Blocks
-        UTILS.CONSENSUS=new CConsensus();
-        UTILS.CONSENSUS.start();
-        
+    
         // Rewards
         UTILS.REWARD=new CReward();
         
+        // Feeds sources
+        CFeedsSources fs=new CFeedsSources();
+        
+        // Late operations
+        UTILS.ARGS.lateOp();
+        
         // Sync
-        //UTILS.DB.executeUpdate("UPDATE net_stat SET last_block_hash='0000000000000000000000000000000000000000000000000000000000000000', last_block='0'");
-        //Thread.sleep(500);
-        //UTILS.SYNC=new CSync();
+        UTILS.SYNC=new CSync();
         //UTILS.SYNC.start();
         UTILS.STATUS.setEngineStatus("ID_ONLINE");
         
-        UTILS.CBLOCK.startMiners(4);
+        UTILS.CBLOCK.startMiners(1);
+        //UTILS.NETWORK.CONSENSUS.reorganize("000034271e251c0aeb28965414853d5bebf127ad2a96ce6d1e3abbbf0340d332");
         
+        for (int a=0; a<=10; a++)
+        {
+        CAddress adr=new CAddress();
+        adr.generate("secp256k1");
+        System.out.println(adr.getPublic());
+        }
         
-        UTILS.ARGS.lateOp();
-            
-        //CTestBattery bat=new CTestBattery();
-        //bat.start();
-      
-        //CCommentsTable tab=new CCommentsTable();
-        //tab.refresh(1024);
-        //tab.fromDB();
-        //tab.fromJSON(tab.json, UTILS.NET_STAT.getHash("comments"));
-        //tab.toDB();
-        
-        
-        
-        System.out.println("Done.");
-      }
-      catch (Exception e) 
-      { 
-         UTILS.LOG.log("Exception", e.getMessage(), "Wallet.java", 85);
-      }
+        System.out.println("Wallet is up an running...");
     }
     
     

@@ -30,8 +30,12 @@ public class CErrorLog
        try
        {
          // Port busy ?
-        if (portBusy()) System.exit(0);
-       
+        if (portBusy()) 
+        {
+            System.out.println("Socket busy. Exiting !!!");
+            System.exit(0);
+        }
+        
        // Data directory 
        UTILS.WRITEDIR=this.getAppDataDirectory();
 		  
@@ -43,7 +47,7 @@ public class CErrorLog
 	   {
 	       this.init();
 	       FileUtils.writeStringToFile(new File(UTILS.WRITEDIR+"ver.txt"), "0.0.1");
-	       FileUtils.deleteQuietly(new File(UTILS.WRITEDIR+"wallet.msk"));
+	       FileUtils.deleteQuietly(new File(UTILS.WRITEDIR+"wallet.MSK"));
 	    }
             else
             {
@@ -74,14 +78,8 @@ public class CErrorLog
              try 
              {
                  // Connects to local
-                 Socket s = new Socket("127.0.0.1", 10000);
-                 
-                 // Close
-                 
-                 
-                 // Log
-                 UTILS.LOG.log("ID_CON_ERR", "Port busy", "CErrLog.java", 81);
-                 
+                 Socket s = new Socket("127.0.0.1", UTILS.SETTINGS.port);
+               
                  // Return
                  return true;
              }
@@ -133,7 +131,7 @@ public class CErrorLog
               }
               catch (Exception ex) 
        	      {  
-       		UTILS.LOG.log("SQLException", ex.getMessage(), "CBuyDomainPayload.java", 57);
+       		UTILS.LOG.log("SQLException", ex.getMessage(), "CPeer.java", 57);
               }
               }
 	  

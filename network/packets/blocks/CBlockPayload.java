@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import wallet.kernel.*;
 import wallet.network.*;
 import wallet.network.packets.*;
+import wallet.network.packets.trade.feeds.CFeedPayload;
+import wallet.network.packets.trans.CFeePayload;
 
 
 
@@ -49,19 +51,35 @@ public class CBlockPayload extends CPayload
             this.hash();
 	}
 	
-	public boolean exist(String hash)
+	public boolean exist(CBroadcastPacket packet) throws Exception
 	{
-		for (int a=0; a<=this.packets.size()-1; a++)
-			if (((CBroadcastPacket)this.packets.get(a)).hash.equals(hash))
-				return true;
-		
-		return false;
+            // Check packet hash
+            for (int a=0; a<=this.packets.size()-1; a++)
+            {
+                // Load packet
+                CBroadcastPacket p=(CBroadcastPacket)this.packets.get(a);
+                
+                // Check packet hash
+		if (packet.hash.equals(p.hash))
+		   return true;
+                
+                // Check payoad hash
+		if (packet.hash.equals(UTILS.BASIC.hash(p.payload)))
+		   return true;
+                
+                // Check fee hash
+		if (packet.hash.equals(UTILS.BASIC.hash(p.fee_payload)))
+		   return true;
+            }
+            
+            // Not found
+            return false;
 	}
 	
 	public void addPacket(CBroadcastPacket packet) throws Exception
 	{
             // Packet exist ?
-	    if (this.exist(packet.hash)) return;
+	    if (this.exist(packet)) return;
                 
             // Block number
             if (this.block!=packet.block)
@@ -71,32 +89,32 @@ public class CBlockPayload extends CPayload
             if (packet.tip.equals("ID_FEED_PACKET"))
             {
                 // Deserialize payload
-                //CFeedPayload dec_payload=(CFeedPayload) UTILS.SERIAL.deserialize(packet.payload);
+                CFeedPayload dec_payload=(CFeedPayload) UTILS.SERIAL.deserialize(packet.payload);
                    
                 // Feed symbol
-                //String feed=dec_payload.feed_symbol;
+                String feed=dec_payload.feed_symbol;
                            
                 // Already in block
                 for (int a=0; a<=this.packets.size()-1; a++)
                 {
                     // Load packet data
-                    CPacket p=(CPacket)this.packets.get(a);
+                    CBroadcastPacket p=(CBroadcastPacket)this.packets.get(a);
                        
                     // Feed packet ?
                     if (p.tip.equals("ID_FEED_PACKET"))
                     {
                         // Deserialize
-                        //dec_payload=(CFeedPayload) UTILS.SERIAL.deserialize(p.payload);
+                        dec_payload=(CFeedPayload) UTILS.SERIAL.deserialize(p.payload);
                            
                         // Remove if same feed ?
-                        //if (dec_payload.feed_symbol.equals(feed))
-                        //    this.packets.remove(a);
+                        if (dec_payload.feed_symbol.equals(feed))
+                            this.packets.remove(a);
                     }
                 }
             }
                 
             // Add
-            if (this.packets.size()<250 && (UTILS.SERIAL.serialize(this.packets).length+packet.payload.length)<250000)
+            if (this.packets.size()<100 && (UTILS.SERIAL.serialize(this.packets).length+packet.payload.length)<250000)
             {
 	       this.packets.add(packet); 
             }
@@ -107,20 +125,37 @@ public class CBlockPayload extends CPayload
                    // Load packet
                    CBroadcastPacket p=(CBroadcastPacket)this.packets.get(a);
                    
+                   CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(p.fee_payload);
+                   
                    // Smaller net fee ?
-                   if (p.fee.amount/p.payload.length<packet.fee.amount/packet.payload.length)
+                   if (fee.amount/p.payload.length<fee.amount/packet.payload.length)
                    {
                        // Remove
                        this.packets.remove(a);
                        
                        // Add new packet
                        this.packets.add(packet);
-                       
-                       return;
                    }
                }
             }
            
+            // Move feeds at the end
+            for (int a=0; a<=this.packets.size()-1; a++)
+            {
+                // Load packet data
+                CBroadcastPacket p=(CBroadcastPacket)this.packets.get(a);
+                       
+                // Feed packet ?
+                if (p.tip.equals("ID_FEED_PACKET"))
+                {
+                    // Remove packet
+                    this.packets.remove(a);
+                    
+                     // Add packet at the end
+                    this.packets.add(p);
+                }   
+            }
+            
             // Recalculate hash
             this.hash();
         }
@@ -158,57 +193,33 @@ public class CBlockPayload extends CPayload
 	}
 	
 	// Checks the block integrity
-	public CResult check() throws Exception
+	public void check() throws Exception
 	{
-            long check_index=0;
-            
             // Signer valid
             if (!UTILS.BASIC.isAdr(this.target_adr))
-                 return new CResult(false, "Invalid signer", "CBlockPayload.java", 239);
+                throw new Exception("Invalid block signer");
            
             // Check pow
             for (int a=0; a<=this.packets.size()-1; a++)
-	        {   
-		    CBroadcastPacket packet=((CBroadcastPacket)this.packets.get(a));
-		    packet.check(this);
-		   
-		    
-		    check_index++;
-		}
-           
+	    {
+                // Packet
+		CBroadcastPacket packet=((CBroadcastPacket)this.packets.get(a));
 		
-            // Ok
-	    return new CResult(true, "Ok", "CBlock", 68);
-	}
+                // Check
+                packet.check(this);
+            }
+        }
         
         // Commits all transactions
 	public void commit()  throws Exception
 	{
-            try
-            {
-                // Start logging
-                UTILS.LOG_QUERIES=true;
-                
-               for (int a=0; a<=this.packets.size()-1; a++)
-	        {
-                   // Packet
-		   CPacket p=((CPacket)this.packets.get(a));
+            for (int a=0; a<=this.packets.size()-1; a++)
+	    {
+                // Packet
+		CBroadcastPacket p=((CBroadcastPacket)this.packets.get(a));
                    
-                   // Commit
-                   p.commit(this);
-		   
-	        }
-		
-               
+                // Commit
+                p.commit(this);
             }
-            catch (Exception ex) 
-       	      {  
-       		UTILS.LOG.log("Exception", ex.getMessage(), "CBlockPayload.java", 57);
-              }
-                
-                // Trans pool
-		UTILS.NETWORK.TRANS_POOL.newBlock(this.block);
- 
         }
-
 }

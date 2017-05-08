@@ -78,15 +78,16 @@ public class UTILS
     // Sync
     public static CSync SYNC;
     
-    // Blocks
-    public static CConsensus CONSENSUS;
     
     // Accounting
-    public static CAccounting ACC;
+    public static CAcc ACC;
     
     // Arguments
     public static CArgs ARGS;
     
     // Reward
     public static CReward REWARD;
+    
+    // Runtime
+    public static Runtime runtime = Runtime.getRuntime();
 }
