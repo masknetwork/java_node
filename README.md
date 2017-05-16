@@ -4,7 +4,7 @@ the content they create. MaskNetwork pays both the content creators when their w
 the people who curate the best content on the site by upvoting others work. The network can be accessed over 
 the web so you don't have to download anything to start using it. Check www.masknetwork.com for more info.
 
-## About this repositoire
+## About this repository
 A MaskNetwork node has 2 components. A java kernel (the daemon) and the web interface. Those two modules use MySQL as a 
 communication method.This is the java daemon source code. Below are basic install instructions. Keep in mind that 
 MaskNetwork live network is not active yet. After launching, the node will connect to MaskNetwork testnet. 
