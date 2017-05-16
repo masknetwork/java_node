@@ -143,18 +143,9 @@ public class main
         
         // Sync
         UTILS.SYNC=new CSync();
-        //UTILS.SYNC.start();
-        UTILS.STATUS.setEngineStatus("ID_ONLINE");
+        UTILS.SYNC.start();
+        //UTILS.STATUS.setEngineStatus("ID_ONLINE");
         
-        UTILS.CBLOCK.startMiners(1);
-        //UTILS.NETWORK.CONSENSUS.reorganize("000034271e251c0aeb28965414853d5bebf127ad2a96ce6d1e3abbbf0340d332");
-        
-        for (int a=0; a<=10; a++)
-        {
-        CAddress adr=new CAddress();
-        adr.generate("secp256k1");
-        System.out.println(adr.getPublic());
-        }
         
         System.out.println("Wallet is up an running...");
     }

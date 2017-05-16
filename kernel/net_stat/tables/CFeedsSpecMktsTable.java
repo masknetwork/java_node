@@ -34,6 +34,8 @@ public class CFeedsSpecMktsTable extends CTable
                                                                 +"block BIGINT DEFAULT 0, "
                                                                 +"last_price DOUBLE(20,2) DEFAULT 0, "
                                                                 +"status VARCHAR(20) DEFAULT 'ID_CLOSED', "
+                                                                +"max_down BIGINT NOT NULL DEFAULT 0, "
+                                                                +"max_up BIGINT NOT NULL DEFAULT 0, "
                                                                 +"mktID BIGINT DEFAULT 0)");
              
              UTILS.DB.executeUpdate("CREATE UNIQUE INDEX feeds_spec_mkts_mktID ON feeds_spec_mkts(mktID)");

@@ -136,13 +136,10 @@ public class CNetwork extends Thread
                           packet.tip.equals("ID_REQ_CON_RESPONSE_PACKET") || 
                           packet.tip.equals("ID_REQ_DATA_PACKET") || 
                           packet.tip.equals("ID_PUT_BLOCK_PACKET") || 
-                          packet.tip.equals("ID_NETSTAT_PACKET"))
+                          packet.tip.equals("ID_NETSTAT_PACKET") ||
+                          packet.tip.equals("ID_PING_PACKET"))
                       packet.check(sender);
                       
-                  }
-                  else if (packet.tip.equals("ID_PING_PACKET"))
-                  {
-                     packet.check(sender); 
                   }
                   else
                   {

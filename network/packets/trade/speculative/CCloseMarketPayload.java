@@ -89,7 +89,7 @@ public class CCloseMarketPayload extends CPayload
                                  this.mktID);
        
        // Check hash
-       if (h.equals(this.hash))
+       if (!h.equals(this.hash))
            throw new Exception("Invalid hash - CCloseMarketPayload.java");
    }
     

@@ -37,10 +37,7 @@ public class CUtils
 	public boolean isAdr(String adr) throws Exception
 	{
             // Length valid
-            if (adr.length()!=108 && 
-		adr.length()!=124 && 
-		adr.length()!=160 && 
-		adr.length()!=212 &&
+            if (adr.length()!=120 &&
 		!adr.equals("default")) 
             return false;
 	    
@@ -818,6 +815,15 @@ public class CUtils
         if (UTILS.DB.hasData(rs)) 
             return true;
         
+        // Margin mkts pos
+        rs=UTILS.DB.executeQuery("SELECT * "
+                                 + "FROM feeds_spec_mkts_pos "
+                                + "WHERE posID='"+ID+"'");
+        
+        // Has data ?
+        if (UTILS.DB.hasData(rs)) 
+            return true;
+        
         // Return
         return false;
     }
@@ -927,58 +933,6 @@ public class CUtils
        return rs.getString("adr");
     }
     
-    public boolean targetExist(String target_type, long targetID) throws Exception
-    {
-       // Result
-       ResultSet rs=null;
-       
-       // Target
-       if (!target_type.equals("ID_POST") && 
-           !target_type.equals("ID_COM") && 
-           !target_type.equals("ID_FEED") && 
-           !target_type.equals("ID_BET") && 
-           !target_type.equals("ID_ASSET"))
-        return false;
-       
-       // Load  data
-       switch (target_type)
-       {
-           case "ID_POST" : rs=UTILS.DB.executeQuery("SELECT * "
-                                                     + "FROM tweets "
-                                                    + "WHERE tweetID='"+targetID+"'");
-                            break;    
-                            
-           case "ID_COM" : rs=UTILS.DB.executeQuery("SELECT * "
-                                                        + "FROM comments "
-                                                       + "WHERE comID='"+targetID+"'");
-                                break;    
-                                
-           case "ID_FEED" : rs=UTILS.DB.executeQuery("SELECT * "
-                                                     + "FROM feeds "
-                                                    + "WHERE feedID='"+targetID+"'");
-                                break;    
-                                
-            case "ID_BET" : rs=UTILS.DB.executeQuery("SELECT * "
-                                                     + "FROM feeds_bets "
-                                                    + "WHERE betID='"+targetID+"'");
-                                break;    
-                                
-                                
-            case "ID_ASSET" : rs=UTILS.DB.executeQuery("SELECT * "
-                                                       + "FROM assets "
-                                                      + "WHERE assetID='"+targetID+"'");
-                                break;  
-                                
-           
-       }
-       
-       // Has data
-       if (!UTILS.DB.hasData(rs))
-          return false;
-       else
-          return true;
-    }
-    
    
     public double getReward(String target) throws Exception
     {
@@ -1051,13 +1005,13 @@ public class CUtils
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                            + "FROM votes "
                                           + "WHERE adr='"+adr+"' "
-                                            + "AND target_type='ID_ASSET' "
+                                            + "AND target_type='"+target_type+"' "
                                             + "AND targetID='"+targetID+"'");
                       
         // Has data
         if (!UTILS.DB.hasData(rs))
            UTILS.DB.executeUpdate("INSERT INTO votes "
-                                       + "SET target_type='ID_ASSET', "
+                                       + "SET target_type='"+target_type+"', "
                                            + "targetID='"+targetID+"', "
                                            + "type='ID_UP', "
                                            + "adr='"+adr+"', "

@@ -40,6 +40,12 @@ public class CNewSpecMarketPayload extends CPayload
     // Description
     String desc;
     
+    // Max feed down
+    long max_down;
+    
+    // Max feed up
+    long max_up;
+    
     // Days
     long days;
    
@@ -53,6 +59,8 @@ public class CNewSpecMarketPayload extends CPayload
 			         double spread,
 				 String title,
 				 String desc,
+                                 long max_down,
+                                 long max_up,
 				 long days) throws Exception
     {
          // Constructor
@@ -86,6 +94,12 @@ public class CNewSpecMarketPayload extends CPayload
         // Days
         this.days=days;
         
+        // Max down
+        this.max_down=max_down;
+        
+        // Max up
+        this.max_up=max_up;
+        
         // Hash
         this.hash=UTILS.BASIC.hash(this.getHash() + 
                                    this.mktID + 
@@ -97,7 +111,9 @@ public class CNewSpecMarketPayload extends CPayload
 			           this.spread +
 				   this.title+
 				   this.desc+
-				   this.days);
+                                   this.days+
+                                   this.max_down+
+				   this.max_up);
         
         // Sign
         this.sign();
@@ -109,92 +125,97 @@ public class CNewSpecMarketPayload extends CPayload
         // Super class
    	super.check(block);
           
-           // Valid ID
-           if (this.mktID<0)
-              throw new Exception("Market ID already exist - CNewFeedMarketPayload.java"); 
+        // Valid ID
+        if (UTILS.BASIC.existID(mktID))
+           throw new Exception("Invalid ID - CNewFeedMarketPayload.java"); 
            
-           // Another market using the same address and a diffrent currency ?
-           ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                              + "FROM feeds_spec_mkts "
-                                             + "WHERE adr='"+this.target_adr+"' "
-                                               + "AND cur<>'"+this.cur+"'");
-          
-           // Has data ?
-           if (UTILS.DB.hasData(rs))
-               throw new Exception("Invalid currency - CNewFeedMarketPayload.java"); 
-           
-           // Another market with the same ID ?
-           rs=UTILS.DB.executeQuery("SELECT * "
-                                              + "FROM feeds_spec_mkts "
-                                             + "WHERE mktID='"+this.mktID+"'");
-           
-           if (UTILS.DB.hasData(rs))
-               throw new Exception("Market ID already exist - CNewFeedMarketPayload.java"); 
-           
-           // Feed 1
-           if (!UTILS.BASIC.isBranch(this.feed, this.branch))
-              throw new Exception("Invalid feed 1 - CNewFeedMarketPayload.java"); 
-           
-           // Pay feed 1
-           UTILS.ACC.payFeed(this.target_adr, 
-                             feed, 
-                             branch, 
-                             days, 
-                             hash, 
-                             this.block, 
-                             block);
-           
-           // Currency
-           if (!this.cur.equals("MSK"))
-              if (!UTILS.BASIC.isAsset(this.cur))
-                throw new Exception("Invalid currency - CNewFeedMarketPayload.java"); 
+        // Another market using the same address and a diffrent currency ?
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM feeds_spec_mkts "
+                                          + "WHERE adr='"+this.target_adr+"' "
+                                            + "AND cur<>'"+this.cur+"'");
         
-	   // Maximum leverage
-           if (max_leverage<1 || this.max_leverage>10000)
-               throw new Exception("Invalid max leverage - CNewFeedMarketPayload.java"); 
+        // Has data ?
+        if (UTILS.DB.hasData(rs))
+            throw new Exception("Invalid currency - CNewFeedMarketPayload.java"); 
            
-           // Maximum leverage
-           if (max_total_margin<0.0001 || this.max_total_margin>25)
-               throw new Exception("Invalid max total margin - CNewFeedMarketPayload.java"); 
+        // Feed 1
+        if (!UTILS.BASIC.isBranch(this.feed, this.branch))
+            throw new Exception("Invalid feed 1 - CNewFeedMarketPayload.java"); 
+           
+        // Currency
+        if (!this.cur.equals("MSK"))
+           if (!UTILS.BASIC.isAsset(this.cur))
+             throw new Exception("Invalid currency - CNewFeedMarketPayload.java"); 
         
-           // Spread
-           if (spread<0)
-               throw new Exception("Invalid spread - CNewFeedMarketPayload.java"); 
+	// Maximum leverage
+        if (max_leverage<1 || this.max_leverage>10000)
+            throw new Exception("Invalid max leverage - CNewFeedMarketPayload.java"); 
+           
+        // Maximum total margin
+        if (max_total_margin<0.0001 || this.max_total_margin>25)
+           throw new Exception("Invalid max total margin - CNewFeedMarketPayload.java"); 
         
-	    // Days
-            if (this.days<100)
-               throw new Exception("Invalid days - CNewFeedMarketPayload.java");              
+        // Spread
+        if (spread<0)
+          throw new Exception("Invalid spread - CNewFeedMarketPayload.java"); 
+        
+	// Days
+        if (this.days<100)
+            throw new Exception("Invalid days - CNewFeedMarketPayload.java");              
                                          
-            // Title
-            if (!UTILS.BASIC.isTitle(this.title))
-               throw new Exception("Invalid title - CNewFeedMarketPayload.java"); 
+        // Title
+        if (!UTILS.BASIC.isTitle(this.title))
+           throw new Exception("Invalid title - CNewFeedMarketPayload.java"); 
     
-            // Description
-            if (!UTILS.BASIC.isDesc(this.desc))
-               throw new Exception("Invalid description - CNewFeedMarketPayload.java"); 
+        // Description
+        if (!UTILS.BASIC.isDesc(this.desc))
+            throw new Exception("Invalid description - CNewFeedMarketPayload.java"); 
         
-            // Hash
-            String h=UTILS.BASIC.hash(this.getHash() + 
-                                      this.mktID + 
-			              this.feed + 
-			              this.branch + 
-				      this.cur + 
-				      this.max_leverage +
-			              this.max_total_margin +
-			              this.spread +
-				      this.title+
-				      this.desc+
-				      this.days);
+        // Max down
+        if (this.max_down>100 || this.max_down<0)
+            throw new Exception("Invalid max down parameter - CNewFeedMarketPayload.java"); 
+        
+        // Max up
+        if (this.max_up<1 || this.max_up>100000)
+            throw new Exception("Invalid max up parameter - CNewFeedMarketPayload.java"); 
+        
+        // Market address is a feed ?
+        rs=UTILS.DB.executeQuery("SELECT * "
+                                 + "FROM feeds "
+                                + "WHERE adr='"+this.target_adr+"'");
+        
+        // Has data ?
+        if (UTILS.DB.hasData(rs))
+           throw new Exception("A data feed is attached to address - CNewFeedMarketPayload.java");
+        
+        // Hash
+        String h=UTILS.BASIC.hash(this.getHash() + 
+                                  this.mktID + 
+			          this.feed + 
+			          this.branch + 
+             	                  this.cur + 
+				  this.max_leverage +
+			          this.max_total_margin +
+			          this.spread +
+				  this.title+
+				  this.desc+
+				  this.days+
+                                  this.max_down+
+                                  this.max_up);
             
-            // Check hash
-            if (!h.equals(this.hash))
-                throw new Exception("Invalid hash - CNewFeedMarketPayload.java"); 
+        // Check hash
+        if (!h.equals(this.hash))
+           throw new Exception("Invalid hash - CNewFeedMarketPayload.java"); 
     }
     
     public void commit(CBlockPayload block) throws Exception
     {
         // Super
         super.commit(block);
+        
+        // Clear transactions
+        UTILS.ACC.clearTrans(this.hash, "ID_ALL", this.block);
         
         // Insert market
         UTILS.DB.executeUpdate("INSERT INTO feeds_spec_mkts "
@@ -208,10 +229,9 @@ public class CNewSpecMarketPayload extends CPayload
                                          + "spread='"+this.spread+"', "
                                          + "title='"+UTILS.BASIC.base64_encode(this.title)+"', "
                                          + "description='"+UTILS.BASIC.base64_encode(this.desc)+"', "
+                                         + "max_down='"+this.max_down+"', "
+                                         + "max_up='"+this.max_up+"', "
                                          + "status='ID_ONLINE', "
                                          + "expire='"+(this.block+(this.days*1440))+"'");
-        
-        // Clear transactions
-        UTILS.ACC.clearTrans(this.hash, "ID_ALL", this.block);
     }  
 }

@@ -178,7 +178,16 @@ public class CCurBlock
               
             // Payload
             if (this.payload!=null) 
-                this.payload.target_adr=signer;
+            {
+                if (!this.payload.target_adr.equals(signer))
+                {
+                   // Set signer
+                   this.payload.target_adr=signer;
+                   
+                   // New hash
+                   this.payload_hash=UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload));
+                }
+            }
        }
        else
        {

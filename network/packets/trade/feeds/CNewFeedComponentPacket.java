@@ -22,7 +22,6 @@ public class CNewFeedComponentPacket extends CBroadcastPacket
                                   String type,
                                   String symbol, 
                                   String rl_symbol, 
-                                  double branch_fee,
                                   long days) throws Exception
     {
          // Constructor
@@ -41,7 +40,6 @@ public class CNewFeedComponentPacket extends CBroadcastPacket
                                                                               type,
                                                                               symbol,
                                                                               rl_symbol,
-                                                                              branch_fee,
                                                                               days);
             
         // Build the payload

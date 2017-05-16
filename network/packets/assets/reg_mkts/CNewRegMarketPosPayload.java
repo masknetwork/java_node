@@ -32,8 +32,7 @@ public class CNewRegMarketPosPayload extends CPayload
     // Order ID
     long orderID;
     
-    
-                                           
+                                         
     public CNewRegMarketPosPayload(String adr,
                                    long mktID,
                                    String tip,
@@ -55,8 +54,8 @@ public class CNewRegMarketPosPayload extends CPayload
         
         // Load market data
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                    + "FROM assets_mkts "
-                                   + "WHERE mktID='"+this.mktID+"'");
+                                           + "FROM assets_mkts "
+                                          + "WHERE mktID='"+this.mktID+"'");
         
         // Next
         rs.next();

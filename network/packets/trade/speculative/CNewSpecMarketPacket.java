@@ -23,6 +23,8 @@ public class CNewSpecMarketPacket extends CBroadcastPacket
 			       double spread,
 			       String title,
 			       String desc,
+                               long max_down,
+			       long max_up,
 			       long days) throws Exception
     {
           super("ID_NEW_FEED_SPEC_MARKET_PACKET");
@@ -37,6 +39,8 @@ public class CNewSpecMarketPacket extends CBroadcastPacket
 			                                              spread,
 				                                      title,
 				                                      desc,
+                                                                      max_down,
+                                                                      max_up,
 				                                      days);
 					
 	  // Build the payload

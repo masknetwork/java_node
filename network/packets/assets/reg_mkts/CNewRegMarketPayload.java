@@ -92,16 +92,7 @@ public class CNewRegMarketPayload extends CPayload
         // Parent
         super.check(block);
          
-        // Asset symbol valid
-        if (!UTILS.BASIC.isSymbol(asset_symbol))
-            throw new Exception("Invalid asset symbol - CNewRegMarketPayload.java");
-         
-        // Currency symbol valid
-        if (!cur_symbol.equals("MSK"))
-          if (UTILS.BASIC.isSymbol(cur_symbol)==false)
-            throw new Exception("Invalid currency symbol - CNewRegMarketPayload.java");
-        
-        // Asset symbol doesn't exist
+        // Asset symbol 
         if (!UTILS.BASIC.isAsset(asset_symbol))
            throw new Exception("Invalid asset symbol - CNewRegMarketPayload.java");
         
@@ -111,24 +102,9 @@ public class CNewRegMarketPayload extends CPayload
              throw new Exception("Invalid currency symbol - CNewRegMarketPayload.java");
          
         // Market ID
-        
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                    + "FROM assets_mkts "
-                                   + "WHERE mktID='"+this.mktID+"'");
-         
-        if (UTILS.DB.hasData(rs))
+        if (UTILS.BASIC.existID(mktID))
             throw new Exception("Invalid market ID - CNewRegMarketPayload.java");
         
-        // Duplicate market ?
-        rs=UTILS.DB.executeQuery("SELECT * "
-                          + "FROM assets_mkts "
-                         + "WHERE adr='"+this.target_adr+"' "
-                           + "AND asset='"+this.asset_symbol+"' "
-                           + "AND cur='"+this.cur_symbol+"'");
-        
-        if (UTILS.DB.hasData(rs))
-            throw new Exception("Duplicated market - CNewRegMarketPayload.java");
-         
         // Title
         if (!UTILS.BASIC.isTitle(title))
            throw new Exception("Invalid title - CNewRegMarketPayload.java");
@@ -145,20 +121,19 @@ public class CNewRegMarketPayload extends CPayload
         if (this.decimals<0 || this.decimals>8)
             throw new Exception("Invalid decimals - CNewRegMarketPayload.java");
         
-     
         // Hash code
         String h=UTILS.BASIC.hash(this.getHash()+
-                                       this.asset_symbol+
-                                       this.cur_symbol+
-                                       this.title+
-                                       this.description+
-                                       this.decimals+
-                                       this.days+
-                                       this.mktID);
+                                  this.asset_symbol+
+                                  this.cur_symbol+
+                                  this.title+
+                                  this.description+
+                                  this.decimals+
+                                  this.days+
+                                  this.mktID);
              
         // Check hash
         if (!this.hash.equals(h))
-           throw new Exception("Invalid hash - CNewRegMarketPayload.java");
+             throw new Exception("Invalid hash - CNewRegMarketPayload.java");
         
     }
     

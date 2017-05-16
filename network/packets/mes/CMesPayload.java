@@ -31,9 +31,9 @@ public class CMesPayload extends CPayload
    private static final long serialVersionUID = 100L;
 	
 	public CMesPayload(String sender_adr, 
-			           String receiver_adr, 
-			           String subj, 
-			           String mes)  throws Exception
+			   String receiver_adr, 
+			   String subj, 
+			   String mes)  throws Exception
 	{
             // Constructor
             super(sender_adr);
@@ -47,36 +47,17 @@ public class CMesPayload extends CPayload
             // Message
 	    this.mes=mes;
 		 
-            // Statement 
+            // Generates a key
+            String k=UTILS.BASIC.randString(25);
             
-                 
-            // Contract ?
-            ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                             + "FROM agents "
-                                            + "WHERE adr='"+receiver_adr+"'");
-                 
-            // Has data
-            if (UTILS.DB.hasData(rs))
-            {
-                     this.subj=subj;
-                     this.mes=mes;
-            }
-            else
-            {
-		// Generates a key
-		String k=UTILS.BASIC.randString(25);
-                 
-		this.subj=UTILS.AES.encrypt(subj, k);
-		this.mes=UTILS.AES.encrypt(mes, k);
+            // Subject and message
+	    this.subj=UTILS.AES.encrypt(subj, k);
+	    this.mes=UTILS.AES.encrypt(mes, k);
 		    
-		// Encrypt key
-		CECC ecc=new CECC(receiver_adr);
-	        this.key=ecc.encrypt(k);
-            }
-                 
-            // Close
-            
-                 
+	    // Encrypt key
+	    CECC ecc=new CECC(receiver_adr);
+	    this.key=ecc.encrypt(k);
+               
             // Hash
 	    hash=UTILS.BASIC.hash(this.getHash()+
 				  this.receiver_adr+
@@ -98,7 +79,38 @@ public class CMesPayload extends CPayload
 	    if (UTILS.BASIC.isAdr(this.receiver_adr)==false)
 	   	throw new Exception("Invalid receiver address - CMesPayload.java");
 	    
-	    // Check hash
+            // Subject size
+            if (this.subj.length()>250)
+                throw new Exception("Invalid subject length - CMesPayload.java");
+            
+            // Subject size
+            if (this.subj.length()>2500)
+                throw new Exception("Invalid message length - CMesPayload.java");
+            
+            // Insert message
+            if (UTILS.WALLET.isMine(this.receiver_adr)==true && block==null)
+            {
+    	        // Decrypt key
+    	        CAddress adr=UTILS.WALLET.getAddress(this.receiver_adr);
+    	        String dec_key=adr.decrypt(this.key);
+    	   
+    	        // Decrypt subject
+    	        String dec_subject=UTILS.AES.decrypt(subj, dec_key);
+		   
+    	        // Decrypt message
+    	        String dec_mes=UTILS.AES.decrypt(mes, dec_key);
+    	   
+    	        UTILS.DB.executeUpdate("INSERT INTO mes "
+                                             + "SET from_adr='"+this.target_adr+"', "
+    	   		                         + "to_adr='"+this.receiver_adr+"', "
+    	   		                         + "subject='"+UTILS.BASIC.base64_encode(dec_subject)+"', "
+    	   		                         + "mes='"+UTILS.BASIC.base64_encode(dec_mes)+"', "
+                                                 + "status='0', "
+    	                                         + "tstamp='"+String.valueOf(UTILS.BASIC.tstamp())+"', "
+                                                 + "tgt='0'");
+            }
+           
+            // Check hash
 	    String h=UTILS.BASIC.hash(this.getHash()+
 		                      this.receiver_adr+
 		                      this.subj+
@@ -107,62 +119,12 @@ public class CMesPayload extends CPayload
 	    
             if (!this.hash.equals(h))
 		throw new Exception("Invalid hash - CMesPayload.java");
-	   
-	    // Statement 
-            
-                 
-            // Contract ?
-            ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                        + "FROM agents "
-                                       + "WHERE adr='"+receiver_adr+"'");
-                 
-            // Has data
-            if (!UTILS.DB.hasData(rs))
-            {
-	        // Insert message
-                if (UTILS.WALLET.isMine(this.receiver_adr)==true && block==null)
-                {
-    	            // Decrypt key
-    	            CAddress adr=UTILS.WALLET.getAddress(this.receiver_adr);
-    	            String dec_key=adr.decrypt(this.key);
-    	   
-    	            // Decrypt subject
-    	            String dec_subject=UTILS.AES.decrypt(subj, dec_key);
-		   
-    	            // Decrypt message
-    	            String dec_mes=UTILS.AES.decrypt(mes, dec_key);
-    	   
-    	            UTILS.DB.executeUpdate("INSERT INTO mes(from_adr, "
-    	   		                                  + "to_adr, "
-    	   		                                  + "subject, "
-    	   		                                  + "mes, "
-    	   		                                  + "status, "
-    	   		                                  + "tstamp, "
-                                                          + "tgt)"
-    	   		                                  + "VALUES ('"+
-    	                                                  this.target_adr+"', '"+
-    	   	                                          this.receiver_adr+"', '"+
-    	     	                                          UTILS.BASIC.base64_encode(dec_subject)+"', '"+
-    	   		                                  UTILS.BASIC.base64_encode(dec_mes)+"', '"+
-                                                          "0', '"+
-    	   		                                  String.valueOf(UTILS.BASIC.tstamp())+"', "
-                                                          + "'0')");
-                     }
-    	    }
         }
 	   
 	public void commit(CBlockPayload block) throws Exception
 	{
 	    // Superclass
 	    super.commit(block);
-            
-            // Statement 
-            
-                 
-            // Contract ?
-            ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                        + "FROM agents "
-                                       + "WHERE adr='"+receiver_adr+"'");
         }
     }
 

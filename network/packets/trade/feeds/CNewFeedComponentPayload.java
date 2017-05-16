@@ -32,9 +32,6 @@ public class CNewFeedComponentPayload extends CPayload
     // Real Symbol
     String rl_symbol;
 
-    // Fee
-    double fee;
-    
     // Days
     long days;
     
@@ -45,7 +42,6 @@ public class CNewFeedComponentPayload extends CPayload
                                     String type,
                                     String symbol,
                                     String rl_symbol,
-                                    double fee,
                                     long days) throws Exception
     {
        // Super
@@ -69,9 +65,6 @@ public class CNewFeedComponentPayload extends CPayload
        // RL symbol
        this.rl_symbol=rl_symbol;
        
-       // Fee
-       this.fee=fee;
-       
        // Days
        this.days=days;    
        
@@ -83,8 +76,7 @@ public class CNewFeedComponentPayload extends CPayload
                              type+
                              symbol+
                              rl_symbol+
-                             fee+
-			     days);
+                             days);
        
        // Sign
        this.sign();
@@ -107,10 +99,6 @@ public class CNewFeedComponentPayload extends CPayload
         if (UTILS.BASIC.isBranch(this.feed_symbol, this.symbol))
            throw new Exception("Feed already exist - CNewFeedComponentPayload.java");
          
-        // Fee
-        if (this.fee<0)
-           throw new Exception("Invalid fee - CNewFeedComponentPayload.java");
-             
         // Title
         if (!UTILS.BASIC.isTitle(this.title))
            throw new Exception("Invalid title - CNewFeedComponentPayload.java");
@@ -136,8 +124,7 @@ public class CNewFeedComponentPayload extends CPayload
                                   type+
                                   symbol+
                                   rl_symbol+
-                                  fee+
-			          days);
+                                  days);
         
         if (!h.equals(hash))
             throw new Exception("Invalid hash - CNewFeedComponentPayload.java");
@@ -157,7 +144,6 @@ public class CNewFeedComponentPayload extends CPayload
                                          + "type='"+this.type+"', "
                                          + "symbol='"+this.symbol+"', "
                                          + "expire='"+(this.block+(1440*this.days))+"', "
-                                         + "fee='"+this.fee+"', "
                                          + "rl_symbol='"+this.rl_symbol+"', "
                                          + "block='"+this.block+"'");
     }

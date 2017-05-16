@@ -104,12 +104,10 @@ public class CWebOps
                    if (op.equals("ID_NEW_ACCOUNT"))
                    {
                        UTILS.WALLET.newAddress(rs.getString("user"), 
-                                               rs.getString("par_1"), 
                                                UTILS.BASIC.base64_decode(rs.getString("par_2")));
                        
                        // UserID
                        long userID=rs.getLong("par_3");
-                       
                        
                        // Load newly created adddress data
                        ResultSet rsn=UTILS.DB.executeQuery("SELECT * "
@@ -124,7 +122,7 @@ public class CWebOps
                            
                            // Address
                            String adr=rsn.getString("adr");
-                       
+                         
                            // Initial coins 
                            if (!UTILS.STATUS.new_acc_reward_adr.equals("") && UTILS.STATUS.new_acc_reward>0.0001)
                            {
@@ -133,16 +131,13 @@ public class CWebOps
 			                                            adr, 
 			                                            UTILS.STATUS.new_acc_reward, 
 			                                            "MSK",
-			                                            "Welcome to Playcoin Network",
+			                                            "Welcome to MaskNetwork",
                                                                     "",
                                                                     rs.getLong("ID"));
                         
                                UTILS.NETWORK.broadcast(packet);
                            }
                        }
-                       
-                       // Close
-                       rsn.close();
                   }
                    
                    // Add peer
@@ -153,21 +148,7 @@ public class CWebOps
                    if (op.equals("ID_REMOVE_PEER")) 
                        UTILS.NETWORK.removePeer(rs.getString("par_1"));
                    
-                   if (op.equals("ID_NEW_CPEC_MARKET"))
-                   {
-                       CNewSpecMarketPacket packet=new CNewSpecMarketPacket(rs.getString("fee_adr"),
-                                                                           rs.getString("target_adr"),
-                                                                           rs.getString("par_1"),
-                                                                           rs.getString("par_2"),
-                                                                           rs.getString("par_3"),
-                                                                           rs.getLong("par_4"),
-                                                                           rs.getDouble("par_5"),
-                                                                           rs.getDouble("par_6"),
-                                                                           rs.getString("par_7"),
-                                                                           rs.getString("par_8"),
-                                                                           rs.getLong("days"));
-                   }
-                   
+                  
                    
                    // New transaction
                    if (op.equals("ID_TRANSACTION")) 
@@ -207,7 +188,6 @@ public class CWebOps
                                                                                  rs.getString("par_5"),
                                                                                  rs.getString("par_2"),
                                                                                  rs.getString("par_6"),
-                                                                                 rs.getDouble("par_7"),
                                                                                  rs.getLong("days"));
                                  
                       UTILS.NETWORK.broadcast(packet);
@@ -263,8 +243,7 @@ public class CWebOps
                    
                    if (op.equals("ID_NEW_ADR")) 
                        UTILS.WALLET.newAddress(rs.getString("user"), 
-                                               rs.getString("par_1"), 
-                                               UTILS.BASIC.base64_decode(rs.getString("par_2")));
+                                               UTILS.BASIC.base64_decode(rs.getString("par_1")));
                     
                     if (op.equals("ID_REVEAL_PK"))
                     {
@@ -301,8 +280,6 @@ public class CWebOps
                                          rs.getString("par_1"),
                                          rs.getString("par_2"),
                                          rs.getString("par_3"));
-                       
-                       UTILS.CBLOCK.setSigner();
                    }
                    
                    if (op.equals("ID_RENEW"))
@@ -442,6 +419,8 @@ public class CWebOps
                                                                             rs.getDouble("par_6"),
 			                                                    UTILS.BASIC.base64_decode(rs.getString("par_7")),
                                                                             UTILS.BASIC.base64_decode(rs.getString("par_8")),
+                                                                            rs.getLong("par_9"),
+                                                                            rs.getLong("par_10"),
                                                                             rs.getLong("days"));
                       
                        UTILS.NETWORK.broadcast(packet);

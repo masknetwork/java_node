@@ -72,6 +72,6 @@ public class CFeedComponent implements Serializable
                                          + "block='"+block+"'");
        
         // Update markets
-        UTILS.CRONS.updateSpecMarkets(feed_symbol, this.symbol, this.val);
+        UTILS.CRONS.updateMarkets(feed_symbol, this.symbol, this.val);
     }    
 }

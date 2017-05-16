@@ -23,7 +23,6 @@ public class CFeedsBranchesTable extends CTable
                                                            +"description VARCHAR(500) DEFAULT '', "
                                                            +"type VARCHAR(50) DEFAULT '', "
                                                            +"rl_symbol VARCHAR(20) DEFAULT '', "
-                                                           +"fee DOUBLE(9, 4) DEFAULT 0.0001, "
                                                            +"expire BIGINT DEFAULT 0, "
                                                            +"val DOUBLE(20,8) DEFAULT 0, "
                                                            +"mkt_status VARCHAR(50) DEFAULT '', "

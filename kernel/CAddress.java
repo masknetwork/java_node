@@ -63,8 +63,7 @@ public class CAddress
     // PRivate key
     ECPrivateKey ecPrivateKey;
  	
-    // Curve
-    String curve;
+    
  	
     public CAddress() 
     {
@@ -147,25 +146,22 @@ public class CAddress
 		
 		// Adds to wallet
 		UTILS.WALLET.add(this);
-                    
-                // Set signer
-                UTILS.CBLOCK.setSigner();
             }
                 
 	    return true;
 	}
 	
 	
-	public void generate(String curve) throws Exception
+	public void generate() throws Exception
 	{
             // Set curve
-            this.curve=curve;
             
+           
             // Key generator
 	    KeyPairGenerator keyPairGenerator =KeyPairGenerator.getInstance("EC", "BC");
 	           
             // Curve specification     
-            ECNamedCurveParameterSpec curveParameterSpec = ECNamedCurveTable.getParameterSpec(curve);
+            ECNamedCurveParameterSpec curveParameterSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
 		   
             // Init
             keyPairGenerator.initialize(curveParameterSpec, new SecureRandom()); 

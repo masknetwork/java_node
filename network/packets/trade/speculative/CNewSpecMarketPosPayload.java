@@ -112,7 +112,7 @@ public class CNewSpecMarketPosPayload extends CPayload
        super.check(block);
           
        // Address can spend ?
-        if (UTILS.BASIC.isSpecMktAddress(this.target_adr))
+        if (!UTILS.BASIC.canSpend(this.target_adr))
             throw new Exception("Invalid order ID - CNewRegMarketPosPayload.java");
          
         // Order type
@@ -120,22 +120,17 @@ public class CNewSpecMarketPosPayload extends CPayload
             !this.tip.equals("ID_SELL"))
         throw new Exception("Invalid order type - CNewSpecMarketPosPayload.java"); 
         
+        // Mkt ID and pos ID
+        if (this.mktID<0 || this.posID<0)
+           throw new Exception("Invalid entry data - CNewSpecMarketPosPayload.java"); 
+        
         // Check market ID
-        if (this.mktID<=0)
+        if (UTILS.BASIC.targetValid("ID_MARGIN_MKT", mktID))
              throw new Exception("Invalid market ID - CNewSpecMarketPosPayload.java"); 
         
         // Check pos ID
-        if (this.posID<=0)
+        if (UTILS.BASIC.existID(this.posID))
              throw new Exception("Invalid position ID - CNewSpecMarketPosPayload.java"); 
-        
-        // Position exist ?
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                           + "FROM feeds_spec_mkts_pos "
-                                          + "WHERE posID='"+this.posID+"'");
-        
-        // Has data ?
-        if (UTILS.DB.hasData(rs))
-            throw new Exception("Invalid position ID - CNewSpecMarketPosPayload.java"); 
         
         // Market ID
         ResultSet mkt_rs=UTILS.DB.executeQuery("SELECT fsm.*, adr.balance AS mkt_adr_balance "
@@ -153,6 +148,34 @@ public class CNewSpecMarketPosPayload extends CPayload
         
         // Last price
         double last_price=mkt_rs.getDouble("last_price");
+        
+        // Feed & branch
+        String feed=mkt_rs.getString("feed");
+        String branch=mkt_rs.getString("branch");
+        
+        // Market expire
+        long mkt_expire=mkt_rs.getLong("expire");
+        
+        // Market status
+        if (!mkt_rs.getString("status").equals("ID_ONLINE"))
+            throw new Exception("Market is not online - CNewSpecMarketPosPayload.java"); 
+        
+        // Load feed data
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM feeds_branches "
+                                          + "WHERE feed_symbol='"+feed+"' "
+                                            + "AND symbol='"+branch+"'");
+        
+        // Next
+        rs.next();
+        
+        // Status online ?
+        if (!rs.getString("mkt_status").equals("ID_ONLINE"))
+            throw new Exception("Feed market status not online - CNewSpecMarketPosPayload.java"); 
+        
+        // Expire
+        if (this.block+this.days*1440>=mkt_expire)
+            throw new Exception("Invalid expiration block - CNewSpecMarketPosPayload.java"); 
         
         // Execution type
         if (!this.ex_type.equals("ID_MARKET") && 
@@ -190,8 +213,9 @@ public class CNewSpecMarketPosPayload extends CPayload
 	}
            
         // Leverage
-        if (this.leverage>mkt_rs.getLong("max_leverage"))
+        if (this.leverage>mkt_rs.getLong("max_leverage") || this.leverage<1)
            throw new Exception("Invalid leverage - CNewSpecMarketPosPayload.java"); 
+        
         
         // Margin
         double margin=this.qty*mkt_rs.getDouble("last_price")/this.leverage;
@@ -205,13 +229,13 @@ public class CNewSpecMarketPosPayload extends CPayload
            
         if (this.tip.equals("ID_BUY"))
         {
-              margin=(this.qty*open)/this.leverage;    
-              max_loss=(open-this.sl)*this.qty;
+              margin=(this.qty*(open+spread))/this.leverage;    
+              max_loss=(open+spread-this.sl)*this.qty;
         }
         else
         {
-              margin=(this.qty*open)/this.leverage;  
-              max_loss=(this.tp-open)*this.qty;
+              margin=(this.qty*(open-spread))/this.leverage;  
+              max_loss=(this.sl-open+spread)*this.qty;
         }
 		 
 	// Max losss bigger than margin ?
@@ -226,16 +250,17 @@ public class CNewSpecMarketPosPayload extends CPayload
         // Insuficient funds
 	if (balance<margin)
 	    throw new Exception("Innsuficient funds - CNewSpecMarketPosPayload.java"); 
-            
+        
         // Used margin
         double used_margin=0;
         
         // Calculate free colaterall
-        rs=UTILS.DB.executeQuery("SELECT SUM(margin) AS total "
-                                 + "FROM feeds_spec_mkts_pos AS fsmp "
-                                 + "JOIN feeds_spec_mkts AS fsm ON fsmp.mktID=fsm.mktID "
-                                + "WHERE fsmp.status='ID_MARKET' "
-                                  + "AND fsm.adr='"+mkt_rs.getString("adr")+"'");
+         rs=UTILS.DB.executeQuery("SELECT SUM(margin) AS total "
+                                           + "FROM feeds_spec_mkts_pos AS fsmp "
+                                           + "JOIN feeds_spec_mkts AS fsm ON fsmp.mktID=fsm.mktID "
+                                          + "WHERE fsmp.status='ID_MARKET' "
+                                            + "AND fsm.adr='"+mkt_rs.getString("adr")+"' "
+                                            + "AND fsm.mktID='"+this.mktID+"'");
             
         if (UTILS.DB.hasData(rs))
         {
@@ -252,6 +277,25 @@ public class CNewSpecMarketPosPayload extends CPayload
 	// Check margin
 	if (max_allowed_margin<used_margin+margin)
 	    throw new Exception("Invalid margin - CNewSpecMarketPosPayload.java"); 
+        
+        // Calculate total margin
+        rs=UTILS.DB.executeQuery("SELECT SUM(margin) AS total "
+                                 + "FROM feeds_spec_mkts_pos AS fsmp "
+                                 + "JOIN feeds_spec_mkts AS fsm ON fsmp.mktID=fsm.mktID "
+                                + "WHERE fsmp.status='ID_MARKET' "
+                                  + "AND fsm.adr='"+mkt_rs.getString("adr")+"'");
+            
+        if (UTILS.DB.hasData(rs))
+        {
+               // Next
+               rs.next();
+            
+               // Free colateral
+               used_margin=rs.getDouble("total");
+        }
+        
+        if (used_margin+margin>mkt_rs.getDouble("mkt_adr_balance")/2)
+            throw new Exception("Total margin too big - CNewSpecMarketPosPayload.java"); 
         
         // Days
         if (this.days<1)
@@ -303,29 +347,13 @@ public class CNewSpecMarketPosPayload extends CPayload
         // Spread
         double spread=rs.getDouble("spread");
         
-        // Max loss
-        double max_loss=0;
-        
         // Margin
         double margin=0;
-        
-        if (this.tip.equals("ID_BUY"))
-        {
-              margin=(this.qty*open)/this.leverage;    
-              max_loss=(open-this.sl)*this.qty;
-        }
-        else
-        {
-              margin=(this.qty*open)/this.leverage;  
-              max_loss=(this.tp-open)*this.qty;
-        }
-		 
-	// Max losss bigger than margin ?
-	if (max_loss>margin) margin=max_loss;
-           
+       
         // Open line
         String open_line="";
-        if (this.open!=rs.getDouble("last_price"))
+        
+        if (this.ex_type.equals("ID_ORDER"))
         {
             if (this.open<rs.getDouble("last_price"))
               open_line="ID_BELOW";
@@ -334,31 +362,32 @@ public class CNewSpecMarketPosPayload extends CPayload
         }
            
         // Open
-        double open;
-        if (this.open==rs.getDouble("last_price"))
+        double open=0;
+        
+        if (this.ex_type.equals("ID_MARKET"))
         {
                if (this.tip.equals("ID_BUY"))
                   open=rs.getDouble("last_price")+spread;
                else
                   open=rs.getDouble("last_price")-spread;
         }
-        else  open=this.open;
+        else open=this.open;
            
         // Get pl
         double pl=0;
-        if (this.open==rs.getDouble("last_price"))
+        
+        if (this.ex_type.equals("ID_MARKET"))
             pl=-spread*this.qty;
         else 
             pl=0;
         
-         
         // Insert position
         UTILS.DB.executeUpdate("INSERT INTO feeds_spec_mkts_pos "
                                      + "SET mktID='"+this.mktID+"', "
                                          + "posID='"+this.posID+"', "
                                          + "adr='"+this.target_adr+"', "
                                          + "tip='"+this.tip+"', "
-                                         + "open='"+this.open+"', "
+                                         + "open='"+open+"', "
                                          + "sl='"+this.sl+"', "
                                          + "tp='"+this.tp+"', "
                                          + "leverage='"+this.leverage+"', "
@@ -375,8 +404,8 @@ public class CNewSpecMarketPosPayload extends CPayload
         // Clear
         UTILS.ACC.clearTrans(hash, "ID_ALL", this.block);
         
-        // Vote bet
-        UTILS.BASIC.voteTarget(this.target_adr, "ID_BET", this.mktID, block.block);
+        // Vote market
+        UTILS.BASIC.voteTarget(this.target_adr, "ID_MARGIN_MKT", this.mktID, block.block);
         
         // Get feed
         rs=UTILS.DB.executeQuery("SELECT * "

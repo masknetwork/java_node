@@ -25,16 +25,16 @@ public class CReward
        payRewards("ID_COM", block);
        
        // Data feeds
-       payRewards("ID_FEEDS", block);
+       payRewards("ID_FEED", block);
        
        // Assets
-       payRewards("ID_ASSETS", block);
+       payRewards("ID_ASSET", block);
        
        // Bets
-       payRewards("ID_BETS", block);
+       payRewards("ID_BET", block);
        
        // Margin markets
-       payRewards("ID_MKTS", block);    
+       payRewards("ID_MARGIN_MKT", block);    
     }
     
     // Rewards
@@ -99,22 +99,20 @@ public class CReward
            // Content reward
            double reward=p*reward_pool/100;
            
-           // Blogs, comments or brts ?
+           // Blogs, comments or bets ?
            if (content_type.equals("ID_POST") || 
                content_type.equals("ID_COM") || 
                content_type.equals("ID_BET"))
-           {
-               // Half reward
-               reward=UTILS.BASIC.round(reward/2, 4);
+           reward=UTILS.BASIC.round(reward/2, 4);
                
-               // Reward votes
-               if (reward>=0.0001)
-               {
-                    // Payment address
-                    String adr=this.getTargetAdr(target_type, targetID);
+            // Reward votes
+            if (reward>=0.0001)
+            {
+                // Payment address
+                String adr=this.getTargetAdr(target_type, targetID);
                    
-                    // Make payment
-                    UTILS.ACC.newTransfer("default",
+                // Make payment
+                UTILS.ACC.newTransfer("default",
                                           adr, 
                                           reward, 
                                           true,
@@ -126,13 +124,16 @@ public class CReward
                                           null,
                                           0);
                     
-                    // Add reward
-                    this.addReward("ID_CONTENT", adr, target_type, targetID, reward, block);
+                // Add reward
+                this.addReward("ID_CONTENT", adr, target_type, targetID, reward, block);
                     
-                    // Pay comments
-                    this.rewardVotes(target_type, targetID, reward, block);
-               }
-           }
+                // Pay comments
+                if (content_type.equals("ID_POST") || 
+                    content_type.equals("ID_COM") || 
+                    content_type.equals("ID_BET"))
+                this.rewardVotes(target_type, targetID, reward, block);
+            }
+           
        }
        
        // Commit
@@ -238,27 +239,27 @@ public class CReward
                            break;
 			
 	  // Feeds
-	  case "ID_FEEDS" : query="SELECT * "
+	  case "ID_FEED" : query="SELECT * "
                                   + "FROM feeds "
                                  + "WHERE feedID='"+targetID+"'"; 
                            break;
 			
 	  // Assets
-	  case "ID_ASSETS" : query="SELECT * "
+	  case "ID_ASSET" : query="SELECT * "
                                    + "FROM assets "
                                   + "WHERE assetID='"+targetID+"'"; 
                            break;
 			
 	  // Bets
-	  case "ID_BETS" : query="SELECT * "
+	  case "ID_BET" : query="SELECT * "
                                  + "FROM feeds_bets "
-                                + "WHERE bettID='"+targetID+"'"; 
+                                + "WHERE betID='"+targetID+"'"; 
                            break;
 			
 	  // Margin
-	  case "ID_MKTS" : query="SELECT * "
-                                 + "FROM feeds_spec_mkts "
-                                + "WHERE mktID='"+targetID+"'"; 
+	  case "ID_MARGIN_MKT" : query="SELECT * "
+                                       + "FROM feeds_spec_mkts "
+                                      + "WHERE mktID='"+targetID+"'"; 
                            break;
 	}
       
@@ -313,16 +314,16 @@ public class CReward
 	    case "ID_COM" : reward=unspent*10/100; break;
 			
 	    // Feeds
-	    case "ID_FEEDS" : reward=unspent*5/100; break;
+	    case "ID_FEED" : reward=unspent*5/100; break;
 			
 	    // Assets
-	    case "ID_ASSETS" : reward=unspent*5/100; break;
+	    case "ID_ASSET" : reward=unspent*5/100; break;
 			
 	    // Bets
-	    case "ID_BETS" : reward=unspent*10/100; break;
+	    case "ID_BET" : reward=unspent*10/100; break;
 			
 	    // Margin
-	    case "ID_MKTS" : reward=unspent*10/100; break;
+	    case "ID_MARGIN_MKT" : reward=unspent*10/100; break;
 			
 	    // Miners
 	    case "ID_MINERS" : reward=unspent*40/100; break;
@@ -351,7 +352,7 @@ public class CReward
 	    break;
 							
 	    // Comments		
-	    case "ID_BETS" : query="SELECT * "
+	    case "ID_BET" : query="SELECT * "
                                    + "FROM feeds_bets "
                                   + "WHERE betID='"+targetID+"'"; 
 	    break;
@@ -390,13 +391,16 @@ public class CReward
 	    // Distance from posting
 	    if (target_type.equals("ID_POST") || 
 		target_type.equals("ID_COM") || 
-		target_type.equals("ID_BETS"))
+		target_type.equals("ID_BET"))
 	    {
 		// Block
 		long block=this.getCreationBlock(target_type, targetID);
 			
 		// Percent
 		double p=0.07*(actual_block-block); 
+                
+                // Minimum 1%
+                if (p>=99) p=99;
 			
 		// Power
 		power=UTILS.BASIC.round(power-p*power/100, 2);

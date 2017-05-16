@@ -63,7 +63,7 @@ public class CWallet
 			    
 	    // Generate an address
 	    CAddress adr=new CAddress();
-	    adr.generate("secp224r1");
+	    adr.generate();
 	    this.addresses.add(adr);
 			    
 	    // Insert address
@@ -132,11 +132,13 @@ public class CWallet
      
     
      
-      public String newAddress(String user, String curve, String description) throws Exception
+      public String newAddress(String user, String description) throws Exception
       {
         // Generate an address
         CAddress adr=new CAddress();
-	adr.generate(curve);
+        
+        // Generate
+	adr.generate();
 		 
 	// Add
 	this.addresses.add(adr);

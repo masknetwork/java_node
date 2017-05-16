@@ -42,7 +42,7 @@ public class CNewSpecMarketPosPacket extends CBroadcastPacket
 	  this.payload=UTILS.SERIAL.serialize(dec_payload);
 					
           // Network fee
-	   CFeePayload fee=new CFeePayload(fee_adr,  0.0001);
+	   CFeePayload fee=new CFeePayload(fee_adr,  0.0001*days);
 	   this.fee_payload=UTILS.SERIAL.serialize(fee);
 			   
 	   // Sign packet
@@ -69,7 +69,7 @@ public class CNewSpecMarketPosPacket extends CBroadcastPacket
             CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
             
             // Check fee
-            if (fee.amount<0.0001)
+            if (fee.amount<0.0001*dec_payload.days)
                throw new Exception("Invalid price - CNewSpecMarketPosPacket.java");
             
             // Footprint

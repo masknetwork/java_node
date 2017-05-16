@@ -117,7 +117,7 @@ public class CBootstrap
                                              + "size='0', "
                                              + "commited='0', "
                                              + "confirmations='0', "
-                                             + "net_dif='0000000fdc8eb4c424a4ab9659f606c254071192c1abd28ca94ee63f88323bbf', "
+                                             + "net_dif='00000000fc8eb4c424a4ab9659f606c254071192c1abd28ca94ee63f88323bbf', "
                                              + "payload_hash='0000000000000000000000000000000000000000000000000000000000000000'");
          }
          
@@ -313,7 +313,7 @@ public class CBootstrap
             UTILS.DB.executeUpdate("INSERT INTO net_stat "
                                          + "SET last_block='0', "
                                              + "last_block_hash='0000000000000000000000000000000000000000000000000000000000000000', "
-                                             + "net_dif='0000000fdc8eb4c424a4ab9659f606c254071192c1abd28ca94ee63f88323bbf'");
+                                             + "net_dif='00000000fc8eb4c424a4ab9659f606c254071192c1abd28ca94ee63f88323bbf'");
 	}
         
         // ----------------------------------- My Trans --------------------------------------
@@ -456,6 +456,12 @@ public class CBootstrap
                                                            +"banned BIGINT NOT NULL DEFAULT 0)");
             
             UTILS.DB.executeUpdate("CREATE INDEX peers_pool_peer ON peers_pool(peer)");
+            
+            // Insert primary nodes
+            UTILS.DB.executeUpdate("INSERT INTO peers_pool SET peer='45.76.42.171', port='10000'");
+            UTILS.DB.executeUpdate("INSERT INTO peers_pool SET peer='45.76.133.87', port='10000'");
+            UTILS.DB.executeUpdate("INSERT INTO peers_pool SET peer='45.76.85.194', port='10000'");
+            UTILS.DB.executeUpdate("INSERT INTO peers_pool SET peer='108.61.177.6', port='10000'");
 	  }
          
         
@@ -1096,79 +1102,64 @@ public class CBootstrap
         
         
         // Main addresses
-        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEVLlfDKbAbXy4pVUwirSVpLt3R2FkZirCzM5nkG50hb7HKt1dhZGpd6YtoYsf0bLLMjvKT2MEXjs=', balance='5000', created='0', block='0'");
-        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEUTU9+ZAA+SHf88XGBPRXIJegV4GyP0VRHeEyTTC4NEBcvufT3sXJLQkbkZpAwvKFiYqcR2BMRWw=', balance='5000', created='0', block='0'");
-        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEaGY5tE3iGD2TVrtYWuU75TIGAH18u7oSCV4XqMUh4O97FfSc4Ce76lm6O7llN9GPtFVp4YgtDC0=', balance='5000', created='0', block='0'");
-        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAExnpgueKLCKlYaDxVaY6E9fOWqO3FObD1yP/VlKyqcGyaliFvkOWoAGmsqI/xgyE+CkZ1B3mFCoE=', balance='5000', created='0', block='0'");
-        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEW9QtP5O+jDkEtqMH4EzvT/gpAaxsdOxmzoGzC/lQeDxrut3SiyJnq2ty3t8kdkBJsPOXw67QquI=', balance='5000', created='0', block='0'");
-        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE32vMj5rmIlxmuBUxV9zJoRcrVjFUppF3mbs4AUHp66y4UVs8s4IIJdn4pVJcnYrxzFnMIomtdno=', balance='5000', created='0', block='0'");
-        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE9wIHV2QyIMCZ8rDsvWxOeibLWb21WawBp/xx+vtQ8XL61xb9ieATWheRzowVfYEE/tnuIRlrcgA=', balance='5000', created='0', block='0'");
-        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEnO6qdAakxvlDQIl6dE2W+Q5QzC28m/tUBST3RSCTFySEdTQtaVtdH0jlGlFPntyHx3tv4aQHbN4=', balance='5000', created='0', block='0'");
-        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEaNpz2lU2bRvsn8maSbZHH/zsKzknofJ7t6mhopsdkyGY8bOiUxuwMA8rSc6OJc6xxHVS5s+ZYSw=', balance='5000', created='0', block='0'");
-        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEwGuPjLPELwp1mJYnd+jskQGUEYN3QWoPXe/uUEsrBHNcKOFZAN/kShEV3H6oQbUr5R9d0IKTZ7c=', balance='5000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEEpn9tcO9qb55dKKTCroSy6fa8mhyhChMYLdJer+WYnVR8Is9l1864vi9Z9eVXTkk3xo1ARNfY+fM0DWI0Wo7+g==', balance='100000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEnynu3qRdoQkslCGdgajJJL0cyToq2CNrOcPKRBY+bqlAC16dfWS9pqjtc9cxhcDL88QlxsXYSqSxn54Lwkq2LQ==', balance='100000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEiNlB+/HYqGqFm/jF3jLePnD+YZ/6iIH/OzMh+aKAyAzD4KAk4bocCm38x2sFx1rxKQQYY6JKTbssUKsZKmk/xw==', balance='100000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAERipiohgRY+exIa8naisHpe/1ZNfPzjsdN0V5kPI9gMyVMcrJbfS/RxuOqVHMgmqp7B3omAG0Vb+elXxyIrWU7g==', balance='100000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEIfhPhsjZ06QbAf45FMmDQuznOw/I9ob7ZR9bCUmxLAakhmzoz06mUylMa5o1iX3PvMV7DwDYZxOR18q89ljtyg==', balance='100000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEuTaBUEiPRcc3E9Re9UzVlo0VYkksRPp/DO7IMxxC/0JLaFqcs01gSbBC/VMVq8Jbl8SBf8NiE8nmTvHwxJABOA==', balance='100000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAE8jW0Y6JCgLwv30tZFSWejL13jJ2MJLPs/77P5/yKcdJik6Q3abSr4cuyXP6aQa52FBc7ptOYsG6NwHO5P9wyxA==', balance='100000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEoKdl/E8VU9XAXWPI7+ct/aBnNCyJoRzoYgIuNjAlbcSE6WFXtoyiYET6j5XWaODXP4PPhcQX5EHRoEPKpZTq0w==', balance='100000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEBMSQ0Fso7nFoGiA+bBb0FtNApYqVXMRLIwAXuie04DZ8dXbsVktdqqzqUeHdACBXr1saEPWm0ueNnmoilq8lMg==', balance='100000', created='0', block='0'");
+        UTILS.DB.executeUpdate("INSERT INTO adr SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAE5QJZYCQz+/vegCpTenLEyNtlBTx2xyLaFqsGestQp5iE/jl2JJ0Rq7YQ2OtyPREHXboiqFxTOu51kEyMi8f1hg==', balance='100000', created='0', block='0'");
         
-        // Delegate 1
+    
+       
         UTILS.DB.executeUpdate("INSERT INTO del_votes "
-                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEVLlfDKbAbXy4pVUwirSVpLt3R2FkZirCzM5nkG50hb7HKt1dhZGpd6YtoYsf0bLLMjvKT2MEXjs=', "
-                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEw/i+NP1xdpTMe2zhworPH3undpx0ReIHqgWsKAbeSlq+H8qQz6NwOr67pXZPB236PcdCiJUfuOM=', "
+                                     + "SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEiNlB+/HYqGqFm/jF3jLePnD+YZ/6iIH/OzMh+aKAyAzD4KAk4bocCm38x2sFx1rxKQQYY6JKTbssUKsZKmk/xw==', "
+                                         + "delegate='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAENQYiiWVz9Qpn4/GKCqWXmtvmpTA0BGJyiuoRirsDNf7KGIP3rYxDrZ85ieW905o/IDIW0ZLi3GMpisYhGVvV+w==', "
                                          + "type='ID_UP', "
                                          + "block='0'");
         
         UTILS.DB.executeUpdate("INSERT INTO del_votes "
-                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEUTU9+ZAA+SHf88XGBPRXIJegV4GyP0VRHeEyTTC4NEBcvufT3sXJLQkbkZpAwvKFiYqcR2BMRWw=', "
-                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEw/i+NP1xdpTMe2zhworPH3undpx0ReIHqgWsKAbeSlq+H8qQz6NwOr67pXZPB236PcdCiJUfuOM=', "
-                                         + "type='ID_UP', "
-                                         + "block='0'");
-        
-        // Delegate 2
-        UTILS.DB.executeUpdate("INSERT INTO del_votes "
-                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEaGY5tE3iGD2TVrtYWuU75TIGAH18u7oSCV4XqMUh4O97FfSc4Ce76lm6O7llN9GPtFVp4YgtDC0=', "
-                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmkqBbYFVGb5gck1P1ZBDb0HhcgRRgZPvmhNFxqm0FQXuAtZgxh7pJcPBvBLn5QDTGQkbmSzAe1c=', "
+                                     + "SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAERipiohgRY+exIa8naisHpe/1ZNfPzjsdN0V5kPI9gMyVMcrJbfS/RxuOqVHMgmqp7B3omAG0Vb+elXxyIrWU7g=', "
+                                         + "delegate='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEuUHnJKieTLy2cfm4bCCLSrbfShFlhkp/bkCOqAA/SMnz4Utlqxo2S8SuNczYKOLYsJYRqT2WLIId2/jlhfsT9Q==', "
                                          + "type='ID_UP', "
                                          + "block='0'");
         
         UTILS.DB.executeUpdate("INSERT INTO del_votes "
-                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAExnpgueKLCKlYaDxVaY6E9fOWqO3FObD1yP/VlKyqcGyaliFvkOWoAGmsqI/xgyE+CkZ1B3mFCoE=', "
-                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEmkqBbYFVGb5gck1P1ZBDb0HhcgRRgZPvmhNFxqm0FQXuAtZgxh7pJcPBvBLn5QDTGQkbmSzAe1c=', "
-                                         + "type='ID_UP', "
-                                         + "block='0'");
-        
-        // Delegate 3
-        UTILS.DB.executeUpdate("INSERT INTO del_votes "
-                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEW9QtP5O+jDkEtqMH4EzvT/gpAaxsdOxmzoGzC/lQeDxrut3SiyJnq2ty3t8kdkBJsPOXw67QquI=', "
-                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE8hJcN8OPeFBsGPZbFL7d6Y3UpSl/7UOal/H+PCEgBcZouH6qhkgKHmFKP9OvBWUIMwH1NHHnYAU=', "
+                                     + "SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEIfhPhsjZ06QbAf45FMmDQuznOw/I9ob7ZR9bCUmxLAakhmzoz06mUylMa5o1iX3PvMV7DwDYZxOR18q89ljtyg==', "
+                                         + "delegate='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEi/crmAw+sTWpVYM6Ip/qNv2qrscmV2TYsnbm16td8EJw53xA22iQG+mv3PF5gmLnCI++hOT9e+x0Q75/S4ioGw==', "
                                          + "type='ID_UP', "
                                          + "block='0'");
         
         UTILS.DB.executeUpdate("INSERT INTO del_votes "
-                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE32vMj5rmIlxmuBUxV9zJoRcrVjFUppF3mbs4AUHp66y4UVs8s4IIJdn4pVJcnYrxzFnMIomtdno=', "
-                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE8hJcN8OPeFBsGPZbFL7d6Y3UpSl/7UOal/H+PCEgBcZouH6qhkgKHmFKP9OvBWUIMwH1NHHnYAU=', "
-                                         + "type='ID_UP', "
-                                         + "block='0'");
-        
-        // Delegate 4
-        UTILS.DB.executeUpdate("INSERT INTO del_votes "
-                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAE9wIHV2QyIMCZ8rDsvWxOeibLWb21WawBp/xx+vtQ8XL61xb9ieATWheRzowVfYEE/tnuIRlrcgA=', "
-                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEAlecggPYFhh9XuL4U78Z7qbGrRQB/wOIzOfvP+1Xong3AuYiLHXCrru/qTrmmECGxEKG4AuVxms=', "
+                                     + "SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEuTaBUEiPRcc3E9Re9UzVlo0VYkksRPp/DO7IMxxC/0JLaFqcs01gSbBC/VMVq8Jbl8SBf8NiE8nmTvHwxJABOA==', "
+                                         + "delegate='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEm5WmQquyZmZWHnQ1g/cODYk/pElXYo2GYcn8Jedmd/m7OzAAgm0ZEalt33rz8zxqZY7POxQhWYfNhY3ZlskiJQ==', "
                                          + "type='ID_UP', "
                                          + "block='0'");
         
         UTILS.DB.executeUpdate("INSERT INTO del_votes "
-                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEnO6qdAakxvlDQIl6dE2W+Q5QzC28m/tUBST3RSCTFySEdTQtaVtdH0jlGlFPntyHx3tv4aQHbN4=', "
-                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEAlecggPYFhh9XuL4U78Z7qbGrRQB/wOIzOfvP+1Xong3AuYiLHXCrru/qTrmmECGxEKG4AuVxms=', "
-                                         + "type='ID_UP', "
-                                         + "block='0'");
-        
-        // Delegate 
-        UTILS.DB.executeUpdate("INSERT INTO del_votes "
-                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEaNpz2lU2bRvsn8maSbZHH/zsKzknofJ7t6mhopsdkyGY8bOiUxuwMA8rSc6OJc6xxHVS5s+ZYSw=', "
-                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEJVc8AvNJRlXEpxmbmppX7RK5BkaMAcZKKPsl83naU7wMtN/N5ghv22QO7gdh0AIeNKGSTvtrymA=', "
+                                     + "SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAE8jW0Y6JCgLwv30tZFSWejL13jJ2MJLPs/77P5/yKcdJik6Q3abSr4cuyXP6aQa52FBc7ptOYsG6NwHO5P9wyxA==', "
+                                         + "delegate='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAE8s+v5EXWj0T4YX+dJF7aKb+iNC2AWv1+iJVsxhzwKjyrgtpRsi6q3TSYj66Plc5s9AOefeQu0FM+KzFMswiUiQ==', "
                                          + "type='ID_UP', "
                                          + "block='0'");
         
         UTILS.DB.executeUpdate("INSERT INTO del_votes "
-                                     + "SET adr='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEwGuPjLPELwp1mJYnd+jskQGUEYN3QWoPXe/uUEsrBHNcKOFZAN/kShEV3H6oQbUr5R9d0IKTZ7c=', "
-                                         + "delegate='ME4wEAYHKoZIzj0CAQYFK4EEACEDOgAEJVc8AvNJRlXEpxmbmppX7RK5BkaMAcZKKPsl83naU7wMtN/N5ghv22QO7gdh0AIeNKGSTvtrymA=', "
+                                     + "SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEoKdl/E8VU9XAXWPI7+ct/aBnNCyJoRzoYgIuNjAlbcSE6WFXtoyiYET6j5XWaODXP4PPhcQX5EHRoEPKpZTq0w==', "
+                                         + "delegate='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEi/crmAw+sTWpVYM6Ip/qNv2qrscmV2TYsnbm16td8EJw53xA22iQG+mv3PF5gmLnCI++hOT9e+x0Q75/S4ioGw==', "
+                                         + "type='ID_UP', "
+                                         + "block='0'");
+        
+        UTILS.DB.executeUpdate("INSERT INTO del_votes "
+                                     + "SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEBMSQ0Fso7nFoGiA+bBb0FtNApYqVXMRLIwAXuie04DZ8dXbsVktdqqzqUeHdACBXr1saEPWm0ueNnmoilq8lMg==', "
+                                         + "delegate='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEuUHnJKieTLy2cfm4bCCLSrbfShFlhkp/bkCOqAA/SMnz4Utlqxo2S8SuNczYKOLYsJYRqT2WLIId2/jlhfsT9Q==', "
+                                         + "type='ID_UP', "
+                                         + "block='0'");
+        
+        UTILS.DB.executeUpdate("INSERT INTO del_votes "
+                                     + "SET adr='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAE5QJZYCQz+/vegCpTenLEyNtlBTx2xyLaFqsGestQp5iE/jl2JJ0Rq7YQ2OtyPREHXboiqFxTOu51kEyMi8f1hg==', "
+                                         + "delegate='MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAENQYiiWVz9Qpn4/GKCqWXmtvmpTA0BGJyiuoRirsDNf7KGIP3rYxDrZ85ieW905o/IDIW0ZLi3GMpisYhGVvV+w==', "
                                          + "type='ID_UP', "
                                          + "block='0'");
     }

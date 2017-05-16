@@ -201,8 +201,8 @@ public class CCrons
         // Open order
         UTILS.DB.executeUpdate("UPDATE feeds_spec_mkts_pos "
                                 + "SET status='ID_MARKET', "
-                                    + "open='"+open+"' "
-                                    + "block_open='"+block+"' "
+                                    + "open='"+open+"', "
+                                    + "block_start='"+block+"' "
                               + "WHERE posID='"+orderID+"'");
         
        
@@ -213,30 +213,22 @@ public class CCrons
     {
         // Load pending orders
         ResultSet rs=UTILS.DB.executeQuery("SELECT fsmp.*, fsm.last_price "
-                                   + " FROM feeds_spec_mkts_pos AS fsmp "
-                                   + " JOIN feeds_spec_mkts AS fsm ON fsm.mktID=fsmp.mktID "
-                                  + " WHERE fsmp.status='ID_PENDING'");
+                                          + " FROM feeds_spec_mkts_pos AS fsmp "
+                                          + " JOIN feeds_spec_mkts AS fsm ON fsm.mktID=fsmp.mktID "
+                                         + " WHERE fsmp.status='ID_ORDER'");
         
         // Check
         while (rs.next())
         {
-            // Buy order
-            if (rs.getString("tip").equals("ID_BUY"))
-            {
-                // Above open line
-                if (rs.getString("open_line").equals("ID_ABOVE") && 
-                    rs.getDouble("last_price")<=rs.getDouble("open"))
-                this.openOrder(rs.getLong("posID"), block);
+            // Above open line
+            if (rs.getString("open_line").equals("ID_ABOVE") && 
+                rs.getDouble("last_price")>=rs.getDouble("open"))
+            this.openOrder(rs.getLong("posID"), block);
                 
-                // Below open line
-                if (rs.getString("open_line").equals("ID_BELOW") && 
-                    rs.getDouble("last_price")>=rs.getDouble("open"))
-                this.openOrder(rs.getLong("posID"), block);
-            }
-            else
-            {
-                
-            }
+            // Below open line
+            if (rs.getString("open_line").equals("ID_BELOW") && 
+                rs.getDouble("last_price")<=rs.getDouble("open"))
+            this.openOrder(rs.getLong("posID"), block);
         }
         
         
@@ -563,9 +555,16 @@ public class CCrons
         return -1000000000;
     }
     
-    public void updateSpecMarkets(String feed, String branch, double price) throws Exception
+    public void updateMarkets(String feed, String branch, double price) throws Exception
     {
+       // Update margin markets
        UTILS.DB.executeUpdate("UPDATE feeds_spec_mkts "
+                               + "SET last_price='"+price+"' "
+                             + "WHERE feed='"+feed+"' "
+                               + "AND branch='"+branch+"'");
+       
+       // Update bets
+       UTILS.DB.executeUpdate("UPDATE feeds_bets "
                                + "SET last_price='"+price+"' "
                              + "WHERE feed='"+feed+"' "
                                + "AND branch='"+branch+"'");

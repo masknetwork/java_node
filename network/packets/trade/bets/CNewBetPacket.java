@@ -89,8 +89,8 @@ public class CNewBetPacket extends CBroadcastPacket
             
             // Footprint
             CPackets foot=new CPackets(this);
-            foot.add("Feed Symbol 1", dec_payload.feed_symbol);
-            foot.add("Feed Branch 1", dec_payload.feed_component_symbol);
+            foot.add("Feed Symbol 1", dec_payload.feed);
+            foot.add("Feed Branch 1", dec_payload.branch);
             foot.add("Type", dec_payload.tip);
             foot.add("Value 1", dec_payload.val_1);
             foot.add("Value 2", dec_payload.val_2);

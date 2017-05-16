@@ -14,10 +14,10 @@ import wallet.network.packets.blocks.CBlockPayload;
 public class CNewBetPayload extends CPayload
 {
    // Feed symbol 
-   String feed_symbol;
+   String feed;
    
    // Feed component symbol
-   String feed_component_symbol;
+   String branch;
    
    // Tip
    String tip;
@@ -70,10 +70,10 @@ public class CNewBetPayload extends CPayload
        super(adr);
        
        // Feed symbol 
-       this.feed_symbol=feed_symbol;
+       this.feed=feed_symbol;
    
        // Feed component symbol
-       this.feed_component_symbol=feed_component_symbol;
+       this.branch=feed_component_symbol;
        
        // Tip
        this.tip=tip;
@@ -110,8 +110,8 @@ public class CNewBetPayload extends CPayload
        
        // Hash
        hash=UTILS.BASIC.hash(this.getHash()+
-                             this.feed_symbol+
-                             this.feed_component_symbol+
+                             this.feed+
+                             this.branch+
                              this.tip+
                              this.betID+
                              String.valueOf(this.val_1)+
@@ -134,7 +134,7 @@ public class CNewBetPayload extends CPayload
    	  super.check(block);
           
         // Feed 1
-        if (!UTILS.BASIC.isBranch(this.feed_symbol, this.feed_component_symbol))
+        if (!UTILS.BASIC.isBranch(this.feed, this.branch))
               throw new Exception("Invalid feed - CNewBetPayload.java"); 
            
         // Tip
@@ -206,8 +206,8 @@ public class CNewBetPayload extends CPayload
        
         // Check hash
         String h=UTILS.BASIC.hash(this.getHash()+
-                                  this.feed_symbol+
-                                  this.feed_component_symbol+
+                                  this.feed+
+                                  this.branch+
                                   this.tip+
                                   this.betID+
                                   String.valueOf(this.val_1)+
@@ -230,13 +230,24 @@ public class CNewBetPayload extends CPayload
         // Super
         super.commit(block);
         
+        // Do transfer
+        UTILS.ACC.clearTrans(hash, "ID_ALL", this.block);
+        
+        // Load feed
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM feeds_branches "
+                                          + "WHERE feed_symbol='"+this.feed+"' "
+                                            + "AND symbol='"+this.branch+"'");
+        
+        // Next
+        rs.next();
         
         // Insert position
         UTILS.DB.executeUpdate("INSERT INTO feeds_bets "
                                      + "SET betID='"+this.betID+"', "
                                          + "adr='"+this.target_adr+"', "
-                                         + "feed='"+this.feed_symbol+"', "
-                                         + "branch='"+this.feed_component_symbol+"', "
+                                         + "feed='"+this.feed+"', "
+                                         + "branch='"+this.branch+"', "
                                          + "tip='"+this.tip+"', "
                                          + "val_1='"+this.val_1+"', "
                                          + "val_2='"+this.val_2+"', "
@@ -247,20 +258,12 @@ public class CNewBetPayload extends CPayload
                                          + "start_block='"+this.block+"', "
                                          + "end_block='"+this.end_block+"', "
                                          + "accept_block='"+this.accept_block+"', "
+                                         + "last_price='"+rs.getDouble("val")+"', "
                                          + "cur='"+this.cur+"', "
                                          + "status='ID_PENDING', "
                                          + "block='"+this.block+"'");
         
-        // Do transfer
-        UTILS.ACC.clearTrans(hash, "ID_ALL", this.block);
-        
-        // Vote bet
-        UTILS.BASIC.voteTarget(this.target_adr, "ID_BET", betID, block.block);
-        
-        // Feed ID
-        long feedID=UTILS.BASIC.getFeedID(this.feed_symbol);
-        
         // Vote feed
-        UTILS.BASIC.voteTarget(this.target_adr, "ID_FEED", feedID, block.block);
+        UTILS.BASIC.voteTarget(this.target_adr, "ID_FEED", UTILS.BASIC.getFeedID(this.feed), block.block);
     }     
 }

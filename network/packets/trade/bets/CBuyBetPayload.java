@@ -109,6 +109,9 @@ public class CBuyBetPayload extends CPayload
     {
            // Super
            super.commit(block);
+           
+           // Commit
+           UTILS.ACC.clearTrans(hash, "ID_ALL", this.block);
         
            // Load data
            ResultSet rs=UTILS.DB.executeQuery("SELECT * "
@@ -120,7 +123,8 @@ public class CBuyBetPayload extends CPayload
            if (!UTILS.DB.hasData(rs))
            {
                // Insert position
-               UTILS.DB.executeUpdate("INSERT INTO feeds_bets_pos SET adr='"+this.target_adr+"', "
+               UTILS.DB.executeUpdate("INSERT INTO feeds_bets_pos "
+                                            + "SET adr='"+this.target_adr+"', "
                                                                + "betID='"+this.betID+"', "
                                                                + "amount='"+UTILS.FORMAT_4.format(this.amount)+"', "
                                                                + "block='"+this.block+"'");
@@ -144,9 +148,20 @@ public class CBuyBetPayload extends CPayload
            UTILS.DB.executeUpdate("UPDATE feeds_bets "
                                    + "SET invested=invested+"+UTILS.FORMAT_4.format(this.amount)+" "
                                  + "WHERE betID='"+this.betID+"'");
-                   
-           // Commit
-           UTILS.ACC.clearTrans(hash, "ID_ALL", this.block);
+           
+           // Vote bet
+           UTILS.BASIC.voteTarget(this.target_adr, "ID_BET", betID, block.block);
+           
+           // Load bet details
+           rs=UTILS.DB.executeQuery("SELECT * "
+                                    + "FROM feeds_bets "
+                                   + "WHERE betID='"+betID+"'");
+        
+            // Feed ID
+            long feedID=UTILS.BASIC.getFeedID(rs.getString("feed"));
+        
+            // Vote feed
+            UTILS.BASIC.voteTarget(this.target_adr, "ID_FEED", feedID, block.block);
        
     }        
 }
