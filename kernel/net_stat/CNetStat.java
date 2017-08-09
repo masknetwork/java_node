@@ -2,16 +2,14 @@
 // Contact : vcris@gmx.com
 
 package wallet.kernel.net_stat;
+
 import java.math.BigInteger;
 import wallet.kernel.net_stat.tables.CProfilesTable;
 import wallet.kernel.net_stat.tables.CAdsTable;
 import wallet.kernel.net_stat.tables.CAdrTable;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Timer;
-import java.util.TimerTask;
 import wallet.kernel.UTILS;
 import wallet.kernel.net_stat.tables.*;
 
@@ -46,6 +44,9 @@ public class CNetStat
     
     // Delegates
     public CDelegatesTable table_delegates;
+    
+    // Delegates log
+    public CDelegatesLogTable table_delegates_log;
     
     // Delegates votes
     public CDelVotesTable table_del_votes;
@@ -181,6 +182,9 @@ public class CNetStat
         
         // Delegates
         this.table_delegates=new CDelegatesTable();
+        
+        // Delegates Log
+        this.table_delegates_log=new CDelegatesLogTable();
            
         // Escrowed
         this.table_escrowed=new CEscrowedTable();
@@ -215,7 +219,7 @@ public class CNetStat
         // Tweets follow
         this.table_tweets_follow=new CTweetsFollowTable();
         
-        // Votes
+         // Votes
         this.table_votes=new CVotesTable();
            
         // Network time
@@ -225,9 +229,6 @@ public class CNetStat
         
     public void refreshTables(long block, String hash) throws Exception
     {
-        // Init
-        UTILS.DB.executeUpdate("SET group_concat_max_len = 1000000000000000");
-        
         // Adr
         this.table_adr.refresh(block, hash);
         
@@ -263,6 +264,9 @@ public class CNetStat
         
         // Delegates 
         this.table_delegates.refresh(block, hash);
+        
+        // Delegates Log
+        this.table_delegates_log.refresh(block, hash);
         
         // Comments
         this.table_com.refresh(block, hash);

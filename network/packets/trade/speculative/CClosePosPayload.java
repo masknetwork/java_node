@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import wallet.kernel.UTILS;
-import wallet.network.CResult;
 import wallet.network.packets.CPayload;
 import wallet.network.packets.blocks.CBlockPayload;
 
@@ -45,7 +44,11 @@ public class CClosePosPayload extends CPayload
    {
        // Super class
        super.check(block);
-          
+       
+       // Percent
+       if (percent<1 || percent>100)
+           throw new Exception("Invalid percent - CClosePosPayload.java");
+       
         // Load position data
         ResultSet pos_rs=UTILS.DB.executeQuery("SELECT * "
                                                + "FROM feeds_spec_mkts_pos "
@@ -53,46 +56,40 @@ public class CClosePosPayload extends CPayload
                                                 + "AND adr='"+this.target_adr+"' "
                                                 + "AND status<>'ID_CLOSED'");
           
-          // Valid ?
-          if (!UTILS.DB.hasData(pos_rs))
+        // Valid ?
+        if (!UTILS.DB.hasData(pos_rs))
                throw new Exception("Invalid order - CClosePosPayload.java");
           
-          // Next
-          pos_rs.next();
+        // Next
+        pos_rs.next();
           
-          // Signer valid
-          if (!pos_rs.getString("adr").equals(this.target_adr))
-              throw new Exception("Invalid signer - CClosePosPayload.java");
-          
-          // Load market data
-          ResultSet mkt_rs=UTILS.DB.executeQuery("SELECT * "
+        // Load market data
+        ResultSet mkt_rs=UTILS.DB.executeQuery("SELECT * "
                                                  + "FROM feeds_spec_mkts "
                                                 + "WHERE mktID='"+pos_rs.getLong("mktID")+"'");
           
-          // Next
-          mkt_rs.next();
+        // Next
+        mkt_rs.next();
           
-          // To pay
-          double pay=(pos_rs.getDouble("pl")+pos_rs.getDouble("margin"))*this.percent/100;
+        // To pay
+        double pay=(pos_rs.getDouble("pl")+pos_rs.getDouble("margin"))*this.percent/100;
           
-          // Market balance lower than payment owned ?
-          double mkt_balance=UTILS.ACC.getBalance(this.target_adr, mkt_rs.getString("cur"), block);
+        // Market balance lower than payment owned ?
+        double mkt_balance=UTILS.ACC.getBalance(this.target_adr, mkt_rs.getString("cur"), block);
           
-          // Balance
-          if (mkt_balance<pay) pay=mkt_balance;
+        // Balance
+        if (mkt_balance<pay) pay=mkt_balance;
           
-          // Debit market address
-          UTILS.ACC.newTransfer(mkt_rs.getString("adr"), 
-                               pos_rs.getString("adr"),
-                               pay,
-                               true,
-                               mkt_rs.getString("cur"), 
-                               "Order "+this.posID+" has been closed ("+this.percent+"%) and the profit / losss payed", 
-                               "", 
-                               this.hash, 
-                               this.block,
-                               block,
-                               0);
+        // Debit market address
+        if (pay>0)
+        UTILS.ACC.newTransfer(mkt_rs.getString("adr"), 
+                              pos_rs.getString("adr"),
+                              pay,
+                              mkt_rs.getString("cur"), 
+                              "Order "+this.posID+" has been closed ("+this.percent+"%) and the profit / losss payed", 
+                              "", 
+                              this.hash, 
+                              this.block);
     }
     
     public void commit(CBlockPayload block) throws Exception

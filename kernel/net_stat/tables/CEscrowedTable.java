@@ -61,14 +61,11 @@ public class CEscrowedTable extends CTable
        UTILS.ACC.newTrans(rs.getString("sender_adr"), 
                           "", 
                           rs.getDouble("amount"), 
-                          true,
                           rs.getString("cur"), 
                           "Escrowed funds returned", 
                           "", 
                           UTILS.BASIC.hash(rs.getString("hash")), 
-                          block,
-                          null,
-                          0);
+                          block);
        
        // Clear
        UTILS.ACC.clearTrans(UTILS.BASIC.hash(rs.getString("hash")), "ID_ALL", block);

@@ -16,7 +16,8 @@ public class CCommentsTable extends CTable
     
     public void expire(long block) throws Exception
     {
-        UTILS.DB.executeUpdate("DELETE FROM comments WHERE expire<"+block);
+        UTILS.DB.executeUpdate("DELETE FROM comments "
+                                   + "WHERE expire<"+block);
     }
     
     public void create() throws Exception

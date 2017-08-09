@@ -84,7 +84,7 @@ public class CNewTweetPayload extends CPayload
             throw new Exception("Invalid days - CNewTweetPayload.java");
         
         // ID valid ?
-        if (UTILS.BASIC.existID(this.tweetID))
+        if (UTILS.BASIC.isID(this.tweetID))
            throw new Exception("Invalid tweetID - CNewTweetPayload.java");
             
         // Not a retweet
@@ -95,7 +95,7 @@ public class CNewTweetPayload extends CPayload
                throw new Exception ("Invalid title - CNewTweetPayload.java");
         
    	   // Check Message
-           if (!UTILS.BASIC.isDesc(this.mes, 10000))
+           if (!UTILS.BASIC.isDesc(this.mes, 20000))
             throw new Exception ("Invalid message - CNewTweetPayload.java");
            
            // Pic
@@ -108,6 +108,10 @@ public class CNewTweetPayload extends CPayload
         if (this.retweet_tweet_ID>0)
            if (!UTILS.BASIC.targetValid("ID_POST", this.retweet_tweet_ID))
               throw new Exception("Invalid retweet_tweet_ID - CNewTweetPayload.java");
+        
+        // Valid tweetID ?
+        if (this.retweet_tweet_ID<0)
+            throw new Exception("Invalid retweet_tweet_ID - CNewTweetPayload.java");
         
         // Check Hash
 	String h=UTILS.BASIC.hash(this.getHash()+

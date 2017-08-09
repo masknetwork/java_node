@@ -1,9 +1,5 @@
 package wallet.kernel;
-
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import wallet.network.CResult;
 import wallet.network.packets.blocks.CBlockPayload;
 
 public class CAcc 
@@ -15,29 +11,30 @@ public class CAcc
     
     public void clearTrans(String hash, String tip, long block) throws Exception
     {
-            // Load trans data
-            ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                               + "FROM trans "
-                                               + "WHERE hash='"+hash+"' "
-                                                 + "AND status='ID_PENDING'");
+        // Check hash
+        if (!UTILS.BASIC.isHash(hash))
+            throw new Exception("Invalid hash - CAcc.java, 19");
+        
+        // Load trans data
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM trans "
+                                           + "WHERE hash='"+hash+"' "
+                                             + "AND status='ID_PENDING'");
                 
-                // Clear
-                while (rs.next())
-                {
-                    if ((rs.getDouble("amount")<0 && (tip.equals("ID_ALL") || tip.equals("ID_SEND"))) ||
-                        (rs.getDouble("amount")>0 && (tip.equals("ID_ALL") || tip.equals("ID_RECEIVE"))))
-                    {
-                      if (!rs.getString("cur").equals("MSK"))
-                       this.doAssetTrans(rs.getString("src"), 
+        // Clear
+        while (rs.next())
+        {
+            if ((rs.getDouble("amount")<0 && (tip.equals("ID_ALL") || tip.equals("ID_SEND"))) ||
+                (rs.getDouble("amount")>0 && (tip.equals("ID_ALL") || tip.equals("ID_RECEIVE"))))
+            {
+                if (!rs.getString("cur").equals("MSK"))
+                   this.doAssetTrans(rs.getString("src"), 
                                          rs.getDouble("amount"), 
                                          rs.getString("cur"),
-                                         hash, 
-                                         rs.getDouble("invested"),
                                          block);
                       else
                         this.doTrans(rs.getString("src"), 
                                      rs.getDouble("amount"), 
-                                     hash,
                                      block);
                       
                       // Update trans
@@ -50,57 +47,50 @@ public class CAcc
              
         }
         
-        
-       
-        
         public void newTransfer(String src, 
                                 String dest, 
                                 double amount, 
-                                boolean send_trans,
                                 String cur, 
                                 String expl, 
                                 String escrower, 
                                 String hash, 
-                                long block,
-                                CBlockPayload block_payload, 
-                                double invested) throws Exception
+                                long block) throws Exception
         {
+            // Amount
+            if (amount<0.00000001)
+                throw new Exception("Invalid amount, CAcc.java, 61");
+            
+            // Sender and receiver the same
+            if (src.equals("dest"))
+                throw new Exception("Sender and receiver are the same, CAcc.java, 61");
+                
             this.newTrans(src, 
                           dest, 
                           -amount, 
-                          send_trans,
                           cur, 
                           expl, 
                           escrower, 
                           hash, 
-                          block,
-                          block_payload,
-                          invested);  
+                          block);  
             
             this.newTrans(dest, 
                           src, 
                           amount, 
-                          send_trans,
                           cur, 
                           expl, 
                           escrower, 
                           hash, 
-                          block,
-                          block_payload,
-                          invested);  
+                          block);  
         }
         
         public void newTrans(String adr, 
                              String adr_assoc, 
                              double amount, 
-                             boolean send_trans,
                              String cur, 
                              String expl, 
                              String escrower, 
                              String hash, 
-                             long block,
-                             CBlockPayload block_payload,
-                             double invested) throws Exception
+                             long block) throws Exception
         {
             // ResultSet
             ResultSet rs;
@@ -115,9 +105,30 @@ public class CAcc
             double mkt_fee=0;
             
             // Address valid
-            if (!UTILS.BASIC.isAdr(adr)) throw new Exception("Invalid address");
+            if (!UTILS.BASIC.isAdr(adr)) 
+                throw new Exception("Invalid address - CAcc.java, 107");
             
-                    
+            // Address associated address ?
+            if (!adr_assoc.equals(""))
+              if (!UTILS.BASIC.isAdr(adr_assoc)) 
+                throw new Exception("Invalid associated address - CAcc.java, 111");
+            
+            // Valid currency ?
+            if (!UTILS.BASIC.isCur(cur)) 
+                throw new Exception("Invalid currency - CAcc.java, 115");
+            
+            // Valid escrower ?
+            if (!escrower.equals(""))
+              if (!UTILS.BASIC.isAdr(escrower)) 
+                throw new Exception("Invalid escrower - CAcc.java, 120");
+            
+            // Valid hash ?
+            if (!UTILS.BASIC.isHash(hash)) 
+                throw new Exception("Invalid hash - CAcc.java, 124");
+            
+            // Encode expl
+            expl=UTILS.BASIC.base64_encode(expl);
+           
             // Trans ID
             long tID=UTILS.BASIC.getID();
                 
@@ -146,8 +157,8 @@ public class CAcc
                 {
                     // Loads asset data
                     rs=UTILS.DB.executeQuery("SELECT * "
-                                      + "FROM assets "
-                                     + "WHERE symbol='"+cur+"'");
+                                             + "FROM assets "
+                                            + "WHERE symbol='"+cur+"'");
                   
                     // Next
                     rs.next();
@@ -176,6 +187,7 @@ public class CAcc
                                                  + "amount='"+UTILS.FORMAT_8.format(amount)+"', "
                                                  + "cur='"+cur+"', "
                                                  + "expl='"+expl+"', "
+                                                 + "escrower='"+escrower+"', "
                                                  + "hash='"+hash+"', "
                                                  + "block='"+block+"', "
                                                  + "block_hash='"+UTILS.NET_STAT.actual_block_hash+"', "
@@ -222,6 +234,8 @@ public class CAcc
                                                  + "amount='"+UTILS.FORMAT_8.format(amount)+"', "
                                                  + "cur='"+cur+"', "
                                                  + "hash='"+hash+"', "
+                                                 + "expl='"+expl+"', "
+                                                 + "escrower='"+escrower+"', "
                                                  + "block='"+block+"', "
                                                  + "block_hash='"+UTILS.NET_STAT.actual_block_hash+"', "
                                                  + "tstamp='"+UTILS.BASIC.tstamp()+"', "
@@ -235,6 +249,7 @@ public class CAcc
                                                  + "amount='"+UTILS.FORMAT_8.format(-fee)+"', "
                                                  + "cur='"+cur+"', "
                                                  + "hash='"+hash+"', "
+                                                 + "expl='"+expl+"', "
                                                  + "block='"+block+"', "
                                                  + "block_hash='"+UTILS.NET_STAT.actual_block_hash+"', "
                                                  + "tstamp='"+UTILS.BASIC.tstamp()+"', "
@@ -247,6 +262,7 @@ public class CAcc
                                                  + "amount='"+UTILS.FORMAT_8.format(fee)+"', "
                                                  + "cur='"+cur+"', "
                                                  + "hash='"+hash+"', "
+                                                 + "expl='"+expl+"', "
                                                  + "block='"+block+"', "
                                                  + "block_hash='"+UTILS.NET_STAT.actual_block_hash+"', "
                                                  + "tstamp='"+UTILS.BASIC.tstamp()+"', "
@@ -260,10 +276,18 @@ public class CAcc
         // Get address owner
         public long getAdrUserID(String adr) throws Exception
         {
-            if (adr.equals("default")) return 0;
+            // Address valid
+            if (!UTILS.BASIC.isAdr(adr))
+                throw new Exception ("Invalid address - CAcc.java, 278");
+            
+            // Default address ?
+            if (adr.equals("default")) 
+                return 0;
             
             // Load source
-               ResultSet rs=UTILS.DB.executeQuery("SELECT * FROM my_adr WHERE adr='"+adr+"'"); 
+               ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                                  + "FROM my_adr "
+                                                 + "WHERE adr='"+adr+"'"); 
                
                // None ?
                if (!UTILS.DB.hasData(rs)) return 0;
@@ -278,15 +302,21 @@ public class CAcc
         
         // Transfer assets
         public void doAssetTrans(String adr, 
-                                    double amount, 
-                                    String cur,
-                                    String hash,
-                                    double inv,
-                                    long block) throws Exception
+                                 double amount, 
+                                 String cur,
+                                 long block) throws Exception
         {
             double balance=0;
             double new_balance=0;
             double invested=0;
+            
+            // Address valid
+            if (!UTILS.BASIC.isAdr(adr))
+                throw new Exception ("Invalid address - CAcc.java, 278");
+            
+            // Currency valid
+            if (!UTILS.BASIC.isCur(cur))
+                throw new Exception ("Invalid address - CAcc.java, 278");
                     
             // Load asset data
             ResultSet rs=UTILS.DB.executeQuery("SELECT * "
@@ -337,22 +367,16 @@ public class CAcc
         }
         
         public void doTrans(String adr, 
-                               double amount, 
-                               String hash, 
-                               long block) throws Exception
+                            double amount, 
+                            long block) throws Exception
         {
             double balance;
             double new_balance;
             
             // Adr
-            if (!UTILS.BASIC.isAdr(adr)) throw new Exception("Invalid address");
+            if (!UTILS.BASIC.isAdr(adr)) 
+                throw new Exception("Invalid address");
             
-            // Hash
-            if (!UTILS.BASIC.isHash(hash))  throw new Exception("Invalid hash");
-                
-            // Statement
-            
-		     
             // Load source
             ResultSet rs=UTILS.DB.executeQuery("SELECT * FROM adr WHERE adr='"+adr+"'");
 		         
@@ -392,40 +416,54 @@ public class CAcc
         
         public double getBalance(String adr, String cur) throws Exception
 	{
+           // Result Set
 	   ResultSet rs;
-                 if (cur.equals("MSK"))
-                    rs=UTILS.DB.executeQuery("SELECT * "
-                                      + "FROM adr "
-                                     + "WHERE adr='"+adr+"'");
-                 else
-                    rs=UTILS.DB.executeQuery("SELECT * "
-                                      + "FROM assets_owners "
-                                     + "WHERE owner='"+adr+"' "
-                                       + "AND symbol='"+cur+"'");
-                 
-                if (UTILS.DB.hasData(rs)==true)
-                {
-                   // Next
-                   rs.next();
+           
+           // Adr
+            if (!UTILS.BASIC.isAdr(adr)) 
+                throw new Exception("Invalid address");
+            
+            // Currency
+            if (!UTILS.BASIC.isCur(cur)) 
+                throw new Exception("Invalid currency");
+           
+           // MSK ?
+           if (cur.equals("MSK"))
+              rs=UTILS.DB.executeQuery("SELECT * "
+                                       + "FROM adr "
+                                      + "WHERE adr='"+adr+"'");
+            
+            // Asset ? 
+            else
+                rs=UTILS.DB.executeQuery("SELECT * "
+                                         + "FROM assets_owners "
+                                        + "WHERE owner='"+adr+"' "
+                                          + "AND symbol='"+cur+"'");
+            
+            // Has data ?
+            if (UTILS.DB.hasData(rs)==true)
+            {
+                // Next
+                rs.next();
                    
-                   // Balance
-                   double balance;
-                   if (cur.equals("MSK"))
-                      balance=rs.getDouble("balance");
-                   else
-                      balance=rs.getDouble("qty");
+                // Balance
+                double balance;
+                
+                // Currency
+                if (cur.equals("MSK"))
+                   balance=rs.getDouble("balance");
+                else
+                   balance=rs.getDouble("qty");
                    
                   
-                   // Return
-                   return balance;
-                } 
-                else
-                {
-                   
-                    // Return
-                    return 0;
-                }
-	   
+                // Return
+                return balance;
+            } 
+            else
+            {
+                // Return
+                return 0;
+            }
 	}
         
     public double getBalance(String adr, String cur, CBlockPayload block) throws Exception
@@ -434,47 +472,5 @@ public class CAcc
             return UTILS.NETWORK.TRANS_POOL.getBalance(adr, cur);
         else
             return UTILS.ACC.getBalance(adr, cur);
-    }
-    
-    public void payFeed(String adr, 
-                        String feed, 
-                        String branch, 
-                        long days, 
-                        String hash, 
-                        long block, 
-                        CBlockPayload block_payload) throws Exception
-    {
-        // Load branch data
-        ResultSet rs=UTILS.DB.executeQuery("SELECT feeds.adr, fb.fee "
-                                           + "FROM feeds_branches AS fb "
-                                           + "JOIN feeds ON feeds.symbol=fb.feed_symbol "
-                                          + "WHERE fb.feed_symbol='"+feed+"' "
-                                            + "AND fb.symbol='"+branch+"'");
-        
-        // Next
-        rs.next();
-        
-        // Feed address
-        String feed_adr=rs.getString("adr");
-        
-        // Fee
-        double fee=rs.getDouble("fee");
-        
-        // Amount
-        double amount=fee*days;
-                
-        // Transfer
-        if (amount>0)
-        this.newTransfer(adr, 
-                         feed_adr, 
-                         amount, 
-                         true,
-                         "MSK", 
-                         "Feed payment", 
-                         "", 
-                         hash, 
-                         block,
-                         block_payload,
-                         0);
     }
 }

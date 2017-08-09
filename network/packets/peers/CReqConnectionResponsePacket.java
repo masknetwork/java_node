@@ -16,7 +16,7 @@ public class CReqConnectionResponsePacket extends CPacket
     String ip;
 	
     // Version  
-    String ver;
+    long ver;
     
     // Serial
    private static final long serialVersionUID = 100L;

@@ -5,15 +5,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.math.BigInteger;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-import wallet.kernel.CCrons;
 import wallet.kernel.UTILS;
-import wallet.network.CResult;
 import wallet.network.packets.blocks.CBlockPacket;
 import wallet.network.packets.blocks.CBlockPayload;
 import wallet.network.packets.sync.CGetBlockPacket;
@@ -99,8 +95,8 @@ public class CConsensus
           
           // POW
           if (!block.preCheck()) 
-              throw new Exception ("Block precheck failed");
-       
+             throw new Exception ("Block precheck failed");
+          
            // Store
           this.store(block);
        
@@ -182,6 +178,8 @@ public class CConsensus
        }
        catch (Exception ex)
        {
+           System.out.println(UTILS.DB.last_query);
+           
            // Rollback
            System.out.println("Rolling back block " + block.block + " - " + ex.getMessage());
            
@@ -193,6 +191,9 @@ public class CConsensus
           
            // New status
            this.setStatus("ID_WAITING");
+           
+           // Trace
+           UTILS.BASIC.stackTrace();
           
           // Throws exception
           throw new Exception(ex);
@@ -225,6 +226,10 @@ public class CConsensus
    
    public void commited(long block, String hash) throws Exception
    {
+        // Check hash
+        if (!UTILS.BASIC.isHash(hash))
+           throw new Exception("Invalid hash - CConsensus.java, 410");
+       
         // Reset commited
         UTILS.DB.executeUpdate("UPDATE blocks "
                                 + "SET commited=0 "
@@ -246,6 +251,10 @@ public class CConsensus
        
        // Find a chain up to the last checkpoint
        boolean found=false;
+       
+       // Check hash
+       if (!UTILS.BASIC.isHash(hash))
+           throw new Exception("Invalid hash - CConsensus.java, 410");
        
        
        while (!found)
@@ -291,6 +300,10 @@ public class CConsensus
        // Next
        rs.next();
        
+       // Check hash
+       if (!UTILS.BASIC.isHash(rs.getString("hash")))
+           throw new Exception("Invalid hash - CConsensus.java, 410");
+       
        // Update net stat
        UTILS.DB.executeUpdate("UPDATE net_stat "
                                + "SET last_block='"+rs.getLong("block")+"', "
@@ -302,6 +315,10 @@ public class CConsensus
        // Reload addresses
        System.out.println("Loading adr...");
        UTILS.NET_STAT.table_adr.loadCheckpoint(rs.getString("hash"));
+       
+       // Reload addresses attributes
+       System.out.println("Loading adr_attr...");
+       UTILS.NET_STAT.table_adr_attr.loadCheckpoint(rs.getString("hash"));
        
        // Reload ads
        System.out.println("Loading ads...");
@@ -360,8 +377,8 @@ public class CConsensus
        UTILS.NET_STAT.table_tweets_follow.loadCheckpoint(rs.getString("hash"));
        
        // Votes
-       System.out.println("Loading assets_owners...");
-       UTILS.NET_STAT.table_assets_owners.loadCheckpoint(rs.getString("hash"));
+       System.out.println("Loading votes...");
+       UTILS.NET_STAT.table_votes.loadCheckpoint(rs.getString("hash"));
        
        // Reload del_votes
        System.out.println("Loading del_votes...");
@@ -370,6 +387,10 @@ public class CConsensus
        // Reload delegates
        System.out.println("Loading delegates...");
        UTILS.NET_STAT.table_delegates.loadCheckpoint(rs.getString("hash"));
+       
+       // Reload delegates log
+       System.out.println("Loading delegates log...");
+       UTILS.NET_STAT.table_delegates_log.loadCheckpoint(rs.getString("hash"));
        
        // Reload domains
        System.out.println("Loading domains...");
@@ -402,20 +423,28 @@ public class CConsensus
    
    public boolean isCheckPoint(String hash) throws Exception
    {
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                           + "FROM checkpoints "
-                                          + "WHERE hash='"+hash+"'");
+       // Check hash
+       if (!UTILS.BASIC.isHash(hash))
+           throw new Exception("Invalid hash - CConsensus.java, 410");
+           
+       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                          + "FROM checkpoints "
+                                         + "WHERE hash='"+hash+"'");
         
-        // Has data
-        if (UTILS.DB.hasData(rs))
+       // Has data
+       if (UTILS.DB.hasData(rs))
             return true;
-        else
+       else
             return false;
    }
    
   
    public void addToPool(CBlockPacket block) throws Exception
    {
+       // Check hash
+       if (!UTILS.BASIC.isHash(block.hash))
+           throw new Exception("Invalid hash - CConsensus.java, 410");
+       
        // Load
        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                           + "FROM blocks_pool "
@@ -439,6 +468,10 @@ public class CConsensus
    {
        // Found
        boolean found=false;
+       
+       // Check hash
+       if (!UTILS.BASIC.isHash(hash))
+           throw new Exception("Invalid hash - CConsensus.java, 410");
        
        // Load
        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
@@ -475,6 +508,22 @@ public class CConsensus
    {
         // Deserialize payload
         CBlockPayload block_payload=(CBlockPayload) UTILS.SERIAL.deserialize(block.payload);
+        
+        // Block hash
+        if (!UTILS.BASIC.isHash(block.hash))
+           throw new Exception("Invalid hash - CConsensus.java, 508");
+        
+        // Prev hash
+        if (!UTILS.BASIC.isHash(block.prev_hash))
+           throw new Exception("Invalid hash - CConsensus.java, 512");
+        
+        // Signer
+        if (!UTILS.BASIC.isAdr(block.signer))
+           throw new Exception("Invalid hash - CConsensus.java, 516");
+        
+        // Payload hash
+        if (!UTILS.BASIC.isHash(block.payload_hash))
+           throw new Exception("Invalid hash - CConsensus.java, 520");
        
         // Insert
         UTILS.DB.executeUpdate("INSERT INTO blocks "
@@ -501,8 +550,13 @@ public class CConsensus
       // Out
        System.out.println("Removing from pool "+hash);
        
-      // Remove from pool
-       UTILS.DB.executeUpdate("DELETE FROM blocks_pool WHERE hash='"+hash+"'"); 
+       // Hash
+       if (!UTILS.BASIC.isHash(hash))
+           throw new Exception("Invalid hash - CConsensus.java, 410");
+       
+       // Remove from pool
+       UTILS.DB.executeUpdate("DELETE FROM blocks_pool "
+                                  + "WHERE hash='"+hash+"'"); 
    }
    
    public void store(CBlockPacket block) throws Exception
@@ -510,6 +564,7 @@ public class CConsensus
         FileOutputStream fout = new FileOutputStream(new File(UTILS.WRITEDIR+"blocks/"+block.hash+".block"));
         ObjectOutputStream oos = new ObjectOutputStream(fout);
         oos.writeObject(block);
+        oos.close();
    }
    
    public CBlockPacket loadBlock(String hash) throws Exception
@@ -527,6 +582,9 @@ public class CConsensus
 
 	    // Read an object
 	    CBlockPacket obj = (CBlockPacket)obj_in.readObject();
+            
+            // Close
+            obj_in.close();
 				     
 	    // Add block
 	    return obj;

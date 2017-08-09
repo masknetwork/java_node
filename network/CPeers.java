@@ -3,21 +3,18 @@
 
 package wallet.network;
 
-import java.io.*;
 import java.net.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import wallet.kernel.*;
 import wallet.network.packets.*;
 import wallet.network.packets.peers.*;
 import wallet.network.packets.sync.CPing;
 
-public class CPeers
+public class CPeers extends Thread
 {
 	private static final SocketAddress SocketAddress = null;
 
@@ -49,12 +46,26 @@ public class CPeers
    CPeers(CNetwork station) throws Exception
    {   
 	   this.network=station;
-           
+   }
+   
+   @Override
+   public void run()
+   {
+       try
+       {
            // Timer
-             timer = new Timer();
-              task=new RemindTask();
-              task.parent=this;
-             timer.schedule(task, 0, 1000); 
+           timer = new Timer();
+           task=new RemindTask();
+           task.parent=this;
+           timer.schedule(task, 0, 1000); 
+        
+           // Server start
+           this.serverStart(UTILS.SETTINGS.port); 	
+       }
+       catch (Exception ex)
+       {
+           System.out.println(ex.getMessage());
+       }
    }
    
    public void lastSeen(String peer) throws Exception
@@ -73,6 +84,10 @@ public class CPeers
        
         // Add peer	   
         peers.add(peer);
+        
+        // Address ?
+       if (!UTILS.BASIC.isIP(peer.adr))
+           throw new Exception("Invalid peer - CPeers.java, 76");
        
         // Add peer
         UTILS.DB.executeUpdate("INSERT INTO peers "
@@ -110,16 +125,17 @@ public class CPeers
    public void removePeer(CPeer peer) throws Exception
    {
        // Console
-       if (this.conectedTo(peer.adr)) 
-           System.out.println("Connected peer removed "+peer.adr+" !!!");
-       else
-           System.out.println("Peer removed "+peer.adr+" !!!");
+       System.out.println("Peer removed "+peer.adr+" !!!");
        
        // Close peer
        peer.close();
        
        // Removes from list
        this.peers.remove(peer);
+       
+       // address
+       if (!UTILS.BASIC.isIP(peer.adr))
+           throw new Exception("Invalid peer - CPeers.java, 124");
        
        // Update db
        UTILS.DB.executeUpdate("DELETE FROM peers "
@@ -138,16 +154,21 @@ public class CPeers
 	   if (p.adr.equals(peer)) this.removePeer(p);
        } 
       
+       // Is adr
+       if (!UTILS.BASIC.isIP(peer))
+           throw new Exception("Invalid peer - CPeers.java, 145");
+       
        // Delete from db
-       UTILS.DB.executeUpdate("DELETE FROM peers WHERE peer='"+peer+"'"); 
+       UTILS.DB.executeUpdate("DELETE FROM peers "
+                                  + "WHERE peer='"+peer+"'"); 
        
        // Peer removed
        System.out.println("Peer removed "+peer+" !!!");
        }
        catch (Exception ex) 
-       	      {  
-       		UTILS.LOG.log("SQLException", ex.getMessage(), "CPeers.java", 152);
-              }
+       {  
+            System.out.println(ex.getMessage() + " - CPeers.java, 146");
+       }
    }
    
    public CPeer conect(String adr, int port) throws Exception
@@ -170,13 +191,9 @@ public class CPeers
              return peer;
           }
        }
-       catch (InterruptedException ex)
-       {
-              UTILS.LOG.log("InterruptedException", ex.getMessage(), "CPeers.java", 161);
-       }
        catch (Exception ex)
        {
-              UTILS.LOG.log("InterruptedException", ex.getMessage(), "CPeers.java", 161);
+          System.out.println(ex.getMessage() + " - CPeers.java, 172");
        }
        
      return null;
@@ -201,14 +218,14 @@ public class CPeers
    
    public void checkPendingPeers() throws Exception
    {
-      if (this.peers.size()<3)
+      if (this.peers.size()<UTILS.SETTINGS.min_peers)
       {
              // Select pending peers
              
              ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                                 + "FROM peers_pool "
-                                  + "ORDER BY rand() "
-                                     + "LIMIT 0,1");
+                                            + "ORDER BY rand() "
+                                               + "LIMIT 0,1");
        
      
          
@@ -271,13 +288,16 @@ public class CPeers
            }
            catch (Exception ex) 
        	   {  
-                UTILS.LOG.log("Exception", ex.getMessage(), "CPeers.java", 270);
+               System.out.println(ex.getMessage() + " - CPeers.java, 267");
            }
        }
    }
   
    public void connFailed(String peer) throws Exception
    {
+       if (!UTILS.BASIC.isIP(peer))
+           throw new Exception("Invalid peer - CPeers.java, 285");
+       
        UTILS.DB.executeUpdate("UPDATE peers_pool "
                               + "SET accept_con='ID_PENDING', "
                                   + "con_att_no=con_att_no+1, "
@@ -285,7 +305,11 @@ public class CPeers
                             + "WHERE peer='"+peer+"'");
        
        // Dead peers
-       UTILS.DB.executeUpdate("DELETE FROM peers_pool WHERE con_att_no>5");
+       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                          + "FROM peers_pool "
+                                         + "WHERE con_att_no>5");
+       if (UTILS.DB.hasData(rs))
+          UTILS.DB.executeUpdate("DELETE FROM peers_pool WHERE con_att_no>5");
    }
    
    public void portOpen(String ip, int port)
@@ -297,6 +321,9 @@ public class CPeers
           
           // Open socket
           socket.connect(new InetSocketAddress(ip, port), 1000);
+          
+          if (!UTILS.BASIC.isIP(ip))
+           throw new Exception("Invalid peer - CPeers.java, 308");
           
           UTILS.DB.executeUpdate("UPDATE peers_pool "
                                   + "SET con_att_no=0, "
@@ -323,6 +350,10 @@ public class CPeers
    
    public void checkPeersConn() throws Exception
    {
+       // Sync ?
+       if (UTILS.STATUS.engine_status.equals("ID_SYNC"))
+           return;
+           
        // Load pending peers
        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                           + "FROM peers_pool "
@@ -331,11 +362,13 @@ public class CPeers
        
           while (rs.next())
           {
-              if (!InetAddress.getByName(rs.getString("peer")).isReachable(1000))
-                   UTILS.DB.executeUpdate("DELETE FROM peers_pool "
-                                              + "WHERE peer='"+rs.getString("peer")+"'");
-              else
+              if (!this.conectedTo(rs.getString("peer")))
+              {
+                 if (!InetAddress.getByName(rs.getString("peer")).isReachable(1000))
+                   this.connFailed(rs.getString("peer"));
+                 else
                    this.portOpen(rs.getString("peer"), rs.getInt("port"));
+              }
           }
       
    }
@@ -357,10 +390,85 @@ public class CPeers
 	   for (int a=0; a<=this.peers.size()-1; a++)
 	   {
 	      CPeer peer=(CPeer) this.peers.get(a);
-	      if (peer.adr.equals(adr)) return true;
+              
+	      if (peer.adr.equals(adr)) 
+              {
+                  if (!UTILS.BASIC.isIP(adr))
+                        throw new Exception("Invalid peer - CPeers.java, 376");
+                  
+                  // Peer exist ?
+                  ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                                     + "FROM peers "
+                                                    + "WHERE peer='"+adr+"'");
+                  
+                  // Has data ?
+                  if (!UTILS.DB.hasData(rs))
+                  {
+                      // Remove peer
+                      this.removePeer(peer);
+                      
+                      // Return
+                      return false;
+                  }
+                  
+                  // Return
+                  return true;
+              }
 	   }
 	   
 	   return false;
+   }
+   
+   public boolean isWhiteListed(String IP) throws Exception
+   {
+       // Valid IP
+       if (!UTILS.BASIC.isIP(IP))
+           throw new Exception("Invalid IP - CPeers.java, 405");
+       
+       // Load data
+       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                          + "FROM ips "
+                                         + "WHERE IP='"+IP+"' "
+                                           + "AND status='ID_WHITELIST'");
+       
+       // Has data ?
+       if (UTILS.DB.hasData(rs))
+           return true;
+       else
+           return false;
+   }
+   
+   public boolean isBlackListed(String IP) throws Exception
+   {
+       // Valid IP
+       if (!UTILS.BASIC.isIP(IP))
+           throw new Exception("Invalid IP - CPeers.java, 405");
+       
+       // Load data
+       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                          + "FROM ips "
+                                         + "WHERE IP='"+IP+"' "
+                                           + "AND status='ID_BLACKLIST'");
+       
+       // Has data ?
+       if (UTILS.DB.hasData(rs))
+           return true;
+       else
+           return false;
+   }
+   
+   public boolean whitelistExist() throws Exception
+   {
+       // Load data
+       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                          + "FROM ips "
+                                         + "WHERE status='ID_WHITELIST'");
+       
+       // Has data ?
+       if (UTILS.DB.hasData(rs))
+           return true;
+       else
+           return false;
    }
    
    public boolean checkCon(Socket so) throws Exception
@@ -375,12 +483,29 @@ public class CPeers
            
            // Sync ?
            if (UTILS.STATUS.engine_status.equals("ID_SYNC"))
+           {
+               System.out.println("Refunsng connection of "+IP+" - we are syncing");
                return false;
-       
+           }
+           
             // Already connected
            if (this.conectedTo(IP))
+           {
+               System.out.println("Refunsng connection of "+IP+" - already connected");
                return false;
-       
+           }
+           
+           if (!UTILS.BASIC.isIP(IP))
+               throw new Exception("Invalid peer - CPeers.java, 426");
+           
+           // Blacklisted ?
+           if (this.isBlackListed(IP))
+               throw new Exception("Blacklisted IP - CPeers.java, 426");
+           
+           // Whitelisted ?
+           if (this.whitelistExist())
+             if (this.isWhiteListed(IP))
+               throw new Exception("IP is not whitelisted - CPeers.java, 426");
            
            // Record connection
            UTILS.DB.executeUpdate("INSERT INTO con_log "
@@ -391,7 +516,7 @@ public class CPeers
        catch (SQLException ex)
        {
            // Log
-           UTILS.LOG.log("SQLException", ex.getMessage(), "CPeers.java", 390);
+           System.out.println(ex.getMessage() + " - CPeers.java, 416");
            
            // Return
            return false;
@@ -423,24 +548,16 @@ public class CPeers
                 }
                 else 
                 {
-                    System.out.println("Conn refused.");
                     s.close();
                 }
                
 	     }
 	   }
-	   catch (SocketTimeoutException ex) 
+	   catch (Exception ex) 
 	   { 
-	       UTILS.LOG.log("SocketTimeoutException", ex.getMessage(), "CPeers.java", 88);
+	       System.out.println(ex.getMessage() + " - CPeers.java, 455");
            }
-	   catch (SocketException ex) 
-	   { 
-	       UTILS.LOG.log("SocketException", ex.getMessage(), "CPeers.java", 88);
-           }
-	   catch (IOException ex) 
-	   { 
-	       UTILS.LOG.log("IOException", ex.getMessage(), "CPeers.java", 88);
-           }
+	   
    }
    
 }

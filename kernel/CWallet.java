@@ -3,24 +3,11 @@
 
 package wallet.kernel;
 
-import java.awt.List;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
-import javax.crypto.SealedObject;
 
 import org.apache.commons.io.FileUtils;
 
@@ -89,9 +76,8 @@ public class CWallet
 	    for (int a=0; a<=s.length-1; a++)
 	    {
 		String[] adr=s[a].split(",");
-		CAddress address=new CAddress(adr[0], adr[1], adr[2], Float.parseFloat(adr[3])); 
+		CAddress address=new CAddress(adr[0], adr[1]); 
 		this.addresses.add(address);
-		this.balance=this.balance+address.balance;
             }
         }
      }
@@ -104,9 +90,7 @@ public class CWallet
     	 for (int a=0; a<=this.addresses.size()-1; a++)
     	 {
     		 w=w+((CAddress)addresses.get(a)).getPublic()+","+
-    				 ((CAddress)addresses.get(a)).getPrivate()+","+
-    				 ((CAddress)addresses.get(a)).description+","+
-    				 ((CAddress)addresses.get(a)).balance+"*";
+    	             ((CAddress)addresses.get(a)).getPrivate()+"*";
     	 }
     	 
  
@@ -114,13 +98,12 @@ public class CWallet
     	 // Encrypt
     	 try
     	 {
-             System.out.println(UTILS.SETTINGS.getWalletPass());
              String enc=UTILS.AES.encrypt(w, UTILS.SETTINGS.getWalletPass()); 
     	     FileUtils.writeStringToFile(f, enc, "UTF-8");
     	 }
     	 catch (Exception ex) 
     	 { 
-    		 UTILS.LOG.log("ERROR", ex.getMessage(), "CWallet", 153); 
+            System.out.println(ex.getMessage() + " - CWallet, 123"); 
     	 }
      }
      
@@ -132,7 +115,7 @@ public class CWallet
      
     
      
-      public String newAddress(String user, String description) throws Exception
+      public String newAddress(long userID, String description) throws Exception
       {
         // Generate an address
         CAddress adr=new CAddress();
@@ -142,17 +125,6 @@ public class CWallet
 		 
 	// Add
 	this.addresses.add(adr);
-         
-        // Load address data
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                               + "FROM web_users "
-                                              + "WHERE user='"+user+"'");
-         
-        // Next
-        rs.next();
-         
-        // User ID
-        long userID=rs.getLong("ID");
          
 	// Insert address
 	UTILS.DB.executeUpdate("INSERT INTO my_adr "
@@ -204,7 +176,7 @@ public class CWallet
     
      public CAddress getAddress(String adr) throws Exception
      {
-    	 for (int a=0; a<=this.addresses.size()-1; a++)
+         for (int a=0; a<=this.addresses.size()-1; a++)
     	 {
     		 CAddress ad=(CAddress) this.addresses.get(a);
     		 if (ad.getPublic().equals(adr))

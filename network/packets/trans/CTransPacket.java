@@ -22,8 +22,7 @@ public class CTransPacket extends CBroadcastPacket
 	    	        double amount, 
 			String cur,
 			String mes,
-                        String escrower,
-                        long reqID) throws Exception
+                        String escrower) throws Exception
 	{
 		// Super class
 		super("ID_TRANS_PACKET");
@@ -41,62 +40,86 @@ public class CTransPacket extends CBroadcastPacket
 		// Network fee
                 double f=0;
                 if (cur.equals("MSK"))
-		    f=amount*0.0001;
+		    f=amount*0.001;
                 else
                     f=0.0001*amount;
                 
                 // Min fee ?
-                if (f<0.0001) f=0.0001;
+                if (f<UTILS.CONSTANTS.MIN_FEE_AMOUNT) 
+                    f=UTILS.CONSTANTS.MIN_FEE_AMOUNT;
+                
+                // Escrower ?
+                if (!escrower.equals(""))
+                    f=f+0.003;
 	        
                 // Fee
                 CFeePayload fee=new CFeePayload(fee_adr,  f);
 	        this.fee_payload=UTILS.SERIAL.serialize(fee);
                 
-                // Hash
-                UTILS.DB.executeUpdate("UPDATE web_ops "
-                                        + "SET response='"+dec_payload.hash+"' "
-                                      + "WHERE ID='"+reqID+"'");
-                
 		// Sign packet
 		this.sign();
-      }
+        }
 	
-	 // Check 
-	   public void check(CBlockPayload block) throws Exception
-	   {
-	      // Super class
-	      super.check(block);
+	// Check 
+	public void check(CBlockPayload block) throws Exception
+        {
+	    // Super class
+	    super.check(block);
 	   	
-	      // Check type
-	      if (!this.tip.equals("ID_TRANS_PACKET")) 
+	    // Check type
+	    if (!this.tip.equals("ID_TRANS_PACKET")) 
 	   	throw new Exception("Invalid packet type - CTransPacket.java");
 	   	  
-	      // Deserialize transaction data
-	      CTransPayload dec_payload=(CTransPayload) UTILS.SERIAL.deserialize(payload);
-	      dec_payload.check(block);
+	    // Deserialize transaction data
+	    CTransPayload dec_payload=(CTransPayload) UTILS.SERIAL.deserialize(payload);
+	    dec_payload.check(block);
 	      
-              // Deserialize payload
-              CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
+            // Deserialize payload
+            CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
         
-              if (dec_payload.cur.equals("MSK"))
-              {
-                     if (fee.amount<0.0001)
-                        throw new Exception("Invalid fee - CTransPacket.java");
-              }
-              else
-              {
-                     if (fee.amount<(dec_payload.amount*0.0001))
-                        throw new Exception("Invalid fee - CTransPacket.java");
-              }
+            // Required fee
+            double req_fee=0;
+            
+            if (dec_payload.cur.equals("MSK"))
+            {
+                // Required amount
+                if (dec_payload.escrower.equals(""))
+                    req_fee=dec_payload.amount*0.001;
+                else
+                    req_fee=dec_payload.amount*0.001+0.003;
+                
+                // Min fee ?
+                if (req_fee<UTILS.CONSTANTS.MIN_FEE_AMOUNT) 
+                    req_fee=UTILS.CONSTANTS.MIN_FEE_AMOUNT;
+                
+                // Fee
+                if (fee.amount<req_fee)
+                    throw new Exception("Invalid fee - CTransPacket.java");
+            }
+            else
+            {
+                // Required amount
+                if (dec_payload.escrower.equals(""))
+                    req_fee=dec_payload.amount*0.0001;
+                else
+                    req_fee=dec_payload.amount*0.0001+0.003;
+                
+                // Min fee ?
+                if (req_fee<UTILS.CONSTANTS.MIN_FEE_AMOUNT) 
+                    req_fee=UTILS.CONSTANTS.MIN_FEE_AMOUNT;
+                
+                // Fee
+                if (fee.amount<req_fee)
+                    throw new Exception("Invalid fee - CTransPacket.java");
+            }
 	   	  
-                  // Footprint
-                  CPackets foot=new CPackets(this);
-                  
-                 foot.add("Source", dec_payload.target_adr);
-                 foot.add("Recipient", dec_payload.dest);
-                 foot.add("Amount", UTILS.FORMAT_8.format(dec_payload.amount));
-                 foot.add("Currency", dec_payload.cur);
-                 foot.add("Escrower", dec_payload.escrower);
-                 foot.write();
-           }
+            // Footprint
+            CPackets foot=new CPackets(this);
+            foot.add("Source", dec_payload.target_adr);
+            foot.add("Recipient", dec_payload.dest);
+            foot.add("Amount", UTILS.FORMAT_8.format(dec_payload.amount));
+            foot.add("Currency", dec_payload.cur);
+            foot.add("Escrower", dec_payload.escrower);
+            foot.write();
+        }
 }

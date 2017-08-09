@@ -42,7 +42,7 @@ public class CNewAdPayload extends CPayload
 	   super(adr);
 	   
 	   // Country
-	   this.country=country;
+	   this.country=country.toUpperCase();
 		
 	   // Hours
 	   this.hours=hours;
@@ -58,9 +58,6 @@ public class CNewAdPayload extends CPayload
 	   
 	   // Market bid
 	   this.market_bid=market_bid;
-	   
-	   // Expires
-	   this.hours=hours;
 	   
 	   // Hash
  	   hash=UTILS.BASIC.hash(this.getHash()+
@@ -81,13 +78,8 @@ public class CNewAdPayload extends CPayload
    	  super.check(block);
    	  
    	  // Check country
-   	  if (this.country.length()==2 || this.country.equals("XX"))
-   	  {
-   		  if (UTILS.BASIC.countryExist(this.country)==false)
-   			throw new Exception("Invalid country - CNewAdPayload.java");
-   	  }
-   	  else
-   		throw new Exception("Invalid country - CNewAdPayload.java");
+   	  if (!UTILS.BASIC.isCountry(this.country))
+   	    throw new Exception("Invalid country - CNewAdPayload.java");
    	  
           // Check hours
   	  if (this.hours<1) 

@@ -3,7 +3,6 @@ package wallet.network.packets.assets;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import wallet.kernel.UTILS;
-import wallet.network.CResult;
 import wallet.network.packets.CPayload;
 import wallet.network.packets.blocks.CBlockPayload;
 
@@ -17,8 +16,7 @@ public class CIssueMoreAssetsPayload extends CPayload
     
     public CIssueMoreAssetsPayload(String adr, 
                                    String symbol, 
-                                   long qty, 
-                                   String payload_sign) throws Exception
+                                   long qty) throws Exception
     {
         // Constructor
         super(adr);
@@ -35,7 +33,7 @@ public class CIssueMoreAssetsPayload extends CPayload
                               this.qty);
         
         // Sign
-        this.sign(payload_sign);
+        this.sign();
     }
     
      public void check(CBlockPayload block) throws Exception
@@ -87,7 +85,8 @@ public class CIssueMoreAssetsPayload extends CPayload
            
            // Update assets owners
            UTILS.DB.executeUpdate("UPDATE assets_owners "
-                                   + "SET qty=qty+"+this.qty+", block='"+this.block+"' "
+                                   + "SET qty=qty+"+this.qty+", "
+                                       + "block='"+this.block+"' "
                                  + "WHERE symbol='"+this.symbol+"' "
                                    + "AND owner='"+this.target_adr+"'");
   

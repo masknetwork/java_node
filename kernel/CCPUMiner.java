@@ -5,42 +5,21 @@ package wallet.kernel;
 
 import wallet.kernel.x34.Skein512;
 import wallet.kernel.x34.Hamsi512;
-import wallet.kernel.x34.Fugue224;
 import wallet.kernel.x34.Fugue512;
-import wallet.kernel.x34.Fugue384;
-import wallet.kernel.x34.ECHO224;
-import wallet.kernel.x34.BMW384;
-import wallet.kernel.x34.BLAKE256;
 import wallet.kernel.x34.SHA256;
-import wallet.kernel.x34.Groestl256;
-import wallet.kernel.x34.BLAKE384;
-import wallet.kernel.x34.BMW256;
 import wallet.kernel.x34.Luffa512;
 import wallet.kernel.x34.SHA512;
 import wallet.kernel.x34.Groestl512;
 import wallet.kernel.x34.BMW512;
-import wallet.kernel.x34.Groestl224;
 import wallet.kernel.x34.ECHO512;
 import wallet.kernel.x34.SHAvite512;
-import wallet.kernel.x34.BLAKE224;
-import wallet.kernel.x34.CubeHash224;
-import wallet.kernel.x34.BMW224;
 import wallet.kernel.x34.Shabal512;
-import wallet.kernel.x34.Groestl384;
-import wallet.kernel.x34.ECHO256;
-import wallet.kernel.x34.CubeHash256;
 import wallet.kernel.x34.BLAKE512;
-import wallet.kernel.x34.HMAC;
 import wallet.kernel.x34.SIMD512;
 import wallet.kernel.x34.JH512;
 import wallet.kernel.x34.Keccak512;
 import wallet.kernel.x34.CubeHash512;
-import wallet.kernel.x34.CubeHash384;
-import wallet.kernel.x34.ECHO384;
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
-import java.util.Random;
-import wallet.kernel.x34.SHA224;
 
 public class CCPUMiner extends Thread
 {
@@ -188,7 +167,7 @@ public class CCPUMiner extends Thread
         while (!Thread.currentThread().isInterrupted() && this.active==true)
         {
             if (!UTILS.NET_STAT.last_block_hash.equals("") && 
-                UTILS.NETWORK.peers.peers.size()>=0 &&
+                (UTILS.NETWORK.peers.peers.size()>0 || UTILS.SETTINGS.seed_mode) &&
                 !UTILS.CBLOCK.signer.equals("") &&
                 UTILS.STATUS.engine_status.equals("ID_ONLINE") &&
                 UTILS.NETWORK.CONSENSUS.status.equals("ID_WAITING"))
@@ -237,7 +216,7 @@ public class CCPUMiner extends Thread
               }
               
               // Found solution
-              if (num.compareTo(UTILS.NET_STAT.net_dif.multiply(BigInteger.valueOf(UTILS.CBLOCK.signer_balance)))<0) 
+              if (num.compareTo(UTILS.NET_STAT.net_dif.multiply(BigInteger.valueOf(UTILS.CBLOCK.signer_power)))<0) 
               {  
                   // Timestamp
                   UTILS.CBLOCK.last_tstamp=ts;
@@ -263,11 +242,9 @@ public class CCPUMiner extends Thread
           System.out.println("Miner has stopped");
         }
         catch (Exception ex) 
-       	      {  
-       		UTILS.LOG.log("SQLException", ex.getMessage(), "CCPUMiner.java", 57);
-              }
-        
-       
+       	{  
+       	   System.out.println(ex.getMessage()+" - CCpuMiner.java, 267");
+        }
     }
     
     public BigInteger hashToNum(String hash) throws Exception

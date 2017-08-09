@@ -16,7 +16,7 @@ public class CNetStatPacket extends CPacket
     public long local_time;
     
     // Version
-    public String ver;
+    public long ver;
     
     public CNetStatPacket() throws Exception
     {

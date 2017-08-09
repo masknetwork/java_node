@@ -10,7 +10,6 @@ import java.sql.Statement;
 import wallet.kernel.CAddress;
 import wallet.kernel.CECC;
 import wallet.kernel.UTILS;
-import wallet.network.CResult;
 import wallet.network.packets.CPayload;
 import wallet.network.packets.blocks.CBlockPayload;
 
@@ -53,11 +52,12 @@ public class CEscrowedTransSignPayload extends CPayload
 	if (!this.type.equals("ID_RELEASE") && 
             !this.type.equals("ID_RETURN"))
 	throw new Exception("Invalid signature type - CEscrowedtransSignPayload.java");
-	   
-        // Load transaction data
         
-    	          
-        // Finds the user
+        // Check hash
+        if (!UTILS.BASIC.isHash(this.trans_hash))
+	   throw new Exception("Invalid transaction hash - CEscrowedtransSignPayload.java");
+        
+        // Finds the transaction
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                            + "FROM escrowed "
                                           + "WHERE trans_hash='"+this.trans_hash+"'");
@@ -110,31 +110,22 @@ public class CEscrowedTransSignPayload extends CPayload
         UTILS.ACC.newTrans(receiver, 
                            sender,
                            amount,
-                           true,
                            cur, 
                            "Funds have been released by escrower / sender", 
-                           escrower, 
+                           "", 
                            this.hash, 
-                           this.block,
-                           block,
-                           0);
+                           this.block);
                  
         // Return ?
         if (this.type.equals("ID_RETURN"))
         UTILS.ACC.newTrans(sender, 
                            receiver,
                            amount,
-                           true,
                            cur, 
                            "Funds have been returned to you by escrower / sender", 
-                           escrower, 
+                           "", 
                            this.hash, 
-                           this.block,
-                           block,
-                           0);
-                 
-        // Close
-        
+                           this.block);
     }
 	   
     public void commit(CBlockPayload block) throws Exception

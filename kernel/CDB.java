@@ -3,16 +3,10 @@
 
 package wallet.kernel;
 
+
 import java.sql.*;
 import java.sql.Statement;
 import java.util.ArrayList;
-
-import org.apache.commons.codec.digest.*;
-import org.hsqldb.*;
-import org.hsqldb.util.DatabaseManager;
-
-import java.util.Date;
-import java.util.Random;
 
 
 public class CDB 
@@ -24,6 +18,10 @@ public class CDB
         public String fileLoc;
         
 	ArrayList<Statement> cons=new ArrayList<Statement>();
+        
+        // Last query
+        public String last_query;
+        
         int a=0;
         
         
@@ -92,7 +90,18 @@ public class CDB
    
    public ResultSet executeQuery(String query) throws Exception
    {
-       if (UTILS.SETTINGS.db_debug.equals("true"))
+       long start=0;
+       long end=0;
+       
+       try
+       {
+           // Last query
+           this.last_query=query;
+       
+       if (UTILS.BASIC!=null)
+           start=UTILS.BASIC.mtstamp();
+               
+        if (UTILS.SETTINGS.db_debug.equals("true"))
           System.out.println(query);
            
        // Check connection
@@ -126,7 +135,28 @@ public class CDB
         }
       }
       
+      // End
+      if (UTILS.BASIC!=null)
+      {
+           // End time
+           end=UTILS.BASIC.mtstamp();
+           
+           // Too long
+           if (end-start>1000)
+               System.out.println("Long query - "+query);
+      }
+      
       return rs;
+      
+      }
+	catch (Exception ex) 
+	{ 
+	      System.out.println(ex.getMessage());
+              UTILS.BASIC.stackTrace();
+              throw new Exception("Query error");
+	}
+      
+      
    }
    
    
@@ -143,30 +173,20 @@ public class CDB
 	
    public void executeUpdate(String query) throws Exception
    {
+      // Last query
+      this.last_query=query;
+      
+      // Check connection
       this.checkConnection();
+      
+      // Prepared
       PreparedStatement p=con.prepareStatement(query);
+      
+      // Execute
       p.execute();
+      
+      // Close
       p.close(); 
-   } 
-   
-    public void executeUpdate(Connection c, String query) throws Exception
-   {
-       // Check connection
-       this.checkConnection();
-       
-       try
-       {
-	      PreparedStatement p=c.prepareStatement(query);
-              p.execute();
-              p.close(); 
-              
-              
-	}
-	catch (Exception ex) 
-	{ 
-	      System.out.println(ex.getMessage());
-              throw new Exception("Query error");
-	}
    } 
    
    public void reset() throws Exception
@@ -191,7 +211,7 @@ public class CDB
        this.executeUpdate("ROLLBACK");
    }
    
-   public void loadFileLoc() throws Exception
+   public void loaddFileLoc() throws Exception
    {
        ResultSet rs=UTILS.DB.executeQuery("SHOW VARIABLES LIKE 'secure_file_priv'");
        
@@ -208,5 +228,7 @@ public class CDB
        // Print
        System.out.println("DB secure file set to "+this.fileLoc+".");
    }
+   
+   
   
 }

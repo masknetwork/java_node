@@ -58,28 +58,32 @@ public class CArgs
                                   
             // Late op
             case "op" : this.late_op=val; break;
+            
+            // Min peers
+            case "min_peers" : UTILS.SETTINGS.min_peers=Integer.valueOf(val); 
+                               break;
+            
+            // No sync
+            case "seed_mode" : UTILS.SETTINGS.seed_mode=Boolean.valueOf(val); 
+                               if (UTILS.SETTINGS.seed_mode) System.out.println("Seed mode is ON.");
+                               break;
+                             
+            // Start mining
+            case "start_mining" : UTILS.SETTINGS.start_mining=Boolean.valueOf(val); 
+                                  break;
+                                  
+            // Sync start block
+            case "sync_start_block" : UTILS.SETTINGS.sync_start_block=Long.parseLong(val); 
+                                      break;
         }
     }
     
     public void lateOp() throws Exception
     {
-        if (this.late_op.equals("drop_db"))
-        {
-            UTILS.DB.reset(); 
-            System.out.println("DB dropped"); 
-            System.exit(0); 
-        }
-        
         if (this.late_op.equals("reorg"))
         {
             UTILS.NETWORK.CONSENSUS.reorganize(this.rhash);
             System.out.println("Reorganize"); 
-        }
-        
-        if (this.late_op.equals("reset"))
-        {
-            this.reset();
-            System.out.println("Resetting"); 
         }
         
         if (this.late_op.equals("list_adr"))
@@ -90,40 +94,5 @@ public class CArgs
         }
     }
     
-    public void reset() throws Exception
-    {
-        UTILS.DB.executeUpdate("DROP TABLE adr");
-        UTILS.DB.executeUpdate("DROP TABLE ads");
-        UTILS.DB.executeUpdate("DROP TABLE agents");
-        UTILS.DB.executeUpdate("DROP TABLE assets");
-        UTILS.DB.executeUpdate("DROP TABLE assets_owners");
-        UTILS.DB.executeUpdate("DROP TABLE blocks");
-        UTILS.DB.executeUpdate("DROP TABLE blocks_pool");
-        UTILS.DB.executeUpdate("DROP TABLE checkpoints");
-        UTILS.DB.executeUpdate("DROP TABLE comments");
-        UTILS.DB.executeUpdate("DROP TABLE delegates");
-        UTILS.DB.executeUpdate("DROP TABLE del_votes");
-        UTILS.DB.executeUpdate("DROP TABLE domains");
-        UTILS.DB.executeUpdate("DROP TABLE escrowed");
-        UTILS.DB.executeUpdate("DROP TABLE net_stat");
-        UTILS.DB.executeUpdate("DROP TABLE packets");
-        UTILS.DB.executeUpdate("DROP TABLE profiles");
-        UTILS.DB.executeUpdate("DROP TABLE rec_packets");
-        UTILS.DB.executeUpdate("DROP TABLE rewards");
-        UTILS.DB.executeUpdate("DROP TABLE storage");
-        UTILS.DB.executeUpdate("DROP TABLE sync");
-        UTILS.DB.executeUpdate("DROP TABLE trans");
-        UTILS.DB.executeUpdate("DROP TABLE trans_pool");
-        UTILS.DB.executeUpdate("DROP TABLE tweets");
-        UTILS.DB.executeUpdate("DROP TABLE tweets_follow");
-        UTILS.DB.executeUpdate("DROP TABLE tweets_trends");
-        UTILS.DB.executeUpdate("DROP TABLE votes");
-        UTILS.DB.executeUpdate("DROP TABLE votes_stats");
-
-        
-        System.out.println("DB reset done. Restart the node.");
-        System.exit(0);
-    }
     
-   
 }

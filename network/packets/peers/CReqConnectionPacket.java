@@ -10,20 +10,20 @@ import wallet.network.packets.blocks.*;
 
 public class CReqConnectionPacket extends CPacket 
 {
-	// Software version
-	String ver;
+    // Software version
+    long ver;
 	
-	// Status
-	String status;
+    // Status
+    String status;
         
-        // Port
-        int server_port;
+    // Port
+    int server_port;
         
-        // Serial
-   private static final long serialVersionUID = 100L;
+    // Serial
+    private static final long serialVersionUID = 100L;
 	
-   public CReqConnectionPacket() throws Exception
-   {
+    public CReqConnectionPacket() throws Exception
+    {
 	   super("ID_REQ_CON_PACKET");
 	   
 	   // Version
@@ -33,8 +33,10 @@ public class CReqConnectionPacket extends CPacket
            this.server_port=UTILS.SETTINGS.port;
            
            // Hash
-           this.hash=UTILS.BASIC.hash(UTILS.BASIC.mtstamp()+this.ver+this.server_port);
-   }
+           this.hash=UTILS.BASIC.hash(this.hash()+
+                                      this.ver+
+                                      this.server_port);
+    }
    
    public void check(CPeer peer) throws Exception
    {

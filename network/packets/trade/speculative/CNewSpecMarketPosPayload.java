@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import wallet.kernel.UTILS;
-import wallet.network.CResult;
 import wallet.network.packets.CPayload;
 import wallet.network.packets.blocks.CBlockPayload;
 import wallet.network.packets.trans.CTransPayload;
@@ -120,20 +119,12 @@ public class CNewSpecMarketPosPayload extends CPayload
             !this.tip.equals("ID_SELL"))
         throw new Exception("Invalid order type - CNewSpecMarketPosPayload.java"); 
         
-        // Mkt ID and pos ID
-        if (this.mktID<0 || this.posID<0)
-           throw new Exception("Invalid entry data - CNewSpecMarketPosPayload.java"); 
-        
-        // Check market ID
-        if (UTILS.BASIC.targetValid("ID_MARGIN_MKT", mktID))
-             throw new Exception("Invalid market ID - CNewSpecMarketPosPayload.java"); 
-        
         // Check pos ID
-        if (UTILS.BASIC.existID(this.posID))
+        if (UTILS.BASIC.isID(this.posID))
              throw new Exception("Invalid position ID - CNewSpecMarketPosPayload.java"); 
         
         // Market ID
-        ResultSet mkt_rs=UTILS.DB.executeQuery("SELECT fsm.*, adr.balance AS mkt_adr_balance "
+        ResultSet mkt_rs=UTILS.DB.executeQuery("SELECT fsm.*, adr.balance "
                                                + "FROM feeds_spec_mkts AS fsm "
                                                + "JOIN adr ON adr.adr=fsm.adr "
                                               + "WHERE mktID='"+this.mktID+"'");
@@ -142,39 +133,26 @@ public class CNewSpecMarketPosPayload extends CPayload
            
         // Load market data
         mkt_rs.next();
-           
-        // Spread
-        double spread=mkt_rs.getDouble("spread");
-        
-        // Last price
-        double last_price=mkt_rs.getDouble("last_price");
-        
-        // Feed & branch
-        String feed=mkt_rs.getString("feed");
-        String branch=mkt_rs.getString("branch");
-        
-        // Market expire
-        long mkt_expire=mkt_rs.getLong("expire");
-        
+          
         // Market status
         if (!mkt_rs.getString("status").equals("ID_ONLINE"))
             throw new Exception("Market is not online - CNewSpecMarketPosPayload.java"); 
         
         // Load feed data
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+        ResultSet feed_rs=UTILS.DB.executeQuery("SELECT * "
                                            + "FROM feeds_branches "
-                                          + "WHERE feed_symbol='"+feed+"' "
-                                            + "AND symbol='"+branch+"'");
+                                          + "WHERE feed_symbol='"+mkt_rs.getString("feed")+"' "
+                                            + "AND symbol='"+mkt_rs.getString("branch")+"'");
         
         // Next
-        rs.next();
+        feed_rs.next();
         
         // Status online ?
-        if (!rs.getString("mkt_status").equals("ID_ONLINE"))
+        if (!feed_rs.getString("mkt_status").equals("ID_ONLINE"))
             throw new Exception("Feed market status not online - CNewSpecMarketPosPayload.java"); 
         
         // Expire
-        if (this.block+this.days*1440>=mkt_expire)
+        if (this.block+this.days*1440>=mkt_rs.getLong("expire"))
             throw new Exception("Invalid expiration block - CNewSpecMarketPosPayload.java"); 
         
         // Execution type
@@ -183,7 +161,7 @@ public class CNewSpecMarketPosPayload extends CPayload
         throw new Exception("Invalid execution type - CNewSpecMarketPosPayload.java"); 
         
         // Price ?
-        if (this.ex_type.equals("ID_MARKET") && last_price!=this.open)
+        if (this.ex_type.equals("ID_MARKET") && mkt_rs.getDouble("last_price")!=this.open)
             throw new Exception("Invalid execution type price - CNewSpecMarketPosPayload.java"); 
         
         // Target address ?
@@ -194,21 +172,25 @@ public class CNewSpecMarketPosPayload extends CPayload
         if (!UTILS.BASIC.canSpend(this.target_adr))
            throw new Exception("Target address can't spend funds - CNewSpecMarketPosPayload.java"); 
         
+        // SL or TP negative ?
+        if (this.sl<0 || this.tp<0)
+            throw new Exception("Invalid SL or TP - CNewSpecMarketPosPayload.java"); 
+            
         // Check sl and pl
         if (this.tip.equals("ID_BUY"))
         {
-	    if (this.sl>open-spread)
+	    if (this.sl>open-mkt_rs.getDouble("spread") || this.sl==open)
 		throw new Exception("Invalid market SL - CNewSpecMarketPosPayload.java"); 
 			    
-	    if (this.tp<=open+spread)
+	    if (this.tp<=open+mkt_rs.getDouble("spread") || this.tp==open)
 	        throw new Exception("Invalid market TP - CNewSpecMarketPosPayload.java"); 
         }
 	else
 	{
-	    if (this.sl<open+spread)
+	    if (this.sl<open+mkt_rs.getDouble("spread") || this.sl==open)
 	       throw new Exception("Invalid market SL - CNewSpecMarketPosPayload.java"); 
 			 
-	    if (this.tp>=open-spread)
+	    if (this.tp>=open-mkt_rs.getDouble("spread") || this.tp==open)
 	       throw new Exception("Invalid market TP - CNewSpecMarketPosPayload.java"); 
 	}
            
@@ -216,26 +198,23 @@ public class CNewSpecMarketPosPayload extends CPayload
         if (this.leverage>mkt_rs.getLong("max_leverage") || this.leverage<1)
            throw new Exception("Invalid leverage - CNewSpecMarketPosPayload.java"); 
         
-        
-        // Margin
-        double margin=this.qty*mkt_rs.getDouble("last_price")/this.leverage;
-        
-        // Margin valid ?
-        if (margin<0.00000001) 
-            throw new Exception("Invalid margin - CNewSpecMarketPosPayload.java");
-        
-	// Maximum loss
+        // Maximum loss
         double max_loss;
+        double margin=0;
+        
+        // Qty
+        if (this.qty<0.0001)
+            throw new Exception("Invalid qty - CNewSpecMarketPosPayload.java"); 
            
         if (this.tip.equals("ID_BUY"))
         {
-              margin=(this.qty*(open+spread))/this.leverage;    
-              max_loss=(open+spread-this.sl)*this.qty;
+              margin=(this.qty*open)/this.leverage;    
+              max_loss=(open-this.sl)*this.qty;
         }
         else
         {
-              margin=(this.qty*(open-spread))/this.leverage;  
-              max_loss=(this.sl-open+spread)*this.qty;
+              margin=(this.qty*open)/this.leverage;  
+              max_loss=(this.sl-open)*this.qty;
         }
 		 
 	// Max losss bigger than margin ?
@@ -243,6 +222,10 @@ public class CNewSpecMarketPosPayload extends CPayload
             
         // Round
         margin=UTILS.BASIC.round(margin, 8);
+        
+        // Check margin
+        if (margin<0.00000001) 
+            throw new Exception("Invalid margin - CNewSpecMarketPosPayload.java");
 	    
         // Address balance ?
         double balance=UTILS.ACC.getBalance(this.target_adr, mkt_rs.getString("cur"), block);
@@ -255,7 +238,7 @@ public class CNewSpecMarketPosPayload extends CPayload
         double used_margin=0;
         
         // Calculate free colaterall
-         rs=UTILS.DB.executeQuery("SELECT SUM(margin) AS total "
+         ResultSet rs=UTILS.DB.executeQuery("SELECT SUM(margin) AS total "
                                            + "FROM feeds_spec_mkts_pos AS fsmp "
                                            + "JOIN feeds_spec_mkts AS fsm ON fsmp.mktID=fsm.mktID "
                                           + "WHERE fsmp.status='ID_MARKET' "
@@ -272,7 +255,7 @@ public class CNewSpecMarketPosPayload extends CPayload
         }
             
 	// Maximum margin
-        double max_allowed_margin=mkt_rs.getDouble("mkt_adr_balance")*mkt_rs.getDouble("max_total_margin")/100;
+        double max_allowed_margin=mkt_rs.getDouble("balance")*mkt_rs.getDouble("max_total_margin")/100;
 		 
 	// Check margin
 	if (max_allowed_margin<used_margin+margin)
@@ -294,7 +277,7 @@ public class CNewSpecMarketPosPayload extends CPayload
                used_margin=rs.getDouble("total");
         }
         
-        if (used_margin+margin>mkt_rs.getDouble("mkt_adr_balance")/2)
+        if (used_margin+margin>mkt_rs.getDouble("balance")/2)
             throw new Exception("Total margin too big - CNewSpecMarketPosPayload.java"); 
         
         // Days
@@ -305,14 +288,11 @@ public class CNewSpecMarketPosPayload extends CPayload
         UTILS.ACC.newTransfer(this.target_adr, 
                               mkt_rs.getString("adr"), 
                               margin,
-                              true,
                               mkt_rs.getString("cur"), 
                               "Margin payment", 
                               "", 
                               hash, 
-                              this.block, 
-                              block, 
-                              0);
+                              this.block);
         
         // Hash
         String h=UTILS.BASIC.hash(this.getHash()+
@@ -360,7 +340,27 @@ public class CNewSpecMarketPosPayload extends CPayload
             else
               open_line="ID_ABOVE";
         }
-           
+        
+        // Maximum loss
+        double max_loss;
+            
+        if (this.tip.equals("ID_BUY"))
+        {
+              margin=(this.qty*open)/this.leverage;    
+              max_loss=(open-this.sl)*this.qty;
+        }
+        else
+        {
+              margin=(this.qty*open)/this.leverage;  
+              max_loss=(this.sl-open)*this.qty;
+        }
+		 
+	// Max losss bigger than margin ?
+	if (max_loss>margin) margin=max_loss;
+            
+        // Round
+        margin=UTILS.BASIC.round(margin, 8);
+        
         // Open
         double open=0;
         
@@ -387,16 +387,16 @@ public class CNewSpecMarketPosPayload extends CPayload
                                          + "posID='"+this.posID+"', "
                                          + "adr='"+this.target_adr+"', "
                                          + "tip='"+this.tip+"', "
-                                         + "open='"+open+"', "
-                                         + "sl='"+this.sl+"', "
-                                         + "tp='"+this.tp+"', "
+                                         + "open='"+UTILS.FORMAT_8.format(open)+"', "
+                                         + "sl='"+UTILS.FORMAT_8.format(this.sl)+"', "
+                                         + "tp='"+UTILS.FORMAT_8.format(this.tp)+"', "
                                          + "leverage='"+this.leverage+"', "
-                                         + "qty='"+this.qty+"', "
-                                         + "margin='"+margin+"', "
+                                         + "qty='"+UTILS.FORMAT_4.format(this.qty)+"', "
+                                         + "margin='"+UTILS.FORMAT_8.format(margin)+"', "
                                          + "status='"+this.ex_type+"', "
                                          + "open_line='"+open_line+"', "
                                          + "pl='"+pl+"', "
-                                         + "spread='"+spread+"', "
+                                         + "spread='"+UTILS.FORMAT_4.format(spread)+"', "
                                          + "block_start='"+this.block+"', "
                                          + "block_end='0', "
                                          + "expire='"+(this.block+(this.days*1440))+"'");

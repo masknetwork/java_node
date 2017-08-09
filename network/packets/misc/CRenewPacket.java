@@ -22,7 +22,9 @@ public class CRenewPacket extends CBroadcastPacket
                         String adr, 
                         String table, 
                         long days, 
-                        String rowhash) throws Exception
+                        long longID,
+                        String stringID,
+                        String stringID_2) throws Exception
     {
        super("ID_RENEW_PACKET");
        
@@ -30,7 +32,9 @@ public class CRenewPacket extends CBroadcastPacket
           CRenewPayload dec_payload=new CRenewPayload(adr, 
                                                       table, 
                                                       days,
-	                                              rowhash);
+	                                              longID,
+                                                      stringID,
+                                                      stringID_2);
 						
           // Build the payload
           this.payload=UTILS.SERIAL.serialize(dec_payload);
@@ -72,7 +76,9 @@ public class CRenewPacket extends CBroadcastPacket
         CPackets foot=new CPackets(this);
         foot.add("Table", dec_payload.table);
         foot.add("Days", String.valueOf(dec_payload.days));
-        foot.add("Rowhash", String.valueOf(dec_payload.rowhash));
+        foot.add("ID 1", String.valueOf(dec_payload.longID));
+        foot.add("ID 2", String.valueOf(dec_payload.stringID));
+        foot.add("ID 3", String.valueOf(dec_payload.stringID_2));
         foot.write();
    }
 			 

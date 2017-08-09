@@ -7,7 +7,8 @@ public class CDelegates
 {
     public CDelegates() throws Exception
     {
-        ResultSet rs=UTILS.DB.executeQuery("SELECT COUNT(*) AS total FROM blocks");
+        ResultSet rs=UTILS.DB.executeQuery("SELECT COUNT(*) AS total "
+                                           + "FROM blocks");
         rs.next();
         
         if (rs.getLong("total")==1) 
@@ -16,6 +17,11 @@ public class CDelegates
     
     public long computePower(String delegate) throws Exception
     {
+       // Check delegate
+        if (!UTILS.BASIC.isAdr(delegate))
+            throw new Exception("Invalid delegate - CDelegates.java, 22");
+       
+       // Load data
        ResultSet rs=UTILS.DB.executeQuery("SELECT SUM(power) AS total "
                                           + "FROM del_votes "
                                          + "WHERE delegate='"+delegate+"' "
@@ -73,9 +79,6 @@ public class CDelegates
     
     public void refresh(long block) throws Exception
     {
-        // Block
-        if (block%100!=0) return;
-            
         // Votes power
         this.refreshVotesPower();
         
@@ -104,7 +107,7 @@ public class CDelegates
         // Parse
         while (rs.next())
             UTILS.DB.executeUpdate("UPDATE delegates "
-                                    + "SET dif='"+UTILS.BASIC.formatDif(this.getDif(rs.getString("delegate")).toString(16))+"'");
+                                    + "SET dif='"+UTILS.BASIC.formatDif(this.getDif(rs.getString("delegate"), block).toString(16))+"'");
         
         // Delete downvoted delegates
         UTILS.DB.executeUpdate("DELETE FROM delegates WHERE power<10");
@@ -113,11 +116,23 @@ public class CDelegates
         this.logDelegates(block);
     }
     
-    public long getPower(String delegate) throws Exception
+    public long getPower(String delegate, long block) throws Exception
     {
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                           + "FROM delegates "
-                                          + "WHERE delegate='"+delegate+"'");
+        ResultSet rs;
+        
+        // Check delegate
+        if (!UTILS.BASIC.isAdr(delegate))
+            throw new Exception("Invalid adr - CDelegates.java, 129");
+        
+        if (block>101)
+        rs=UTILS.DB.executeQuery("SELECT * "
+                                 + "FROM delegates_log "
+                                + "WHERE delegate='"+delegate+"' "
+                                  + "AND block="+(block-50));
+        else
+        rs=UTILS.DB.executeQuery("SELECT * "
+                                 + "FROM delegates "
+                                + "WHERE delegate='"+delegate+"'");
         
         // No delegate
         if (!UTILS.DB.hasData(rs))
@@ -144,6 +159,11 @@ public class CDelegates
     
     public boolean isDelegate(String adr) throws Exception
     {
+        // Check delegate
+        if (!UTILS.BASIC.isAdr(adr))
+            throw new Exception("Invalid adr - CDelegates.java, 168");
+        
+        // Load data
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                            + "FROM delegates "
                                           + "WHERE delegate='"+adr+"'");
@@ -156,28 +176,12 @@ public class CDelegates
     
     
     
-    public BigInteger getDif(String delegate) throws Exception
+    public BigInteger getDif(String delegate, long block) throws Exception
     {
-        return UTILS.NET_STAT.net_dif.multiply(BigInteger.valueOf(this.getPower(delegate)));
+        return UTILS.NET_STAT.net_dif.multiply(BigInteger.valueOf(this.getPower(delegate, block)));
     }
     
-    public long getMaxBlocks(String delegate) throws Exception
-    {
-        // Power
-        long power=this.getPower(delegate);
-        
-        // Total power
-        long total_power=this.getTotalPower();
-        
-        // Percent
-        double p=power*100/total_power;
-        
-        // Blocks
-        long blocks=Math.round(p/100*1440)*5;
-        
-        // Return
-        return blocks;
-    }
+   
     
     public long getMinedBlocks(String delegate, long block) throws Exception
     {
@@ -192,11 +196,5 @@ public class CDelegates
         return rs.getLong("mined");
     }
     
-    public boolean canMine(String delegate, long block) throws Exception
-    {
-        if (this.getMinedBlocks(delegate, block)<this.getMaxBlocks(delegate))
-            return true;
-        else
-            return false;            
-    }
+   
 }

@@ -4,11 +4,8 @@
 package wallet.kernel;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import wallet.network.packets.CBroadcastPacket;
 import wallet.network.packets.CPayload;
-import wallet.network.packets.adr.CProfilePayload;
 import wallet.network.packets.trans.CFeePayload;
 
 public class CPackets 
@@ -130,6 +127,26 @@ public class CPackets
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                        + "FROM packets "
                                       + "WHERE packet_hash='"+this.packet_hash+"'");
+        
+        // Packet type
+        if (!UTILS.BASIC.isStringID(this.packet_type))
+            throw new Exception("Invalid packet type");
+        
+        // Packet hash
+        if (!UTILS.BASIC.isHash(this.packet_hash))
+            throw new Exception("Invalid packet type");
+        
+        // Payload hash
+        if (!UTILS.BASIC.isHash(this.payload_hash))
+            throw new Exception("Invalid payload hash");
+        
+        // Fee src
+        if (!UTILS.BASIC.isAdr(this.fee_src))
+            throw new Exception("Invalid fee source");
+        
+        // Fee hash
+        if (!UTILS.BASIC.isHash(this.fee_hash))
+           throw new Exception("Invalid fee hash");
            
         // Load address data
         if (!UTILS.DB.hasData(rs))

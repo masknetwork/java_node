@@ -74,17 +74,25 @@ public class CMesPayload extends CPayload
 	{
             // Constructor
             super.check(block);
+            
+            // Sender and receuver the same ?
+            if (this.target_adr.equals(this.receiver_adr))
+                throw new Exception("Sender and receiver the same - CMesPayload.java");
 	    	
 	    // Check receiver ?
 	    if (UTILS.BASIC.isAdr(this.receiver_adr)==false)
 	   	throw new Exception("Invalid receiver address - CMesPayload.java");
 	    
+            // Subject or message empty ?
+            if (this.subj.equals("") || this.mes.equals(""))
+                throw new Exception("Empty subject or message - CMesPayload.java");
+            
             // Subject size
             if (this.subj.length()>250)
                 throw new Exception("Invalid subject length - CMesPayload.java");
             
             // Subject size
-            if (this.subj.length()>2500)
+            if (this.mes.length()>2500)
                 throw new Exception("Invalid message length - CMesPayload.java");
             
             // Insert message

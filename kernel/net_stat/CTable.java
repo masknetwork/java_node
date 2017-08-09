@@ -1,14 +1,5 @@
 package wallet.kernel.net_stat;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.Statement;
-import org.apache.commons.io.FileUtils;
-import org.json.JSONObject;
 import wallet.kernel.UTILS;
 
 public class CTable 
@@ -47,6 +38,10 @@ public class CTable
    
     public void checkpoint(String block_hash) throws Exception
     {
+        // Block hash
+        if (!UTILS.BASIC.isHash(block_hash))
+            throw new Exception("Invalid hash - CTable.java, 52");
+        
         // Load data
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                            + "FROM checkpoints "

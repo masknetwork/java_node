@@ -13,9 +13,6 @@ public class UTILS
     // Write directory
     public static String WRITEDIR;    
     
-    // Error log
-    public static CErrorLog LOG;
-    
     // Database
     public static CDB DB;
     
@@ -48,9 +45,6 @@ public class UTILS
     
     // Current block
     public static CCurBlock CBLOCK;
-    
-    // Emailer
-    public static CEmail EMAIL;
     
     // Net stat
     public static CNetStat NET_STAT;
@@ -90,4 +84,13 @@ public class UTILS
     
     // Runtime
     public static Runtime runtime = Runtime.getRuntime();
+    
+    // Speculative positions
+    public static CSpecPos SPEC_POS;
+    
+    // Options
+    public static COptions OPTIONS;
+    
+    // Constants
+    public static CConstants CONSTANTS;
 }

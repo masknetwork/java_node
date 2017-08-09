@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import wallet.kernel.UTILS;
-import wallet.network.CResult;
 import wallet.network.packets.CPayload;
 import wallet.network.packets.blocks.CBlockPayload;
 
@@ -53,8 +52,8 @@ public class CNewBetPayload extends CPayload
    String description;
    
    public CNewBetPayload(String adr, 
-                         String feed_symbol, 
-                         String feed_component_symbol, 
+                         String feed, 
+                         String branch, 
                          String tip, 
                          double val_1, 
                          double val_2, 
@@ -70,10 +69,10 @@ public class CNewBetPayload extends CPayload
        super(adr);
        
        // Feed symbol 
-       this.feed=feed_symbol;
+       this.feed=feed;
    
        // Feed component symbol
-       this.branch=feed_component_symbol;
+       this.branch=branch;
        
        // Tip
        this.tip=tip;
@@ -136,6 +135,9 @@ public class CNewBetPayload extends CPayload
         // Feed 1
         if (!UTILS.BASIC.isBranch(this.feed, this.branch))
               throw new Exception("Invalid feed - CNewBetPayload.java"); 
+        
+        // Load last price
+        double last_price=UTILS.BASIC.getFeedPrice(this.feed, this.branch);
            
         // Tip
         if (!tip.equals("ID_TOUCH_UP") &&
@@ -149,6 +151,33 @@ public class CNewBetPayload extends CPayload
             !tip.equals("ID_CLOSE_EXACT_VALUE"))
         throw new Exception("Invalid type - CNewBetPayload.java"); 
         
+        // Checks price vs bet type
+        switch (tip)
+        {
+            // Touch up
+            case "ID_TOUCH_UP" : if (last_price>=this.val_1)
+                                    throw new Exception("Invalid feed price - CNewBetPayload.java"); 
+                                 break;
+                                 
+            // Touch up
+            case "ID_TOUCH_DOWN" : if (last_price<=this.val_1)
+                                    throw new Exception("Invalid feed price - CNewBetPayload.java"); 
+                                   break;
+                                   
+            // Touch up
+            case "ID_NOT_TOUCH_UP" : if (last_price>=this.val_1)
+                                         throw new Exception("Invalid feed price - CNewBetPayload.java"); 
+                                     break;
+                                     
+            // Touch up
+            case "ID_NOT_TOUCH_DOWN" : if (last_price<=this.val_1)
+                                         throw new Exception("Invalid feed price - CNewBetPayload.java"); 
+                                       break;
+        }
+        
+        // Val 1
+        if (this.val_1<0)
+            throw new Exception("Invalid value 1 - CNewBetPayload.java"); 
         
         // Values
         if (tip.equals("ID_CLOSE_BETWEEN") || 
@@ -169,40 +198,56 @@ public class CNewBetPayload extends CPayload
            throw new Exception("Invalid budget - CNewBetPayload.java"); 
        
         // Win multiplier
-        if (this.win_multiplier<1)
+        if (this.win_multiplier<1.01)
               throw new Exception("Invalid win multiplier - CNewBetPayload.java"); 
        
         // Currency
         if (!this.cur.equals("MSK"))
-              if (!UTILS.BASIC.isAsset(this.cur))
-                 throw new Exception("Invalid currency - CNewBetPayload.java"); 
-       
-        // End block
-        if (this.end_block<=this.block+1)
-              throw new Exception("Invalid end block - CNewBetPayload.java"); 
+        {
+            // Valid currency ?
+            if (!UTILS.BASIC.isAsset(this.cur))
+               throw new Exception("Invalid currency - CNewBetPayload.java"); 
+            
+            // Asset expire block
+            if (UTILS.BASIC.getAssetExpireBlock(this.cur)<this.end_block)
+                throw new Exception("Invalid end block - CNewBetPayload.java"); 
+        }
+        
+        // Feed expiration date
+        if (UTILS.BASIC.getFeedExpireBlock(feed, branch)<this.end_block)
+            throw new Exception("Invalid end block - CNewBetPayload.java"); 
+        
+        // End / accept block
+        if (this.end_block<=this.block+1 || 
+            this.accept_block<=this.block+1)
+        throw new Exception("Invalid end / accept block - CNewBetPayload.java"); 
        
         // Expires block
-        if (this.accept_block>this.end_block)
+        if (this.end_block<=this.accept_block)
               throw new Exception("Invalid accept block - CNewBetPayload.java"); 
-       
+        
+        // Can spend ?
+        if (!UTILS.BASIC.canSpend(this.target_adr))
+             throw new Exception("Target address can't spend funds - CNewBetPayload.java"); 
+        
         // Funds
         double balance=UTILS.ACC.getBalance(this.target_adr, this.cur, block);
-           
         if (balance<this.budget)
                throw new Exception("Innsuficient funds - CNewBetPayload.java"); 
-       
+        
+        // Bet ID
+        if (UTILS.BASIC.isID(betID))
+           throw new Exception("Invalid betID - CNewBetPayload.java"); 
+        
         // Put hold on coins
         UTILS.ACC.newTrans(this.target_adr, 
-                           "none",
+                           "",
                            -this.budget, 
-                           true,
                            this.cur, 
                            "Budget for bet "+this.betID, 
                            "", 
                            this.hash, 
-                           this.block,
-                           block,
-                           0);
+                           this.block);
        
         // Check hash
         String h=UTILS.BASIC.hash(this.getHash()+
@@ -264,6 +309,9 @@ public class CNewBetPayload extends CPayload
                                          + "block='"+this.block+"'");
         
         // Vote feed
-        UTILS.BASIC.voteTarget(this.target_adr, "ID_FEED", UTILS.BASIC.getFeedID(this.feed), block.block);
+        UTILS.BASIC.voteTarget(this.target_adr, 
+                               "ID_FEED", 
+                               UTILS.BASIC.getFeedID(this.feed), 
+                               block.block);
     }     
 }

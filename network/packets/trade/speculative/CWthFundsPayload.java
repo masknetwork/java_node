@@ -52,6 +52,10 @@ public class CWthFundsPayload extends CPayload
        if (!UTILS.BASIC.isAdr(this.rec))
           throw new Exception("Invalid recipient");
        
+       // Amount
+       if (this.amount<0.0001)
+          throw new Exception("Invalid amount");
+       
       // Check address
       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                          + "FROM feeds_spec_mkts "
@@ -108,14 +112,11 @@ public class CWthFundsPayload extends CPayload
        UTILS.ACC.newTransfer(this.target_adr, 
                              this.rec,
                              this.amount,
-                             true,
                              cur, 
                              "Margin market withdraw", 
                              "", 
                              hash, 
-                             this.block, 
-                             block, 
-                             0);
+                             this.block);
        
        // Hash
        String h=UTILS.BASIC.hash(this.getHash()+

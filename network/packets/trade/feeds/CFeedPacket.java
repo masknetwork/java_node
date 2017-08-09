@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import wallet.kernel.CPackets;
 import wallet.kernel.UTILS;
-import wallet.network.CResult;
 import wallet.network.packets.CBroadcastPacket;
 import wallet.network.packets.blocks.CBlockPayload;
 import wallet.network.packets.trans.CFeePayload;

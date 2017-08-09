@@ -42,8 +42,8 @@ public class CProfilePacket extends CBroadcastPacket
 	   this.payload=UTILS.SERIAL.serialize (dec_payload);
 			
 	   // Network fee
-	  CFeePayload fee=new CFeePayload(fee_adr,  0.0001*days);
-	  this.fee_payload=UTILS.SERIAL.serialize(fee);
+	   CFeePayload fee=new CFeePayload(fee_adr,  0.0001*days);
+	   this.fee_payload=UTILS.SERIAL.serialize(fee);
 	   
 	   // Sign packet
            this.sign();

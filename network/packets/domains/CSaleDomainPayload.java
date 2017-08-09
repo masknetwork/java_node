@@ -41,7 +41,7 @@ public class CSaleDomainPayload extends CPayload
 	// Hash
 	hash=UTILS.BASIC.hash(this.hash+
 			      this.domain+
-		              String.valueOf(this.sale_price));
+		              this.sale_price);
            
         // Sign
         this.sign();
@@ -51,6 +51,10 @@ public class CSaleDomainPayload extends CPayload
    {
         // Super class
         super.check(block);
+        
+        // Sale price
+        if (this.sale_price<0.0001)
+            throw new Exception("Invalid sale price - CSaleDomainPayload.java");
          
         // Domain
         if (!UTILS.BASIC.isDomain(this.domain))
@@ -68,7 +72,7 @@ public class CSaleDomainPayload extends CPayload
         // Hash
         String h=UTILS.BASIC.hash(this.getHash()+
     	 	                  this.domain+
-    	 	                  String.valueOf(this.sale_price));
+    	 	                  this.sale_price);
       
         if (!h.equals(this.hash))
      	   throw new Exception("Invalid hash - CSaleDomainPayload.java");

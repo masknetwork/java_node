@@ -18,7 +18,8 @@ public class CFeedsSources
     public CFeedsSources() throws Exception
     {
          // Reset 
-        UTILS.DB.executeUpdate("UPDATE feeds_sources SET next_run='"+UTILS.BASIC.tstamp()+"'");
+        UTILS.DB.executeUpdate("UPDATE feeds_sources "
+                                + "SET next_run='"+UTILS.BASIC.tstamp()+"'");
         
          // Timer
          timer = new Timer();
@@ -33,23 +34,27 @@ public class CFeedsSources
        {  
          try
          {
-             // Load data
-             ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+             if (UTILS.STATUS.engine_status.equals("ID_ONLINE")
+                 && UTILS.NETWORK.CONSENSUS.status.equals("ID_WAITING"))
+             {
+                 // Load data
+                 ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                                 + "FROM feeds_sources "
                                                + "WHERE next_run<"+UTILS.BASIC.tstamp());
              
-             while (rs.next())
-             {
-                 // Update 
-                 UTILS.DB.executeUpdate("UPDATE feeds_sources "
+                 while (rs.next())
+                 {
+                     // Update 
+                     UTILS.DB.executeUpdate("UPDATE feeds_sources "
                                          + "SET next_run="+UTILS.BASIC.tstamp()+"+ping_interval "
                                        + "WHERE ID='"+rs.getLong("ID")+"'");
                  
-                 // Load
-                 CFeedSource feed=new CFeedSource(rs.getString("adr"), 
+                     // Load
+                     CFeedSource feed=new CFeedSource(rs.getString("adr"), 
                                                   UTILS.BASIC.base64_decode(rs.getString("url")), 
                                                   rs.getString("feed_symbol"));
-                 feed.start();
+                     feed.start();
+                }
              }
           
          }

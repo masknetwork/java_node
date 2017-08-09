@@ -55,7 +55,20 @@ public class CRentDomainPayload extends CPayload
            // Domain valid
            if (!UTILS.BASIC.isDomain(this.domain))
                  throw new Exception("Invalid domain name - CRentDomainPayload.java");
-              
+           
+           // Domain already taken ?
+           ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+   		                              + "FROM domains "
+   		                             + "WHERE domain='"+this.domain+"'");
+           
+           // Domain exist
+           if (UTILS.DB.hasData(rs)==true)
+               throw new Exception("Invalid domain name - CRentDomainPayload.java");
+           
+           // Days
+           if (this.days<1)
+               throw new Exception("Invalid rent period - CRentDomainPayload.java");
+           
            // Hash
            String h=UTILS.BASIC.hash(this.getHash()+        
                                      domain+
@@ -64,20 +77,6 @@ public class CRentDomainPayload extends CPayload
            // Check hash
            if (!h.equals(this.hash))
       	       throw new Exception("Invalid hash - CRentDomainPayload.java");
-        
-           // Domain already taken ?
-           
-           ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-   		                       + "FROM domains "
-   		                      + "WHERE domain='"+this.domain+"'");
-           
-           // Domain exist
-           if (UTILS.DB.hasData(rs)==true)
-               throw new Exception("Invalid domain name - CRentDomainPayload.java");
-           
-           // Days
-           if (this.days<10)
-               throw new Exception("Invalid rent period - CRentDomainPayload.java");
           
 	}
 	

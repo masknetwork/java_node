@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import wallet.kernel.CPackets;
 import wallet.kernel.UTILS;
-import wallet.network.CResult;
 import wallet.network.packets.CBroadcastPacket;
 import wallet.network.packets.blocks.CBlockPayload;
 import wallet.network.packets.trans.CFeePayload;
@@ -16,6 +15,7 @@ import wallet.network.packets.trans.CFeePayload;
 public class CNewFeedComponentPacket extends CBroadcastPacket
 {
    public CNewFeedComponentPacket(String fee_adr,
+                                  String adr,
                                   String feed_symbol,
                                   String title, 
                                   String description, 
@@ -27,20 +27,15 @@ public class CNewFeedComponentPacket extends CBroadcastPacket
          // Constructor
         super("ID_NEW_FEED_BRANCH_PACKET");
         
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                           + "FROM feeds "
-                                          + "WHERE symbol='"+feed_symbol+"'");
-        rs.next();
-        
         // Payload
-        CNewFeedComponentPayload dec_payload=new CNewFeedComponentPayload(rs.getString("adr"),
-                                                                              feed_symbol,
-                                                                              title,
-                                                                              description,
-                                                                              type,
-                                                                              symbol,
-                                                                              rl_symbol,
-                                                                              days);
+        CNewFeedComponentPayload dec_payload=new CNewFeedComponentPayload(adr,
+                                                                          feed_symbol,
+                                                                          title,
+                                                                          description,
+                                                                          type,
+                                                                          symbol,
+                                                                          rl_symbol,
+                                                                          days);
             
         // Build the payload
 	this.payload=UTILS.SERIAL.serialize(dec_payload);

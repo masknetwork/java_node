@@ -38,16 +38,16 @@ public class CAdrAttrTable extends CTable
                                                   + "block BIGINT NOT NULL DEFAULT 0, "
                                                   + "expire BIGINT NOT NULL DEFAULT 0)");
 		   
-        UTILS.DB.executeUpdate("CREATE UNIQUE INDEX adr_attr_adr ON adr_attr(adr)");
-        UTILS.DB.executeUpdate("CREATE UNIQUE INDEX adr_attr_attr ON adr_attr(attr)");
+        UTILS.DB.executeUpdate("CREATE INDEX adr_attr_adr ON adr_attr(adr)");
+        UTILS.DB.executeUpdate("CREATE INDEX adr_attr_attr ON adr_attr(attr)");
 	UTILS.DB.executeUpdate("CREATE INDEX adr_attr_block ON adr(block)");
     }
     
     public void expired(long block) throws Exception
     {
-        ResultSet rs=UTILS.DB.executeQuery("DELETE "
-                                           + "FROM adr_attr "
-                                          + "WHERE expire<="+block);
+        UTILS.DB.executeUpdate("DELETE "
+                               + "FROM adr_attr "
+                              + "WHERE expire<="+block);
     }
     
     

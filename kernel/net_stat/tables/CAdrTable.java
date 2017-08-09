@@ -28,6 +28,7 @@ public class CAdrTable extends CTable
 				              + "balance DOUBLE(20,8) NOT NULL DEFAULT 0, "
 		                              + "created BIGINT NOT NULL DEFAULT 0, "		              
                                               + "block BIGINT NOT NULL DEFAULT 0, "
+                                              + "ref VARCHAR(500) NOT NULL DEFAULT '', "
                                               + "sealed BIGINT NOT NULL DEFAULT 0)");
 		   
         UTILS.DB.executeUpdate("CREATE UNIQUE INDEX adr ON adr(adr)");

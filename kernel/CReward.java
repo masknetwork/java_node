@@ -115,14 +115,11 @@ public class CReward
                 UTILS.ACC.newTransfer("default",
                                           adr, 
                                           reward, 
-                                          true,
                                           "MSK", 
                                           "Content reward ("+target_type+", "+targetID+")", 
                                           "", 
                                           hash, 
-                                          block,
-                                          null,
-                                          0);
+                                          block);
                     
                 // Add reward
                 this.addReward("ID_CONTENT", adr, target_type, targetID, reward, block);
@@ -204,14 +201,11 @@ public class CReward
                     UTILS.ACC.newTrans("default",
                                        adr, 
                                        pay, 
-                                       true,
                                        "MSK", 
                                        "Content reward ("+target_type+", "+targetID+")", 
                                        "", 
                                        hash, 
-                                       block,
-                                       null,
-                                       0);
+                                       block);
                
                     // Add reward
                     this.addReward("ID_VOTERS", adr, target_type, targetID, pay, block);

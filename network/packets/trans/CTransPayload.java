@@ -66,11 +66,11 @@ public class CTransPayload extends CPayload
            
            // Digest
            this.hash=UTILS.BASIC.hash(this.getHash()+
-		                        this.dest+
-                                        this.amount+
-                                        this.cur+
-                                        this.escrower+
-                                        mes_hash); 
+		                      this.dest+
+                                      this.amount+
+                                      this.cur+
+                                      this.escrower+
+                                      mes_hash); 
            
           // Sign
           this.sign();
@@ -86,7 +86,7 @@ public class CTransPayload extends CPayload
              if (UTILS.BASIC.isSpecMktAddress(this.target_adr))
                 throw new Exception("Source can't spend funds - CTransPayload");
              
-             // Restrcited rec
+             // Restricted rec
              if (UTILS.BASIC.hasAttr(this.target_adr, "ID_RES_REC"))
              {
                  // Load data
@@ -109,6 +109,10 @@ public class CTransPayload extends CPayload
 	     if (!UTILS.BASIC.isAdr(this.dest))
 	        throw new Exception("Invalid destination address - CTransPayload");
              
+             // Default address ?
+             if (this.dest.equals("default") && !this.cur.equals("MSK"))
+                 throw new Exception("Invalid destination address - CTransPayload");
+             
              // Source and destination the same
              if (this.target_adr.equals(this.dest))
 	         throw new Exception("Source and destination address can't be the same - CTransPayload");
@@ -116,7 +120,7 @@ public class CTransPayload extends CPayload
              // Check amount
              if (this.cur.equals("MSK"))
              {
-	        if (this.amount<0.0001)
+	        if (this.amount<UTILS.CONSTANTS.MIN_TRANS_AMOUNT)
 	      	   throw new Exception("Invalid amount, CTransPayload");
              }
              else
@@ -127,6 +131,7 @@ public class CTransPayload extends CPayload
             
             // Message 
             String mes_hash="";
+            
             if (this.mes!=null)
             {
                // Check message
@@ -157,21 +162,33 @@ public class CTransPayload extends CPayload
                 // No data ?
                 if (!UTILS.DB.hasData(rs))
                     throw new Exception("Recipient doesn't trust asset, CTransPayload");
+                
+                // Escrower ?
+                if (!this.escrower.equals(""))
+                   if (UTILS.BASIC.getAssetExpireBlock(this.cur)<this.block*1440)
+                      throw new Exception("Invalid expiration date, CTransPayload"); 
             }
             
             // Check escrower
 	    if (!this.escrower.equals(""))
-	    {
 	        if (!UTILS.BASIC.isAdr(this.escrower))
-	           throw new Exception("Invalid currency, CTransPayload");
-	    }
+	           throw new Exception("Invalid escrower, CTransPayload");
 	    
+            // Escrower not source or destination
+            if (this.escrower.equals(this.target_adr) || 
+                this.escrower.equals(this.dest))
+                throw new Exception("Invalid escrower - CTransPayload.java"); 
+            
 	    // Check source balance
             double balance=UTILS.ACC.getBalance(this.target_adr, this.cur, block);
                   
             // Insufficient funds
             if (balance<this.amount) 
 	       throw new Exception("Insuficient funds, CTransPayload.java");
+            
+            // Amount
+            if (this.amount<UTILS.CONSTANTS.MIN_TRANS_AMOUNT)
+                throw new Exception("Invalid amount, CTransPayload.java");
             
             // Digest
             String h=UTILS.BASIC.hash(this.getHash()+
@@ -185,37 +202,40 @@ public class CTransPayload extends CPayload
             if (!this.hash.equals(h))
                throw new Exception("Invalid hash, CTransPayload");
 	    
+            // Expl
+            String expl;
+            
+            if (dest.equals("default"))
+               expl="Network fee";
+            else
+                expl="Simple transaction";
+            
             // Insert pending transaction
 	    UTILS.ACC.newTrans(this.target_adr, 
                                  this.dest,
                                  -this.amount,
-                                 true,
                                  this.cur, 
-                                 "Transaction to another address "+this.target_adr, 
+                                 expl, 
                                  this.escrower, 
                                  this.hash, 
-                                 this.block,
-                                 block,
-                                 0);
+                                 this.block);
                 
             // To destination
             if (this.escrower.equals(""))
             UTILS.ACC.newTrans(this.dest, 
                                  this.target_adr,
                                  this.amount,
-                                 true,
                                  this.cur, 
-                                 "Transaction from address "+this.target_adr, 
+                                 expl, 
                                  this.escrower, 
                                  this.hash, 
-                                 this.block,
-                                 block,
-                                 0);
+                                 this.block);
             
             if (UTILS.WALLET.isMine(this.dest))
             {
                 // Message
-                if (this.mes!=null) this.mes.getMessage(this.dest, hash);
+                if (this.mes!=null) 
+                    this.mes.getMessage(this.dest, hash);
               
                 // IPN
                 if (block==null) this.checkIPN("unconfirmed");
@@ -227,8 +247,8 @@ public class CTransPayload extends CPayload
          {
             // IPN
             ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                        + "FROM ipn "
-                                       + "WHERE adr='"+this.dest+"'");
+                                               + "FROM ipn "
+                                              + "WHERE adr='"+this.dest+"'");
                  
             if (UTILS.DB.hasData(rs) && UTILS.WALLET.isMine(this.dest))
             {
@@ -309,8 +329,29 @@ public class CTransPayload extends CPayload
                       long assetID=rs.getLong("assetID");
                       
                       // Vote
-                      UTILS.BASIC.voteTarget(this.target_adr, "ID_ASSET", assetID, block.block);
+                      UTILS.BASIC.voteTarget(this.target_adr, 
+                                             "ID_ASSET", 
+                                             assetID, 
+                                             block.block);
                     }
+               }
+                
+               // MSK transaction ?
+               if (this.cur.equals("MSK"))
+               {
+                   // Referer
+                   ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                                      + "FROM adr "
+                                                     + "WHERE adr='"+this.dest+"'");
+               
+                   // Next
+                   rs.next();
+               
+                   // Referer set ?
+                   if (rs.getString("ref").equals(""))
+                       UTILS.DB.executeUpdate("UPDATE adr "
+                                               + "SET ref='"+this.target_adr+"' "
+                                             + "WHERE adr='"+this.dest+"'");
                }
 	}
 	 

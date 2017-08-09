@@ -5,12 +5,9 @@ package wallet.kernel;
 
 import org.json.*;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import org.apache.commons.io.IOUtils;
 import wallet.network.packets.trade.feeds.CFeedPacket;
 import wallet.network.packets.trade.feeds.CFeedPayload;
@@ -33,7 +30,9 @@ public class CFeedSource  extends Thread
     CFeedPayload payload;
     
     
-    public CFeedSource(String adr, String link, String feed_symbol) throws Exception
+    public CFeedSource(String adr, 
+                       String link, 
+                       String feed_symbol) throws Exception
     {
          // Address
            this.adr=adr;
@@ -43,14 +42,23 @@ public class CFeedSource  extends Thread
     
            // Feed symbol
            this.feed_symbol=feed_symbol;
-         
+           
+           // Check address
+           if (!UTILS.BASIC.isAdr(adr))
+               throw new Exception("Invalid adr - CFeedSource.java, 48");
+        
+            // Check link
+            if (!UTILS.BASIC.isLink(link))
+                throw new Exception("Invalid adr - CFeedSource.java, 51");
+        
+            // Check feed symbol
+            if (!UTILS.BASIC.isSymbol(feed_symbol))
+                throw new Exception("Invalid adr - CFeedSource.java, 56");
     }
     
     public void run()
     {
         String symbol;
-        
-         
         
         try
         {
@@ -58,7 +66,10 @@ public class CFeedSource  extends Thread
            URL url = new URL(this.link);
            
            // Connection
-           URLConnection con = url.openConnection();
+           URLConnection con = url.openConnection(); 
+           
+           // No cache
+           con.setRequestProperty("Connection", "close");
            
            // Agent
            con.addRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)");
@@ -122,36 +133,12 @@ public class CFeedSource  extends Thread
             // Broadcast
             UTILS.NETWORK.broadcast(packet);
             
-            // Update
-            UTILS.DB.executeUpdate("INSERT INTO feeds_sources_res(feed, "
-                                                               + "result, "
-                                                               + "tstamp) "
-                                                   + "VALUES('"+this.feed_symbol+"', "
-                                                               + "'ID_OK', '"
-                                                               +UTILS.BASIC.tstamp()+"')");
-       
+            // Close connection
+            in.close();
         }
         catch (Exception e) 
 	{ 
             System.out.println(e.getMessage());
         }
-        
-       
-    }
-    
-    public void feedErr(String mes) throws Exception
-    {
-        // Null ?
-        if (mes==null) mes="null";
-            
-        // Update
-        UTILS.DB.executeUpdate("INSERT INTO feeds_sources_res(feed, "
-                                                           + "result, "
-                                                           + "err_mes, "
-                                                           + "tstamp) "
-                                               + "VALUES('"+this.feed_symbol+"', "
-                                                           + "'ID_ERR', '"
-                                                           +UTILS.BASIC.base64_encode(mes)+"', '"
-                                                           +UTILS.BASIC.tstamp()+"')");
     }
 }

@@ -21,9 +21,6 @@ public class CBuyDomainPayload extends CPayload
     // Domain
     String domain;
     
-    // Attach address
-    String buyer_adr;
-	
     
     public CBuyDomainPayload(String buyer_adr, 
                              String domain) throws Exception
@@ -34,13 +31,9 @@ public class CBuyDomainPayload extends CPayload
         // Domain
 	this.domain=domain;
         
-        // Attach
-        this.buyer_adr=buyer_adr;
-	
         // Hash
 	hash=UTILS.BASIC.hash(this.getHash()+
-                              buyer_adr+
-			      domain);
+                              domain);
        
         // Sign
         this.sign();
@@ -50,19 +43,7 @@ public class CBuyDomainPayload extends CPayload
     {
         // Parent
         super.check(block);
-                 
-        // Attach address
-        if (!UTILS.BASIC.isAdr(this.buyer_adr))
-            throw new Exception("Invalid attach address - CBuyDomainPayload");
-                 
-        // Hash
-        String h=UTILS.BASIC.hash(this.getHash()+
-                                  buyer_adr+
-			          domain);
         
-        if (!h.equals(this.hash))
-     	   throw new Exception("Invalid hash - CBuyDomainPayload");
-       
         // Check domain name
         if (!UTILS.BASIC.isDomain(this.domain))
            throw new Exception("Invalid domain name - CBuyDomainPayload.java");
@@ -81,31 +62,35 @@ public class CBuyDomainPayload extends CPayload
             UTILS.ACC.newTransfer(this.target_adr,
                                   rs.getString("adr"), 
                                   rs.getDouble("sale_price"),
-                                  true,
                                   "MSK", 
-                                  "Domain aquisition", 
+                                  "Domain aquisition ("+this.domain+")", 
                                   "", 
                                   this.hash, 
-                                  this.block,
-                                  block,
-                                  0);
+                                  this.block);
         }
         else throw new Exception("Invalid domain - CBuyDomainPayload.java");
+        
+        // Hash
+        String h=UTILS.BASIC.hash(this.getHash()+
+			          domain);
+        
+        if (!h.equals(this.hash))
+     	   throw new Exception("Invalid hash - CBuyDomainPayload");
     }
        
     public void commit(CBlockPayload block) throws Exception
     {	
         // Superclass
 	super.commit(block);
+            
+	// Transfer domain
+	UTILS.DB.executeUpdate("UPDATE domains "
+	     		        + "SET adr='"+this.target_adr+"', "
+                                    + "sale_price='0', "
+                                    + "block='"+this.block+"' "
+	                      + "WHERE domain='"+this.domain+"'");
         
         // Commit
         UTILS.ACC.clearTrans(this.hash, "ID_ALL", this.block);
-	    
-	// Transfer domain
-	UTILS.DB.executeUpdate("UPDATE domains "
-	     		             + "SET adr='"+this.buyer_adr+"', "
-                                         + "sale_price='0', "
-                                         + "block='"+this.block+"' "
-	     		           + "WHERE domain='"+this.domain+"'");
    }
 }

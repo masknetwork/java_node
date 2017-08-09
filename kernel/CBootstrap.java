@@ -5,9 +5,6 @@ package wallet.kernel;
 
 import wallet.kernel.net_stat.tables.*;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import wallet.kernel.net_stat.*;
 
 public class CBootstrap 
 {
@@ -52,6 +49,18 @@ public class CBootstrap
 				    
 	    UTILS.DB.executeUpdate("CREATE UNIQUE INDEX blocks_pool_hash ON blocks_pool(hash)");
 	    UTILS.DB.executeUpdate("CREATE INDEX blocks_pool_block ON blocks_pool(block)");
+         }
+         
+         // ------------------------------- IPS --------------------------------------
+	 if (tab.equals("ips"))
+         {
+	    UTILS.DB.executeUpdate("CREATE TABLE ips(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+			 	 		  + "IP VARCHAR(100) NOT NULL DEFAULT '', "
+			                          + "status VARCHAR(30) NOT NULL DEFAULT '', "
+			 	 	 	  + "tstamp BIGINT NOT NULL DEFAULT 0)");
+				    
+	    UTILS.DB.executeUpdate("CREATE UNIQUE INDEX ips_IP ON ips(IP)");
+	    UTILS.DB.executeUpdate("CREATE INDEX ips_status ON ips(status)");
          }
          
          // ------------------------------------- Votes stats ------------------------------------------------
@@ -423,10 +432,13 @@ public class CBootstrap
 	    UTILS.DB.executeUpdate("CREATE TABLE rec_packets(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
 	 					       + "tip VARCHAR(100) NOT NULL DEFAULT '', "
 	 					       + "fromIP  VARCHAR(100) NOT NULL DEFAULT '', "
+                                                       + "passed  VARCHAR(2) NOT NULL DEFAULT '', "
+                                                       + "reason  VARCHAR(1000) NOT NULL DEFAULT '', "
 	 					       + "tstamp  BIGINT NOT NULL DEFAULT 0, "
                                                        + "hash VARCHAR(100) NOT NULL DEFAULT '')");
 	    
             UTILS.DB.executeUpdate("CREATE INDEX rec_packets_hash ON rec_packets(hash)");
+            UTILS.DB.executeUpdate("CREATE INDEX rec_packets_fromIP ON rec_packets(fromIP)");
 	}
          
          // ---------------------------------- Peers ---------------------------------------
@@ -458,11 +470,12 @@ public class CBootstrap
             UTILS.DB.executeUpdate("CREATE INDEX peers_pool_peer ON peers_pool(peer)");
             
             // Insert primary nodes
-            UTILS.DB.executeUpdate("INSERT INTO peers_pool SET peer='45.76.42.171', port='10000'");
-            UTILS.DB.executeUpdate("INSERT INTO peers_pool SET peer='45.76.133.87', port='10000'");
-            UTILS.DB.executeUpdate("INSERT INTO peers_pool SET peer='45.76.85.194', port='10000'");
-            UTILS.DB.executeUpdate("INSERT INTO peers_pool SET peer='108.61.177.6', port='10000'");
-	  }
+            UTILS.DB.executeUpdate("INSERT INTO peers_pool SET peer='104.199.44.76', port='10000'");
+            UTILS.DB.executeUpdate("INSERT INTO peers_pool SET peer='35.189.221.16', port='10000'");
+            UTILS.DB.executeUpdate("INSERT INTO peers_pool SET peer='35.187.177.227', port='10000'");
+            UTILS.DB.executeUpdate("INSERT INTO peers_pool SET peer='104.199.93.154', port='10000'");
+            UTILS.DB.executeUpdate("INSERT INTO peers_pool SET peer='35.189.80.21', port='10000'");
+          }
          
         
          
@@ -475,6 +488,7 @@ public class CBootstrap
                                                     + "invested DOUBLE(20,8) NOT NULL DEFAULT 0, "
 	 	 	 			    + "cur VARCHAR(10) NOT NULL DEFAULT '', "
 	 	 	 			    + "escrower VARCHAR(250) NOT NULL DEFAULT '', "
+                                                    + "expl VARCHAR(250) NOT NULL DEFAULT '', "
 	 	 	 			    + "hash VARCHAR(100) NOT NULL DEFAULT '', "
                                                     + "tID BIGINT NOT NULL DEFAULT 0, "
 	 	 	 			    + "block BIGINT NOT NULL DEFAULT 0, "
@@ -735,12 +749,35 @@ public class CBootstrap
              UTILS.DB.executeUpdate("CREATE INDEX checkpoints_hash ON checkpoints(hash)");
          }
          
+         
+         
+          // ------------------------------------- Feeds Sources Res ------------------------------------------------
+         if (tab.equals("feeds_data_time"))
+         {
+             UTILS.DB.executeUpdate("CREATE TABLE feeds_data_time(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                                                                 +"inter BIGINT NOT NULL DEFAULT 0, "
+                                                                 +"feed VARCHAR(20) NOT NULL DEFAULT 0, "
+                                                                 +"branch VARCHAR(20) NOT NULL DEFAULT 0, "
+                                                                 +"low FLOAT(20, 8) NOT NULL DEFAULT 0, "
+                                                                 +"high FLOAT(20, 8) NOT NULL DEFAULT 0, "
+                                                                 +"open FLOAT(20, 8) NOT NULL DEFAULT 0, "
+                                                                 +"close FLOAT(20, 8) NOT NULL DEFAULT 0, "
+                                                                 +"no BIGINT NOT NULL DEFAULT 0, "
+                                                                 +"block BIGINT NOT NULL DEFAULT 0)");
+             
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_data_time_interval ON feeds_data_time(inter)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_data_time_feed ON feeds_data_time(feed)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_data_time_branch ON feeds_data_time(branch)");
+             UTILS.DB.executeUpdate("CREATE INDEX feeds_data_time_no ON feeds_data_time(no)");
+         }
+         
          // ------------------------------------- Assets ------------------------------------------------
          if (tab.equals("assets"))
          {
              CAssetsTable assets=new CAssetsTable();
              assets.create(); 
          }
+         
          
          // Speculative markets
          if (tab.equals("feeds_spec_mkts"))
@@ -831,16 +868,11 @@ public class CBootstrap
                                                                 +"threads BIGINT NOT NULL DEFAULT 0)");
          }
          
-         // ------------------------------------- Delegates Log ------------------------------------------------
+         // ------------------------------------- Delegates log ------------------------------------------------
          if (tab.equals("delegates_log"))
          {
-              UTILS.DB.executeUpdate("CREATE TABLE delegates_log(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                                                                +"delegate VARCHAR(500) NOT NULL DEFAULT '', "
-                                                                +"power BIGINT NOT NULL DEFAULT 0, "
-                                                                +"block BIGINT NOT NULL DEFAULT 0)");
-              
-              UTILS.DB.executeUpdate("CREATE INDEX delegates_log_delegate ON delegates_log(delegate)");
-              UTILS.DB.executeUpdate("CREATE INDEX delegates_log_block ON delegates_log(block)");
+              CDelegatesLogTable delegates_log=new CDelegatesLogTable();
+              delegates_log.create(); 
          }
          
          // ------------------------------------- Rewards ------------------------------------------------
@@ -1036,8 +1068,8 @@ public class CBootstrap
             if (this.tableExist("feeds_data")==false)
               this.createTable("feeds_data");
             
-            if (this.tableExist("feeds_pos_data")==false)
-              this.createTable("feeds_pos_data");
+            if (this.tableExist("feeds_data_time")==false)
+              this.createTable("feeds_data_time");
             
             if (this.tableExist("feeds_sources_res")==false)
               this.createTable("feeds_sources_res");
@@ -1057,7 +1089,6 @@ public class CBootstrap
          if (this.tableExist("feeds_spec_mkts_pos")==false)
             this.createTable("feeds_spec_mkts_pos");
          
-         
         if (this.tableExist("status_log")==false)
             this.createTable("status_log");
         
@@ -1072,6 +1103,9 @@ public class CBootstrap
         
         if (this.tableExist("tweets_follow")==false)
             this.createTable("tweets_follow");
+        
+       if (this.tableExist("ips")==false)
+            this.createTable("ips");
         
         if (this.tableExist("votes")==false)
             this.createTable("votes");

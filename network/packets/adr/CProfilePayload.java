@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import wallet.kernel.*;
-import wallet.network.CResult;
 import wallet.network.packets.*;
 import wallet.network.packets.blocks.CBlockPayload;
 
@@ -53,9 +52,6 @@ public class CProfilePayload extends CPayload
 	   // Superclass
 	   super(target_adr);
 	   
-	   // Target address
-	   this.target_adr=target_adr;
- 	   
 	   // Name
 	   this.name=name;
 	   
@@ -124,23 +120,10 @@ public class CProfilePayload extends CPayload
              if (!UTILS.BASIC.isPic(this.pic))
                throw new Exception("Invalid pic - CProfilePayload.java");
           
-          // Profile already exist ?
-          
-          ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                      + "FROM profiles "
-                                     + "WHERE adr='"+this.target_adr+"'");
-          
-          if (UTILS.DB.hasData(rs))
-              throw new Exception("Profile already exist - CProfilePayload.java");
-   	 
-	   // Check days
+           // Check days
  	   if (days<1) 
  	      throw new Exception("Invalid days - CProfilePayload.java");
-   	   
-           // Can spend
-           if (UTILS.BASIC.isSealed(this.target_adr))
-               throw new Exception("Sealed address - CProfilePayload.java");
-               
+   	       
  	    // Check hash
  	    String h=UTILS.BASIC.hash(this.getHash()+
  			              name+
@@ -158,11 +141,28 @@ public class CProfilePayload extends CPayload
    
    public void commit(CBlockPayload block) throws Exception
    {
-      // Superclass
+       // Superclass
        super.commit(block);
-          
-        // Insert
-       UTILS.DB.executeUpdate("INSERT INTO profiles "
+       
+       // Profile exist ?
+       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                          + "FROM profiles "
+                                         + "WHERE adr='"+this.target_adr+"'");
+        
+       // Has data ?
+        if (UTILS.DB.hasData(rs))
+            UTILS.DB.executeUpdate("UPDATE profiles "
+                                    + "SET name='"+UTILS.BASIC.base64_encode(this.name)+"', "
+   	    	                        + "pic='"+UTILS.BASIC.base64_encode(this.pic_back)+"', "
+                                        + "pic_back='"+UTILS.BASIC.base64_encode(this.pic)+"', "
+   	    	                        + "description='"+UTILS.BASIC.base64_encode(this.description)+"', "
+   	       	                        + "website='"+UTILS.BASIC.base64_encode(this.website)+"', "
+   	    	                        + "email='"+UTILS.BASIC.base64_encode(this.email)+"', "
+   	       	                        + "block='"+this.block+"' "
+                                  + "WHERE adr='"+this.target_adr+"'");
+   	
+        else 
+            UTILS.DB.executeUpdate("INSERT INTO profiles "
                                     + "SET adr='"+this.target_adr+"', "
    	                                + "name='"+UTILS.BASIC.base64_encode(this.name)+"', "
    	    	                        + "pic='"+UTILS.BASIC.base64_encode(this.pic_back)+"', "

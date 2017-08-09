@@ -13,9 +13,17 @@ public class CFeedsSpecMktsPosTable extends CTable
         super("feeds_spec_mkts_pos");
     }
     
-    public void expired(long block)
+    public void expired(long block) throws Exception
     {
- 
+       // Load expired positions
+       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                          + "FROM feeds_spec_mkts_pos "
+                                         + "WHERE expire<"+block+" "
+                                           + "AND status<>'ID_CLOSED'");
+       
+       // Parse
+       while (rs.next())
+         UTILS.SPEC_POS.closePos(rs.getLong("posID"), block);
     }
     
     public void create() throws Exception

@@ -53,24 +53,42 @@ public class CBlockPayload extends CPayload
 	
 	public boolean exist(CBroadcastPacket packet) throws Exception
 	{
-            // Check packet hash
+            // Packet hash
+            long no_packet_hashes=0;
+            String packet_hash=packet.hash;
+                 
+            // Fee hash
+            long no_fee_hashes=0;
+            String fee_hash=UTILS.BASIC.hash(packet.fee_payload);
+                 
+            // Payload hash
+            long no_payload_hashes=0;
+            String payload_hash=UTILS.BASIC.hash(packet.payload);
+                 
+            // Parse packets
             for (int a=0; a<=this.packets.size()-1; a++)
             {
                 // Load packet
-                CBroadcastPacket p=(CBroadcastPacket)this.packets.get(a);
-                
-                // Check packet hash
-		if (packet.hash.equals(p.hash))
-		   return true;
-                
-                // Check payoad hash
-		if (packet.hash.equals(UTILS.BASIC.hash(p.payload)))
-		   return true;
-                
-                // Check fee hash
-		if (packet.hash.equals(UTILS.BASIC.hash(p.fee_payload)))
-		   return true;
+                CBroadcastPacket p=this.packets.get(a);
+                     
+                // Packet hash
+                if (packet_hash.equals(p.hash))
+                    no_packet_hashes++;
+                     
+                // Packet hash
+                if (fee_hash.equals(UTILS.BASIC.hash(p.fee_payload)))
+                    no_fee_hashes++;
+                     
+                // Payload hash
+                if (payload_hash.equals(UTILS.BASIC.hash(p.payload)))
+                    no_payload_hashes++;
             }
+                 
+            // check duplicates
+            if (no_packet_hashes>0 || 
+                no_fee_hashes>0 || 
+                no_payload_hashes>0)
+            return true;
             
             // Not found
             return false;
@@ -79,7 +97,8 @@ public class CBlockPayload extends CPayload
 	public void addPacket(CBroadcastPacket packet) throws Exception
 	{
             // Packet exist ?
-	    if (this.exist(packet)) return;
+	    if (this.exist(packet)) 
+                throw new Exception("Packet already exist"); 
                 
             // Block number
             if (this.block!=packet.block)
@@ -114,7 +133,7 @@ public class CBlockPayload extends CPayload
             }
                 
             // Add
-            if (this.packets.size()<100 && (UTILS.SERIAL.serialize(this.packets).length+packet.payload.length)<250000)
+            if (this.packets.size()<100 && (UTILS.SERIAL.serialize(this).length+UTILS.SERIAL.serialize(packet).length)<95000)
             {
 	       this.packets.add(packet); 
             }
@@ -125,10 +144,12 @@ public class CBlockPayload extends CPayload
                    // Load packet
                    CBroadcastPacket p=(CBroadcastPacket)this.packets.get(a);
                    
+                   // fee payload
                    CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(p.fee_payload);
                    
                    // Smaller net fee ?
-                   if (fee.amount/p.payload.length<fee.amount/packet.payload.length)
+                   if (fee.amount/p.payload.length<fee.amount/packet.payload.length && 
+                       !this.exist(packet))
                    {
                        // Remove
                        this.packets.remove(a);

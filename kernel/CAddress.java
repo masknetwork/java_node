@@ -2,45 +2,20 @@
 // Contact : vcris@gmx.com
 
 package wallet.kernel;
-
-import java.math.BigInteger;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.security.Signature;
-import java.security.SignatureException;
 import java.security.interfaces.ECPublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.Hex;
-import org.bouncycastle.asn1.sec.SECNamedCurves;
-import org.bouncycastle.asn1.x9.X9ECParameters;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.generators.ECKeyPairGenerator;
-import org.bouncycastle.crypto.params.ECDomainParameters;
-import org.bouncycastle.crypto.params.ECKeyGenerationParameters;
-import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
-import org.bouncycastle.crypto.params.ECPublicKeyParameters;
-import org.bouncycastle.crypto.util.PublicKeyFactory;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.interfaces.ECPrivateKey;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
-import org.bouncycastle.math.ec.ECPoint;
 
 public class CAddress 
 {
@@ -50,9 +25,6 @@ public class CAddress
     
     // Private key
     public byte[] private_key;
-    
-    // Balance
-    public double balance=0;
     
     // Description
     public String description="";
@@ -71,7 +43,8 @@ public class CAddress
     }
 
 	
-	public CAddress(String public_key, String private_key, String description, float balance)  throws Exception
+	public CAddress(String public_key, 
+                        String private_key)  throws Exception
 	{
             // Key factory
             KeyFactory keyFactory = KeyFactory.getInstance("EC", "BC");
@@ -95,11 +68,15 @@ public class CAddress
             this.private_key=Base64.decodeBase64(private_key);
 	}
 	
-	public boolean importAddress(String user, 
+	public boolean importAddress(long userID, 
                                      String public_key, 
                                      String private_key, 
                                      String tag)  throws Exception
 	{
+            // Adr
+            if (!UTILS.BASIC.isAdr(public_key)) 
+                throw new Exception("Invalid public key - CAddress.java, 78");
+            
 	    // Load provider
             Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 		  
@@ -124,9 +101,6 @@ public class CAddress
             // Private key format
             this.private_key=Base64.decodeBase64(private_key);
 		
-            // Balance
-            this.balance=0;
-		
             // Description
             this.description=tag;
 		
@@ -137,8 +111,8 @@ public class CAddress
 		
             if (!UTILS.DB.hasData(rs))
             {
-		// Insert address
-	        UTILS.DB.executeUpdate("INSERT INTO my_adr SET userID='"+UTILS.BASIC.getUserID(user)+"', "
+                // Insert address
+	        UTILS.DB.executeUpdate("INSERT INTO my_adr SET userID='"+userID+"', "
                                                                 + "adr='"+public_key+"', "
                                                                 + "description='"+UTILS.BASIC.base64_encode(tag)+"'");
 				        

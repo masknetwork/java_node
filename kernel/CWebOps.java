@@ -12,7 +12,6 @@ import org.apache.commons.codec.binary.Hex;
 import wallet.kernel.x34.SHA256;
 import wallet.kernel.x34.SHA512;
 import wallet.network.CPeer;
-import wallet.network.CResult;
 import wallet.network.packets.CPacket;
 import wallet.network.packets.adr.CProfilePacket;
 import wallet.network.packets.adr.CAddAttrPacket;
@@ -34,7 +33,7 @@ import wallet.network.packets.trade.feeds.CNewFeedComponentPacket;
 import wallet.network.packets.trade.feeds.CNewFeedPacket;
 import wallet.network.packets.trade.speculative.CCloseMarketPacket;
 import wallet.network.packets.trade.speculative.CClosePosPacket;
-import wallet.network.packets.trade.speculative.CNewSpecMarketPacket;
+import wallet.network.packets.trade.speculative.CNewMarginMarketPacket;
 import wallet.network.packets.trade.speculative.CNewSpecMarketPosPacket;
 import wallet.network.packets.trade.speculative.CWthFundsPacket;
 import wallet.network.packets.trans.CEscrowedTransSignPacket;
@@ -103,7 +102,7 @@ public class CWebOps
                    // New account is created.
                    if (op.equals("ID_NEW_ACCOUNT"))
                    {
-                       UTILS.WALLET.newAddress(rs.getString("user"), 
+                       UTILS.WALLET.newAddress(rs.getLong("par_3"), 
                                                UTILS.BASIC.base64_decode(rs.getString("par_2")));
                        
                        // UserID
@@ -132,8 +131,7 @@ public class CWebOps
 			                                            UTILS.STATUS.new_acc_reward, 
 			                                            "MSK",
 			                                            "Welcome to MaskNetwork",
-                                                                    "",
-                                                                    rs.getLong("ID"));
+                                                                    "");
                         
                                UTILS.NETWORK.broadcast(packet);
                            }
@@ -159,8 +157,7 @@ public class CWebOps
                                                              rs.getDouble("par_3"),
                                                              rs.getString("par_4"),
                                                              rs.getString("par_5"),
-                                                             rs.getString("par_6"),
-                                                             rs.getLong("ID"));
+                                                             rs.getString("par_6"));
                         
                         UTILS.NETWORK.broadcast(packet);
                    }
@@ -182,13 +179,14 @@ public class CWebOps
                    if (op.equals("ID_NEW_FEED_BRANCH"))
                    {
                        CNewFeedComponentPacket packet=new CNewFeedComponentPacket(rs.getString("fee_adr"), 
-                                                                                 rs.getString("par_1"),
-                                                                                 UTILS.BASIC.base64_decode(rs.getString("par_3")),
-                                                                                 UTILS.BASIC.base64_decode(rs.getString("par_4")),
-                                                                                 rs.getString("par_5"),
-                                                                                 rs.getString("par_2"),
-                                                                                 rs.getString("par_6"),
-                                                                                 rs.getLong("days"));
+                                                                                  rs.getString("target_adr"), 
+                                                                                  rs.getString("par_1"),
+                                                                                  UTILS.BASIC.base64_decode(rs.getString("par_3")),
+                                                                                  UTILS.BASIC.base64_decode(rs.getString("par_4")),
+                                                                                  rs.getString("par_5"),
+                                                                                  rs.getString("par_2"),
+                                                                                  rs.getString("par_6"),
+                                                                                  rs.getLong("days"));
                                  
                       UTILS.NETWORK.broadcast(packet);
                    }
@@ -242,8 +240,8 @@ public class CWebOps
                   
                    
                    if (op.equals("ID_NEW_ADR")) 
-                       UTILS.WALLET.newAddress(rs.getString("user"), 
-                                               UTILS.BASIC.base64_decode(rs.getString("par_1")));
+                       UTILS.WALLET.newAddress(rs.getLong("par_1"), 
+                                               UTILS.BASIC.base64_decode(rs.getString("par_2")));
                     
                     if (op.equals("ID_REVEAL_PK"))
                     {
@@ -275,11 +273,11 @@ public class CWebOps
                    if (op.equals("ID_IMPORT_ADR"))
                    {
                        CAddress adr=new CAddress();
-                       
-                       adr.importAddress(rs.getString("user"), 
-                                         rs.getString("par_1"),
+                      
+                       adr.importAddress(rs.getLong("par_1"),
                                          rs.getString("par_2"),
-                                         rs.getString("par_3"));
+                                         rs.getString("par_3"),
+                                         rs.getString("par_4"));
                    }
                    
                    if (op.equals("ID_RENEW"))
@@ -288,7 +286,9 @@ public class CWebOps
                                                             rs.getString("target_adr"), 
                                                             rs.getString("par_1"), 
                                                             rs.getLong("days"),
-                                                            rs.getString("par_2"));
+                                                            rs.getLong("par_2"),
+                                                            rs.getString("par_3"),
+                                                            rs.getString("par_4"));
                        UTILS.NETWORK.broadcast(packet);
                    }
                    
@@ -386,9 +386,7 @@ public class CWebOps
                                                        rs.getString("target_adr"),
 		                                       rs.getString("par_1"), 
                                                        UTILS.BASIC.base64_decode(rs.getString("par_2")), 
-                                                       UTILS.BASIC.base64_decode(rs.getString("par_3")),
-                                                       rs.getString("packet_sign"),
-                                                       rs.getString("payload_sign"));
+                                                       UTILS.BASIC.base64_decode(rs.getString("par_3")));
                                  
                       UTILS.NETWORK.broadcast(packet);
                    }  
@@ -409,7 +407,7 @@ public class CWebOps
                    // New regular asset market
                    if (op.equals("ID_NEW_SPEC_MARKET"))
                    {
-                       CNewSpecMarketPacket packet=new CNewSpecMarketPacket(rs.getString("fee_adr"), 
+                       CNewMarginMarketPacket packet=new CNewMarginMarketPacket(rs.getString("fee_adr"), 
                                                                             rs.getString("target_adr"),
                                                                             rs.getString("par_1"),
                                                                             rs.getString("par_2"),
@@ -605,18 +603,10 @@ public class CWebOps
                    }
                 }
            }
-           
-        
-           
-           
-        }
-        catch (SQLException ex)
-        {
-            UTILS.LOG.log("SQLexception", ex.getMessage(), "CWebOps.java", 635);
         }
         catch (Exception e) 
 	{ 
-		UTILS.LOG.log("Exception", e.getMessage(), "CWebOps.java", 639); 
+            System.out.println(e.getMessage() + " - CWebOps.java, 608"); 
         }
         finally 
         {

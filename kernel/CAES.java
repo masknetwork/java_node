@@ -2,32 +2,13 @@
 // Contact : vcris@gmx.com
 
 package wallet.kernel;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.SecretKey;
-import javax.crypto.SealedObject;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-
 import org.apache.commons.codec.binary.Base64;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.AlgorithmParameters;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.Security;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.InvalidParameterSpecException;
-
 
 public class CAES 
 {
@@ -43,9 +24,12 @@ public class CAES
     // IV Bytes
     private byte[] ivBytes;
     
-    public CAES()
+    // Key factory
+    SecretKeyFactory factory;
+    
+    public CAES() throws Exception
     {
-		
+	this.factory=SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");	
     }
 	
     public String encrypt(String plainText, String password) throws Exception
@@ -59,9 +43,6 @@ public class CAES
         // Salt bytes
         byte[] saltBytes = salt.getBytes("UTF-8");
          
-        // Key factory
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-        
         // Specifications
         PBEKeySpec spec = new PBEKeySpec(password.toCharArray(),
                                          saltBytes,
@@ -99,9 +80,6 @@ public class CAES
         // Salt
         byte[] saltBytes = salt.getBytes("UTF-8");
          
-        // Key factory
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-        
         // Key spec
         PBEKeySpec spec = new PBEKeySpec(password.toCharArray(),
                                          saltBytes,
@@ -144,9 +122,7 @@ public class CAES
         // Decode
         byte[] encryptedTextBytes = Base64.decodeBase64(encryptedText);
  
-        // Key factory
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-           
+          
         // Key spec
         PBEKeySpec spec = new PBEKeySpec(password.toCharArray(),
                                          saltBytes,

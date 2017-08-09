@@ -67,7 +67,7 @@ public class CCommentPayload extends CPayload
       super.check(block);
       
       // ID
-      if (UTILS.BASIC.existID(comID))
+      if (UTILS.BASIC.isID(comID))
           throw new Exception("Invalid ID - CTweetMesPayload.java");
       
       // Check Message

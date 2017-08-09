@@ -2,42 +2,21 @@ package wallet.kernel;
 
 import wallet.kernel.x34.Skein512;
 import wallet.kernel.x34.Hamsi512;
-import wallet.kernel.x34.Fugue224;
 import wallet.kernel.x34.Fugue512;
-import wallet.kernel.x34.Fugue384;
-import wallet.kernel.x34.ECHO224;
-import wallet.kernel.x34.BMW384;
-import wallet.kernel.x34.BLAKE256;
 import wallet.kernel.x34.SHA256;
-import wallet.kernel.x34.Groestl256;
-import wallet.kernel.x34.BLAKE384;
-import wallet.kernel.x34.BMW256;
 import wallet.kernel.x34.Luffa512;
 import wallet.kernel.x34.SHA512;
 import wallet.kernel.x34.Groestl512;
 import wallet.kernel.x34.BMW512;
-import wallet.kernel.x34.Groestl224;
 import wallet.kernel.x34.ECHO512;
 import wallet.kernel.x34.SHAvite512;
-import wallet.kernel.x34.BLAKE224;
-import wallet.kernel.x34.CubeHash224;
-import wallet.kernel.x34.BMW224;
 import wallet.kernel.x34.Shabal512;
-import wallet.kernel.x34.Groestl384;
-import wallet.kernel.x34.ECHO256;
-import wallet.kernel.x34.CubeHash256;
 import wallet.kernel.x34.BLAKE512;
-import wallet.kernel.x34.HMAC;
 import wallet.kernel.x34.SIMD512;
 import wallet.kernel.x34.JH512;
 import wallet.kernel.x34.Keccak512;
 import wallet.kernel.x34.CubeHash512;
-import wallet.kernel.x34.CubeHash384;
-import wallet.kernel.x34.ECHO384;
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
-import java.util.Random;
-import wallet.kernel.x34.SHA224;
 
 public class CCPUMinerUtils
 {
@@ -167,7 +146,7 @@ public class CCPUMinerUtils
         BigInteger num=new BigInteger(hash, 16);
        
         // Delegate power
-        BigInteger del_power=BigInteger.valueOf(UTILS.DELEGATES.getPower(block_signer));
+        BigInteger del_power=BigInteger.valueOf(UTILS.DELEGATES.getPower(block_signer, block_no));
         
         // Check nonce
         if (num.compareTo(new BigInteger(net_dif, 16).multiply(del_power))<0 &&

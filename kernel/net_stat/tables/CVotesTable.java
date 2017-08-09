@@ -17,7 +17,7 @@ public class CVotesTable extends CTable
     public void expired(long block) throws Exception
     {
        UTILS.DB.executeUpdate("DELETE FROM votes "
-                                  + "WHERE block<"+(block-1441));
+                                  + "WHERE block<"+(block-1440));
     }
     
     public void create() throws Exception

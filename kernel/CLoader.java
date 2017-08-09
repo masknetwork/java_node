@@ -61,15 +61,11 @@ public class CLoader extends Thread
                     // Pass
                     this.pass=pass;
 		 }
-		 catch (MalformedURLException ex) 
+		 catch (Exception ex) 
 	     {
-	        UTILS.LOG.log("MalformedURLException", ex.getMessage(), "CLoader.java", 34);
+	        System.out.println(ex.getMessage()+" - CLoader.java, 34");
 	     } 
-		 catch (IOException ex) 
-	     {
-	        UTILS.LOG.log("IOException", ex.getMessage(), "CLoader.java", 34);
-	     } 
-        
+		
 	}
 	
 	public void addParam(String name, String value) throws Exception

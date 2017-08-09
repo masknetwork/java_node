@@ -4,7 +4,6 @@
 package wallet.network.packets.trans;
 
 import wallet.kernel.*;
-import wallet.network.CResult;
 
 
 

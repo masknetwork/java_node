@@ -6,7 +6,6 @@ package wallet.network.packets.assets;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import wallet.kernel.*;
-import wallet.network.CResult;
 import wallet.network.packets.*;
 import wallet.network.packets.ads.CNewAdPayload;
 import wallet.network.packets.blocks.CBlockPayload;
@@ -48,11 +47,21 @@ public class CIssueAssetPacket extends CBroadcastPacket
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
            
            // Net fee 
-           double net_fee=0.0001*days+qty*0.0001;
+           long t_fee=0;
+           
+           // Round transaction fee
+           t_fee=Math.round(trans_fee);
+           
+           // Minimum 
+           if (t_fee<1) t_fee=1;
+           
+           // Compute transaction fee
+           double net_fee=((days*0.0001)+(qty*0.0001))*t_fee;
+           if (net_fee<1) net_fee=1;
                
 	   // Network fee
-	  CFeePayload fee=new CFeePayload(fee_adr,  net_fee);
-	  this.fee_payload=UTILS.SERIAL.serialize(fee);
+	   CFeePayload fee=new CFeePayload(fee_adr,  net_fee);
+	   this.fee_payload=UTILS.SERIAL.serialize(fee);
 	   
            // Sign packet
 	   this.sign();
@@ -73,9 +82,21 @@ public class CIssueAssetPacket extends CBroadcastPacket
           
         // Check payload
         dec_payload.check(block);
-          
-        // Net fee
-        double net_fee=((0.0001*dec_payload.days)+(dec_payload.qty*0.0001))*dec_payload.trans_fee;
+        
+        // Net fee 
+        long t_fee=0;
+           
+        // Round transaction fee
+        t_fee=Math.round(dec_payload.trans_fee);
+           
+        // Minimum 
+        if (t_fee<1) t_fee=1;
+        
+        // Compute transaction fee
+        double net_fee=((dec_payload.days*0.0001)+(dec_payload.qty*0.0001))*t_fee;
+           
+        // Minimum
+        if (net_fee<1) net_fee=1;
         
         // Deserialize payload
         CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);

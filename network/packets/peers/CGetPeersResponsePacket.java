@@ -9,7 +9,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import wallet.network.CPeer;
-import wallet.network.CResult;
 import wallet.network.packets.*;
 import wallet.network.packets.blocks.CBlockPayload;
 
@@ -27,19 +26,22 @@ public class CGetPeersResponsePacket extends CPacket
         super("ID_GET_PEERS_RESPONSE_PACKET");
         
         // Add peers
-             
-             ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                                + "FROM peers_pool "
-                                               + "WHERE accept_con='ID_YES' "
-                                            + "ORDER BY RAND() "
-                                               + "LIMIT 0,10");
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM peers_pool "
+                                          + "WHERE accept_con='ID_YES' "
+                                       + "ORDER BY RAND() "
+                                          + "LIMIT 0,10");
         
-           // Hash
-           this.hash=UTILS.BASIC.hash(UTILS.BASIC.mtstamp()+this.tip);
+        // Has data ?
+        if (!UTILS.DB.hasData(rs))
+            throw new Exception("Peers pool is empty");
         
-           while (rs.next())
-              this.addPeer(rs.getString("peer"), rs.getInt("port"));
-          
+        // Hash
+        this.hash=UTILS.BASIC.hash(UTILS.BASIC.mtstamp()+this.tip);
+        
+        // Loop
+        while (rs.next())
+          this.addPeer(rs.getString("peer"), rs.getInt("port"));
     }
     
     public void addPeer(String IP, int port)
@@ -51,7 +53,7 @@ public class CGetPeersResponsePacket extends CPacket
     
     public void check(CBlockPayload block) throws Exception
     {
-        if (this.peers.size()>25)
+        if (this.peers.size()>10)
             throw new Exception("Invalid peers size");
             
          // Check data

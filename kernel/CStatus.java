@@ -8,7 +8,7 @@ public class CStatus
     public String engine_status;
     
     // Version
-    public String version="0.1.0";
+    public long version=1;
     
     // New accounts reward address
     public String new_acc_reward_adr;

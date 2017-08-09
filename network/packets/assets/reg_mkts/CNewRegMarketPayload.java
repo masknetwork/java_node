@@ -7,15 +7,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import wallet.kernel.UTILS;
-import wallet.network.CResult;
 import wallet.network.packets.CPayload;
 import wallet.network.packets.blocks.CBlockPayload;
 
 public class CNewRegMarketPayload extends CPayload
 {   
-    // Market address
-    String adr;
-    
     // Asset symbol
     String asset_symbol;
     
@@ -47,9 +43,6 @@ public class CNewRegMarketPayload extends CPayload
                                 long days) throws Exception
     {
         super(adr);
-        
-        // Market ddress
-        this.adr=adr;
         
         // Asset symbol
         this.asset_symbol=asset_symbol;
@@ -100,9 +93,17 @@ public class CNewRegMarketPayload extends CPayload
         if (!this.cur_symbol.equals("MSK"))
            if (!UTILS.BASIC.isAsset(cur_symbol))
              throw new Exception("Invalid currency symbol - CNewRegMarketPayload.java");
-         
+        
+        // Asset and currency the same ?
+        if (this.asset_symbol.equals(this.cur_symbol))
+            throw new Exception("Asset and currency are the same - CNewRegMarketPayload.java");
+        
+        // Asset not MSK ?
+        if (this.asset_symbol.equals("MSK"))
+            throw new Exception("Invalid asset symbol - CNewRegMarketPayload.java");
+        
         // Market ID
-        if (UTILS.BASIC.existID(mktID))
+        if (UTILS.BASIC.isID(mktID))
             throw new Exception("Invalid market ID - CNewRegMarketPayload.java");
         
         // Title
@@ -114,12 +115,30 @@ public class CNewRegMarketPayload extends CPayload
            throw new Exception("Invalid description - CNewRegMarketPayload.java");
          
         // Market Days
-        if (this.days<100)
+        if (this.days<10)
            throw new Exception("Invalid days - CNewRegMarketPayload.java");
          
         // Decimals
         if (this.decimals<0 || this.decimals>8)
             throw new Exception("Invalid decimals - CNewRegMarketPayload.java");
+        
+        // Asset data
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM assets "
+                                          + "WHERE symbol='"+this.asset_symbol+"'");
+        
+        // Next
+        rs.next();
+        
+        // Asset expire
+        long asset_expire=rs.getLong("expire")-10;
+        
+        // Market expire
+        long mkt_expire=this.block+this.days*1440;
+        
+        // Market expire after asset ?
+        if (mkt_expire>asset_expire)
+            throw new Exception("Invalid market expiration date - CNewRegMarketPayload.java");
         
         // Hash code
         String h=UTILS.BASIC.hash(this.getHash()+
@@ -144,7 +163,7 @@ public class CNewRegMarketPayload extends CPayload
         
         // Insert market
         UTILS.DB.executeUpdate("INSERT INTO assets_mkts "
-                                     + "SET adr='"+this.adr+"', "
+                                     + "SET adr='"+this.target_adr+"', "
                                          + "asset='"+this.asset_symbol+"', "
                                          + "cur='"+this.cur_symbol+"', "
                                          + "name='"+UTILS.BASIC.base64_encode(this.title)+"', "

@@ -6,15 +6,10 @@ package wallet.network;
 
 import java.math.BigInteger;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
-import wallet.kernel.CAddress;
 import wallet.kernel.CCPUMiner;
-import wallet.kernel.CStatus;
 import wallet.kernel.UTILS;
 import wallet.network.packets.CBroadcastPacket;
-import wallet.network.packets.CPacket;
 import wallet.network.packets.blocks.CBlockPacket;
 import wallet.network.packets.blocks.CBlockPayload;
 
@@ -46,7 +41,7 @@ public class CCurBlock
    public String signer="";
    
    // Signer balance
-   public long signer_balance=0;
+   public long signer_power=0;
    
    // Nonce
    public long nonce=0;
@@ -78,14 +73,14 @@ public class CCurBlock
        // Next
        rs.next();
        
-       // Set signer
-       this.setSigner();
-       
        // Payload
        payload=new CBlockPayload(this.signer);
        
        // New hash
        this.payload_hash=UTILS.BASIC.hash(UTILS.SERIAL.serialize(this.payload));
+       
+       // Set signer
+       this.setSigner();
        
        // Net dif
        UTILS.NET_STAT.setDifficulty(this.getNewDif(UTILS.NET_STAT.last_block_hash));
@@ -137,6 +132,9 @@ public class CCurBlock
        // Threads
        UTILS.DB.executeUpdate("UPDATE web_sys_data "
                                + "SET mining_threads=mining_threads+1");
+       
+       // Message
+       System.out.println("New CPU miner thread started.");
    }
    
    public void addPacket(CBroadcastPacket packet) throws Exception
@@ -174,7 +172,7 @@ public class CCurBlock
        if (!this.signer.equals("")) 
        {
             // Signer power
-            this.signer_balance=UTILS.DELEGATES.getPower(signer);
+            this.signer_power=UTILS.DELEGATES.getPower(signer, this.payload.block);
               
             // Payload
             if (this.payload!=null) 
@@ -192,7 +190,7 @@ public class CCurBlock
        else
        {
             this.signer="";
-            this.signer_balance=0;
+            this.signer_power=0;
        }
    }
    
@@ -203,7 +201,7 @@ public class CCurBlock
           if (!this.signer.equals(""))
           {
              // Load payload
-             block=new CBlockPacket(this.signer, this.signer_balance);
+             block=new CBlockPacket(this.signer);
          
              // Serialize
              block.payload=UTILS.SERIAL.serialize(payload);
@@ -228,13 +226,13 @@ public class CCurBlock
           }
           else 
           {
-              UTILS.LOG.log("Error : ", "No block signer available", "CCurBlock.java", 199);
+              System.out.println("No block signer available - CCurBlock.java, 234");
               this.nonce=0;
           }
        }
        catch (Exception e) 
        { 
-		UTILS.LOG.log("Exception", e.getMessage(), "CCurBlock.java", 182); 
+	    System.out.println(e.getMessage() + "CCurBlock.java, 240"); 
        }
    }
    
@@ -295,8 +293,7 @@ public class CCurBlock
        // Load
        ResultSet rs=UTILS.DB.executeQuery("SELECT *  "
                                           + "FROM blocks "
-                                         + "WHERE hash='"+last_hash+"' "
-                                      + "ORDER BY block ASC");
+                                         + "WHERE hash='"+last_hash+"'");
        
        if (UTILS.DB.hasData(rs)) 
        {
@@ -318,8 +315,7 @@ public class CCurBlock
             // Load
             rs=UTILS.DB.executeQuery("SELECT *  "
                                      + "FROM blocks "
-                                    + "WHERE hash='"+last_hash+"' "
-                                 + "ORDER BY block ASC");
+                                    + "WHERE hash='"+last_hash+"'");
        
             if (UTILS.DB.hasData(rs))
             {

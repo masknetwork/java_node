@@ -19,17 +19,11 @@ public class CPacket implements java.io.Serializable
    // Hash
    public String hash;
    
-   // Prev packet hash
-   String prev_packet_hash;
-   
-   // Next packet hash
-   String next_packet_hash;
-   
    // Tstamp
    public long tstamp;
    
    // Signature
-   public String sign;
+   public String sign="";
    
    // Payload 
    public byte[] payload=null;
@@ -39,11 +33,11 @@ public class CPacket implements java.io.Serializable
    
    public CPacket(String tip)  throws Exception
    {
-	   // Tip
-	   this.tip=tip;
+	// Tip
+	this.tip=tip;
            
-           // Time
-           this.tstamp=UTILS.BASIC.tstamp();
+        // Time
+        this.tstamp=UTILS.BASIC.tstamp();
            
     }
    
@@ -56,15 +50,31 @@ public class CPacket implements java.io.Serializable
    
    public void check(CBlockPayload block) throws Exception
    {  
-       
+       // Basic check
+       this.basicCheck();
    }
    
    public void check(CPeer peer) throws Exception
    {  
-       
+       // Basic check
+       this.basicCheck();
    }
    
+   public void basicCheck() throws Exception
+   {
+       // Tip
+       if (!UTILS.BASIC.isStringID(this.tip))
+           throw new Exception("Invalid packet type - CPacket.java, 65");
    
+       // Hash
+       if (!UTILS.BASIC.isHash(this.hash))
+           throw new Exception("Invalid packet type - CPacket.java, 65");
+   
+       // Signature
+       if (!sign.equals(""))
+          if (!UTILS.BASIC.isBase64(this.sign))
+           throw new Exception("Invalid packet type - CPacket.java, 65");
+   }
    
    public void commit(CBlockPayload block) throws Exception
    {

@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import wallet.network.packets.*;
 import wallet.kernel.*;
-import wallet.network.CResult;
 import wallet.network.packets.blocks.CBlockPayload;
 
 public class CNewFeedPayload extends CPayload
@@ -21,9 +20,6 @@ public class CNewFeedPayload extends CPayload
     
     // Description
     String description;
-    
-    // Pic
-    String pic;
     
     // Website
     String website;
@@ -70,7 +66,7 @@ public class CNewFeedPayload extends CPayload
                              description+  
                              website+
 		             symbol+
-                             String.valueOf(days));
+                             days);
        
        // Sign
        this.sign();
@@ -80,7 +76,6 @@ public class CNewFeedPayload extends CPayload
     {  
          // Super class
          super.check(block);
-         
          
          // Title
          if (!UTILS.BASIC.isTitle(this.title))
@@ -94,14 +89,22 @@ public class CNewFeedPayload extends CPayload
          if (!UTILS.BASIC.isSymbol(this.symbol))
              throw new Exception("Invalid symbol - CNewFeedPayload.java"); 
          
+         // Symbol already exist ?
+         if (UTILS.BASIC.isFeed(symbol))
+             throw new Exception("Feed already exist - CNewFeedPayload.java");
+         
          // Website valid ?
-         if (this.website.length()>0)
+         if (!this.website.equals(""))
             if (!UTILS.BASIC.isLink(this.website))
               throw new Exception("Invalid website - CNewFeedPayload.java"); 
          
-         // Symbol already exist ?
-         if (UTILS.BASIC.isFeed(symbol))
-             throw new Exception("Feed already exist - CNewFeedPayload.java"); 
+         // Feed ID
+         if (UTILS.BASIC.isID(this.feedID))
+            throw new Exception("Invalid feed ID - CNewFeedPayload.java"); 
+         
+         // Days
+         if (this.days<10)
+             throw new Exception("Invalid days - CNewFeedPayload.java");
          
          // Hash
          String h=UTILS.BASIC.hash(this.getHash()+
@@ -110,7 +113,7 @@ public class CNewFeedPayload extends CPayload
                                    description+  
                                    website+
 		                   symbol+
-                                   String.valueOf(days));
+                                   days);
          
          if (!h.equals(this.hash))
              throw new Exception("Invalid hash - CNewFeedPayload.java"); 

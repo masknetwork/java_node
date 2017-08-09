@@ -5,7 +5,6 @@ package wallet.network.packets.assets.reg_mkts;
 
 import wallet.kernel.CPackets;
 import wallet.kernel.UTILS;
-import wallet.network.CResult;
 import wallet.network.packets.CBroadcastPacket;
 import wallet.network.packets.assets.CIssueMoreAssetsPayload;
 import wallet.network.packets.blocks.CBlockPayload;
@@ -38,7 +37,7 @@ public class CNewRegMarketPacket extends CBroadcastPacket
 	   this.payload=UTILS.SERIAL.serialize(dec_payload);
            
 	   // Network fee
-	  CFeePayload fee=new CFeePayload(fee_adr,  0.0001*days);
+	  CFeePayload fee=new CFeePayload(fee_adr,  UTILS.CONSTANTS.FEE_MULT*days);
 	  this.fee_payload=UTILS.SERIAL.serialize(fee);
 	   
 	   // Sign packet

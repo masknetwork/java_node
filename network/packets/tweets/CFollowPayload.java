@@ -4,12 +4,8 @@
 package wallet.network.packets.tweets;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import wallet.kernel.*;
-import wallet.network.*;
 import wallet.network.packets.*;
-import wallet.network.packets.trans.*;
 import wallet.network.packets.blocks.*;
 
 

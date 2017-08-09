@@ -18,41 +18,25 @@ public class CAssetsTable extends CTable
     
     public void expired(long block) throws Exception
     {
-       // Load expired
+        // Load expired
        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                           + "FROM assets "
                                          + "WHERE expire<"+block);
        
        // Remove
        while (rs.next())
-           this.removeBySymbol(rs.getString("symbol"));
-    }
-    
-    
-    public void removeBySymbol(String symbol) throws Exception
-    {
-        // Load data
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                           + "FROM assets "
-                                          + "WHERE symbol='"+symbol+"'");
+       {
+           // Address
+           String symbol=rs.getString("symbol");
         
-        // Next
-        rs.next();
-        
-        // Address
-        String adr=rs.getString("adr");
-        
-        // Escrowed ?
-        rs=UTILS.DB.executeQuery("SELECT * FROM escrowed WHERE cur='"+symbol+"'");
-        if (UTILS.DB.hasData(rs)) return;
-        
-        // Delete owners
-        UTILS.DB.executeUpdate("DELETE FROM assets_owners "
-                                   + "WHERE symbol='"+symbol+"'");
-        
-        // Delete asset
-        UTILS.DB.executeUpdate("DELETE FROM assets "
-                                   + "WHERE symbol='"+symbol+"'");
+           // Delete owners
+           UTILS.DB.executeUpdate("DELETE FROM assets_owners "
+                                      + "WHERE symbol='"+symbol+"'");
+           
+           // Delete asset
+           UTILS.DB.executeUpdate("DELETE FROM assets "
+                                      + "WHERE symbol='"+symbol+"'");
+       }
     }
     
     public void create() throws Exception

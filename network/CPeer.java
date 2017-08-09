@@ -4,13 +4,10 @@
 package wallet.network;
 
 import java.net.*;
-import java.sql.SQLException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.io.*;
 import java.sql.ResultSet;
-import java.sql.Statement;
-
 import wallet.kernel.*;
 import wallet.network.packets.*;
 import org.apache.commons.io.input.CountingInputStream;
@@ -61,9 +58,9 @@ public class CPeer extends Thread
     // Mode
     String mode="";
     
-    // Schedule delete in 2 seconds
-    boolean schedule_delete=false;
-   
+    // Started
+    long started=0;
+    
     
     CPeer()
     {
@@ -84,6 +81,9 @@ public class CPeer extends Thread
            // Mode
            this.mode="ID_MODE_TO";
            
+           // Started
+           this.started=UTILS.BASIC.tstamp();
+           
            try
            {
               // Client
@@ -94,7 +94,14 @@ public class CPeer extends Thread
            }
 	   catch (Exception ex) 
 	   { 
-	       UTILS.LOG.log("Exception", ex.getMessage(), "CPeer.java", 101); 
+               // Log
+	       System.out.println(ex.getMessage() + " - CPeer.java, 101"); 
+               
+               // Close peer
+               client.close();
+               
+               // Close connection
+               this.close();
            }
 	}
 	
@@ -114,15 +121,22 @@ public class CPeer extends Thread
 	  
   	  // Peers
           this.peers=peers;
+          
+          // Started
+          this.started=UTILS.BASIC.tstamp();
    }
    
    public void couldNotConnect() throws Exception
    {
+       // Address ?
+       if (!UTILS.BASIC.isIP(this.adr))
+           throw new Exception("Invalid peer - CPeer.java, 133");
+       
        UTILS.DB.executeUpdate("UPDATE peers_pool "
-                         + "SET con_att_no=con_att_no+1, "
-                             + "con_att_last='"+UTILS.BASIC.tstamp()
-                             +"', accept_con='ID_NO' "
-                             + "WHERE peer='"+this.adr+"'");
+                               + "SET con_att_no=con_att_no+1, "
+                                   + "con_att_last='"+UTILS.BASIC.tstamp()
+                                  +"', accept_con='ID_NO' "
+                              + "WHERE peer='"+this.adr+"'");
    }
    
    public void close() throws Exception
@@ -133,28 +147,30 @@ public class CPeer extends Thread
          
          if (this.in!=null) in.close();
          if (this.out!=null) this.out.close();
-         
-         if (timer!=null)
-         {
-           timer.cancel();
-           timer.purge();
-         }
-       }
-       catch (IOException ex)
-       {
-           UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 131);
        }
        catch (Exception ex)
        {
-           UTILS.LOG.log("Exception", ex.getMessage(), "CPeer.java", 131);
+           System.out.println(ex.getMessage() + " - CPeer.java, 152");
+       }
+       finally
+       {
+           if (timer!=null)
+           {
+             timer.cancel();
+             timer.purge();
+           }
        }
    }
    
    public void conAtt(String peer) throws Exception
    {
-	   UTILS.DB.executeUpdate("UPDATE peers "
-	   		             + "SET last_con_att='"+UTILS.BASIC.tstamp()+"' "
-	   		           + "WHERE peer='"+peer+"'");
+       // Address ?
+       if (!UTILS.BASIC.isIP(peer))
+           throw new Exception("Invalid peer - CPeer.java, 169");
+       
+        UTILS.DB.executeUpdate("UPDATE peers "
+	   		        + "SET last_con_att='"+UTILS.BASIC.tstamp()+"' "
+	   		     + "WHERE peer='"+peer+"'");
    }
    
    
@@ -166,18 +182,41 @@ public class CPeer extends Thread
        @Override
        public void run() 
        {  
+           //System.out.println("Alive...");
+           
            try
            {
-              // Record traffic
-              if (parent.in_count!=null && parent.out_count!=null)
-              UTILS.DB.executeUpdate("UPDATE peers "
+               // Address ?
+               if (!UTILS.BASIC.isIP(parent.adr))
+                   throw new Exception("Invalid peer - CPeer.java, 191");
+       
+               // Peer in db ?
+               ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                                  + "FROM peers "
+                                                 + "WHERE peer='"+parent.adr+"'");
+               
+               // Has data
+               if (!UTILS.DB.hasData(rs) && UTILS.BASIC.tstamp()-parent.started>10)
+               {
+                   // Message
+                   System.out.println("Peer suicide - no db record found.");
+                   
+                   // Close peer
+                   parent.close();
+               }
+               else
+               {
+                  // Record traffic
+                  if (parent.in_count!=null && parent.out_count!=null)
+                  UTILS.DB.executeUpdate("UPDATE peers "
                                       + "SET in_traffic='"+parent.in_count.getByteCount()+"', "
                                           + "out_traffic='"+parent.out_count.getByteCount()+"' "
                                     + "WHERE peer='"+parent.adr+"'");
+               }
            }
            catch (Exception ex) 
        	   {  
-       		UTILS.LOG.log("SQLException", ex.getMessage(), "CPeer.java", 184);
+       		System.out.println(ex.getMessage() + " - CPeer.java, 210");
            }
        }
    }
@@ -202,6 +241,10 @@ public class CPeer extends Thread
               // Input stream
               in_count=new CountingInputStream(client.getInputStream());
 	      in=new ObjectInputStream(in_count);
+              
+              // Address ?
+              if (!UTILS.BASIC.isIP(this.adr))
+                   throw new Exception("Invalid peer - CPeer.java, 247");
        
 	      // Mode
               if (this.mode.equals("ID_MODE_TO"))
@@ -221,13 +264,14 @@ public class CPeer extends Thread
 	   }
 	   catch (EOFException ex) 
 	   { 
-               UTILS.LOG.log("IOException", ex.getMessage(), "CPeer.java", 233);
+               System.out.println(ex.getMessage() + " - CPeer.java, 254");
                
                try { this.peers.removePeer(this); }
-               catch (Exception e) {  UTILS.LOG.log("SQLException", e.getMessage(), "CPeer.java", 237); }
-               
-               
-	   }
+               catch (Exception e) 
+               {  
+                   System.out.println(e.getMessage() + " - CPeer.java, 257"); 
+               }
+           }
 	   catch (Exception ex) 
 	   { 
 		  

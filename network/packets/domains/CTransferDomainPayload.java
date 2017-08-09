@@ -56,15 +56,11 @@ public class CTransferDomainPayload extends CPayload
         // Domain valid
         if (!UTILS.BASIC.isDomain(this.domain))
            throw new Exception("Invalid domain - CTransferDomainPayload.java");
-           
-        // Hash
-        String h=UTILS.BASIC.hash(this.getHash()+
-    		                  this.domain+
-    		                  this.to_adr);
         
-        if (!h.equals(this.hash))
-     	    throw new Exception("Invalid hash - CTransferDomainPayload.java");
-       
+        // Same address ?
+        if (this.to_adr.equals(this.target_adr))
+            throw new Exception("Invalid destination address - CTransferDomainPayload.java");
+        
         // Domain owned by address ?
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
   		                           + "FROM domains "
@@ -73,6 +69,14 @@ public class CTransferDomainPayload extends CPayload
         
         if (!UTILS.DB.hasData(rs))
            throw new Exception("Invalid domain - CTransferDomainPayload.java");
+        
+        // Hash
+        String h=UTILS.BASIC.hash(this.getHash()+
+    		                  this.domain+
+    		                  this.to_adr);
+        
+        if (!h.equals(this.hash))
+     	    throw new Exception("Invalid hash - CTransferDomainPayload.java");
     }
 	
     public void commit(CBlockPayload block) throws Exception

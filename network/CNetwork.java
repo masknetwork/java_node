@@ -3,23 +3,11 @@
 
 package wallet.network;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-
-import javax.swing.DefaultListModel;
-import javax.swing.JFrame;
-import javax.swing.JList;
-
 import wallet.kernel.*;
 import wallet.kernel.net_stat.consensus.CConsensus;
 import wallet.network.packets.*;
-import wallet.network.*;
 import wallet.network.packets.blocks.*;
-import wallet.network.packets.sync.CReqDataPacket;
 
 public class CNetwork extends Thread
 {
@@ -35,12 +23,6 @@ public class CNetwork extends Thread
       // Transaction pool
     public static CTransPool TRANS_POOL;
 	
-    // Escrowed pool ?
-    public static CEscrowedPool ESCROWED_POOL=null;
-    
-    // Multisig pool ?
-    public static CMultisigPool MULTISIG_POOL=null; 
-    
     // Consensus
     public  CConsensus CONSENSUS=null;
     
@@ -72,12 +54,12 @@ public class CNetwork extends Thread
               try
               {
 	          // Start the server
-                  this.peers.serverStart(UTILS.SETTINGS.port); 	
+                  this.peers.run();
               
               }
               catch (Exception ex) 
        	      {  
-       		UTILS.LOG.log("SQLException", ex.getMessage(), "CNetwork.java", 57);
+       		System.out.println(ex.getMessage() + " - CNetwork.java, 80");
               }
 	  }
 	  
@@ -95,6 +77,11 @@ public class CNetwork extends Thread
           
           public void seen(String adr) throws Exception
           {
+              // IP valid ?
+              if (adr!=null)
+                if (!UTILS.BASIC.isIP(adr))
+                  throw new Exception("Invalid address - CNetwork.java, 94");
+              
               // Updates last seen
 	      UTILS.DB.executeUpdate("UPDATE peers "
                                       + "SET last_seen='"+UTILS.BASIC.tstamp()+"' "
@@ -116,12 +103,13 @@ public class CNetwork extends Thread
                   seen(sender.adr);
                   
 		  // Already processed
-		  if (this.packetExist(packet, sender)) return;
+		  if (this.packetExist(packet, sender)) 
+                      return;
                   
                   // Timestamp
                   if (Math.abs(packet.tstamp-UTILS.BASIC.tstamp())>60) 
                   {
-                      System.out.println(packet.tstamp+", "+UTILS.BASIC.tstamp());
+                      System.out.println("Invalid packet timestamp");
                       return;
                   }
                   
@@ -139,7 +127,6 @@ public class CNetwork extends Thread
                           packet.tip.equals("ID_NETSTAT_PACKET") ||
                           packet.tip.equals("ID_PING_PACKET"))
                       packet.check(sender);
-                      
                   }
                   else
                   {
@@ -159,6 +146,8 @@ public class CNetwork extends Thread
                                     this.broadcast(packet);
                             }
                         }
+                        
+                        // Block
                         else if (packet.tip.equals("ID_BLOCK"))
                         {
                             // Deserialize block
@@ -167,6 +156,8 @@ public class CNetwork extends Thread
                             // Load block
                             this.CONSENSUS.blockReceived(block);
                         }
+                        
+                        // Other
                         else packet.check(sender);
                     }
                   
@@ -175,10 +166,16 @@ public class CNetwork extends Thread
 		  catch (Exception ex)
 		  {
                       System.out.println(ex.getMessage()+" CNetwork.java - 165");
-		  }
+                      
+                      // Update passed status
+                      UTILS.DB.executeUpdate("UPDATE rec_packets "
+                                              + "SET passed='N', "
+                                                  + "reason='"+UTILS.BASIC.base64_encode(ex.getMessage())+"' "
+                                            + "WHERE hash='"+packet.hash+"'");
+                  }
 	  }
 	  
-	  public void broadcast(CPacket packet) throws Exception
+	  public synchronized void broadcast(CPacket packet) throws Exception
 	  {
               //UTILS.CONSOLE.write("Broadcasting packet ("+packet.tip+")...");
               
@@ -199,46 +196,49 @@ public class CNetwork extends Thread
 	  
 	  public boolean packetExist(CPacket packet, CPeer sender) throws Exception
 	  {
-              if (!UTILS.BASIC.isHash(packet.hash)) return true;
+            // Check hash
+            if (!UTILS.BASIC.isHash(packet.hash)) 
+               return true;
               
-              ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-		      		                 + "FROM rec_packets "
-		      		                + "WHERE hash='"+packet.hash+"'");
-		      
-		      if (UTILS.DB.hasData(rs))
-                      {
-                          // Return
-		    	  return true;
-                      }
-		      else
-                      {
-                           // Log packet
-                           this.logPacket(packet, sender);
+            ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+		      		               + "FROM rec_packets "
+		      		              + "WHERE hash='"+packet.hash+"'");
+		        
+            if (UTILS.DB.hasData(rs))
+                return true;
+            else
+                this.logPacket(packet, sender);
                           
-                          // Return
-		    	  return false;
-                      }
-             
-	  }
+            // Return
+	    return false;
+          }
 	  
 	  public void logPacket(CPacket packet, CPeer peer) throws Exception
 	   {
                String adr;
                
                if (peer==null)
-                  adr="";
-               else
-                  adr=peer.adr;
-                   
-	       UTILS.DB.executeUpdate("INSERT INTO rec_packets(tip, "
-                                                    + "fromIP, "
-                                                    + "tstamp, "
-                                                    + "hash) "
-		  		     + "VALUES('"+packet.tip+"', "+ "'"
-                                                 +adr+"', "
-		  		                 + "'"+String.valueOf(UTILS.BASIC.tstamp())+"', "
-		  		                 + "'"+packet.hash+"')");
-	   }
+                   return;
+               
+               // Packet type
+               if (!UTILS.BASIC.isStringID(packet.tip))
+                   throw new Exception("Invalid packet type - CNetwork.java, 227");
+               
+               // Address
+               if (!UTILS.BASIC.isIP(peer.adr))
+                   throw new Exception("Invalid peer address - CNetwork.java, 231");
+               
+               // Hash
+               if (!UTILS.BASIC.isHash(packet.hash))
+                   throw new Exception("Invalid packet hash - CNetwork.java, 234");
+               
+               // Update 
+	       UTILS.DB.executeUpdate("INSERT INTO rec_packets "
+                                            + "SET tip='"+packet.tip+"', "
+                                                + "fromIP='"+peer.adr+"', "
+                                                + "tstamp='"+UTILS.BASIC.tstamp()+"', "
+                                                + "hash='"+packet.hash+"'");
+           }
 	  
 	  public void sendToPeer(String peer, CPacket packet) throws Exception
 	  {

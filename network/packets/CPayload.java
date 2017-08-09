@@ -3,21 +3,7 @@
 
 package wallet.network.packets;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-
 import wallet.kernel.*;
-import wallet.network.*;
-import wallet.network.packets.*;
-import wallet.network.packets.trans.*;
 import wallet.network.packets.blocks.*;
 
 public class CPayload  implements java.io.Serializable
@@ -53,14 +39,10 @@ public class CPayload  implements java.io.Serializable
         //  Hash
         public String getHash() throws Exception
         {	
-            String data=this.target_adr+
-                        String.valueOf(this.tstamp)+
-                        String.valueOf(this.block);
-       
-    	    String h=UTILS.BASIC.hash(data);
-    	
-            return h;	
-        }
+            return UTILS.BASIC.hash(this.target_adr+
+                                    this.tstamp+
+                                    this.block);
+    	}
     
         // Constructor
         public CPayload(String adr) throws Exception
@@ -90,9 +72,18 @@ public class CPayload  implements java.io.Serializable
                if (!UTILS.BASIC.isAdr(this.target_adr))
                   throw new Exception("Invalid target address - CPayload");
             
+            // Sig valid ?
+            if (!UTILS.BASIC.isBase64(this.sign))
+               throw new Exception("Invalid signature format - CPayload");
+            
            // Check sig
            if (!this.checkSig())
               throw new Exception("Invalid signature - CPayload");
+           
+           // Block number
+           if (block!=null)
+             if (block.block!=this.block)
+               throw new Exception("Invalid block number - CPayload");
            
            // Delete previous trans
            UTILS.DB.executeUpdate("DELETE FROM my_trans WHERE hash='"+this.hash+"'");

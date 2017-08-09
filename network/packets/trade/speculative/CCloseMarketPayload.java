@@ -29,14 +29,14 @@ public class CCloseMarketPayload extends CPayload
    
    public void check(CBlockPayload block) throws Exception
    {
-       // Super class
-       super.check(block);
+        // Super class
+        super.check(block);
           
-      // Check address
-      ResultSet mkt_rs=UTILS.DB.executeQuery("SELECT * "
-                                         + "FROM feeds_spec_mkts "
-                                        + "WHERE mktID='"+this.mktID+"' "
-                                          + "AND adr='"+this.target_adr+"'");
+        // Check address
+        ResultSet mkt_rs=UTILS.DB.executeQuery("SELECT * "
+                                               + "FROM feeds_spec_mkts "
+                                              + "WHERE mktID='"+this.mktID+"' "
+                                                + "AND adr='"+this.target_adr+"'");
       
       // Has data
       if (!UTILS.DB.hasData(mkt_rs))
@@ -50,10 +50,10 @@ public class CCloseMarketPayload extends CPayload
       
       // Open positions
       ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                               + "FROM feeds_spec_mkts_pos "
-                              + "WHERE mktID='"+this.mktID+"' "
-                                + "AND (status='ID_MARKET' OR "
-                                      + "status='ID_PENDING')");
+                                         + "FROM feeds_spec_mkts_pos "
+                                        + "WHERE mktID='"+this.mktID+"' "
+                                          + "AND (status='ID_MARKET' OR "
+                                                + "status='ID_PENDING')");
       
        if (UTILS.DB.hasData(rs))
        {
@@ -73,14 +73,11 @@ public class CCloseMarketPayload extends CPayload
               UTILS.ACC.newTransfer(this.target_adr, 
                                     rs.getString("adr"),
                                     amount,
-                                    true,
                                     mkt_rs.getString("cur"), 
                                     "Market has been closed by owner", 
                                     "", 
                                     hash, 
-                                    this.block, 
-                                    block, 
-                                    0);
+                                    this.block);
          }
        }
        
@@ -98,9 +95,6 @@ public class CCloseMarketPayload extends CPayload
         // Super
         super.commit(block);
         
-        // Clear trans
-        UTILS.ACC.clearTrans(this.hash, "ID_ALL", this.block);
-        
         // Removes market
         UTILS.DB.executeUpdate("DELETE FROM feeds_spec_mkts "
                                    + "WHERE mktID='"+this.mktID+"'");
@@ -108,5 +102,8 @@ public class CCloseMarketPayload extends CPayload
         // Removes positions
         UTILS.DB.executeUpdate("DELETE FROM feeds_spec_mkts_pos "
                                    + "WHERE mktID='"+this.mktID+"'");
+        
+        // Clear trans
+        UTILS.ACC.clearTrans(this.hash, "ID_ALL", this.block);
     }        
 }

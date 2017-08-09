@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import wallet.kernel.UTILS;
-import wallet.network.CResult;
 import wallet.network.packets.CPayload;
 import wallet.network.packets.blocks.CBlockPayload;
 import wallet.network.packets.trans.CTransPayload;
@@ -43,20 +42,20 @@ public class CBuyBetPayload extends CPayload
    }
    
    public void check(CBlockPayload block) throws Exception
-    {
+   {
         // Super class
-   	  super.check(block);
+   	super.check(block);
           
         // Check bet uid
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                           + "FROM feeds_bets "
-                                          + "WHERE betID='"+this.betID+"'"
-                                            +" AND end_block>"+(this.block+1)
-                                            +" AND accept_block>"+(this.block+1));
+                                           +" FROM feeds_bets "
+                                           +" WHERE betID='"+this.betID+"'"
+                                             +" AND accept_block>="+this.block
+                                             +" AND status='ID_PENDING'");
             
         // Has data ?
         if (!UTILS.DB.hasData(rs))
-           throw new Exception("Invalid UID - CBuyBetPayload.java"); 
+           throw new Exception("Invalid bet ID - CBuyBetPayload.java"); 
          
         // Next
         rs.next();
@@ -79,28 +78,30 @@ public class CBuyBetPayload extends CPayload
         if (this.amount<0.0001)
            throw new Exception("Invalid amount - CBuyBetPayload.java"); 
         
-        // Bets closed ?
-        if (this.block>rs.getLong("accept_block"))
-            throw new Exception("Betting ended - CBuyBetPayload.java"); 
-            
+        // Can spend ?
+        if (!UTILS.BASIC.canSpend(this.target_adr))
+            throw new Exception("Address can't spend funds - CBuyBetPayload.java");
+        
+        // Buy address
+        if (rs.getString("adr").equals(this.target_adr))
+            throw new Exception("Address is the same as issuer - CBuyBetPayload.java");
+        
         // Block the funds
         UTILS.ACC.newTrans(this.target_adr, 
                            "",
                            -Double.parseDouble(UTILS.FORMAT_4.format(this.amount)),
-                           true,
                            rs.getString("cur"), 
                            "You have invested in a binary option / bet ("+String.valueOf(this.betID)+")", 
                            "", 
                            this.hash, 
-                           this.block,
-                           block,
-                           0);
+                           this.block);
             
         // Hash
         String h=UTILS.BASIC.hash(this.getHash()+
                                   this.betID+
                                   String.valueOf(this.amount));
-            
+        
+        // Check hash
         if (!this.hash.equals(h))
            throw new Exception("Invalid hash - CBuyBetPayload.java");    
     }
@@ -125,9 +126,9 @@ public class CBuyBetPayload extends CPayload
                // Insert position
                UTILS.DB.executeUpdate("INSERT INTO feeds_bets_pos "
                                             + "SET adr='"+this.target_adr+"', "
-                                                               + "betID='"+this.betID+"', "
-                                                               + "amount='"+UTILS.FORMAT_4.format(this.amount)+"', "
-                                                               + "block='"+this.block+"'");
+                                              + "betID='"+this.betID+"', "
+                                             + "amount='"+UTILS.FORMAT_4.format(this.amount)+"', "
+                                              + "block='"+this.block+"'");
                
                // Increase bets amount
                UTILS.DB.executeUpdate("UPDATE feeds_bets "
@@ -150,18 +151,21 @@ public class CBuyBetPayload extends CPayload
                                  + "WHERE betID='"+this.betID+"'");
            
            // Vote bet
-           UTILS.BASIC.voteTarget(this.target_adr, "ID_BET", betID, block.block);
+           UTILS.BASIC.voteTarget(this.target_adr, "ID_BET", betID, this.block);
            
            // Load bet details
            rs=UTILS.DB.executeQuery("SELECT * "
                                     + "FROM feeds_bets "
                                    + "WHERE betID='"+betID+"'");
+           
+           // Next
+           rs.next();
         
             // Feed ID
             long feedID=UTILS.BASIC.getFeedID(rs.getString("feed"));
         
             // Vote feed
-            UTILS.BASIC.voteTarget(this.target_adr, "ID_FEED", feedID, block.block);
+            UTILS.BASIC.voteTarget(this.target_adr, "ID_FEED", feedID, this.block);
        
     }        
 }

@@ -97,7 +97,10 @@ public class CBroadcastPacket extends CPacket
                 if (no_packet_hashes>1 || 
                      no_fee_hashes>1 || 
                      no_payload_hashes>1)
-                throw new Exception("Duplicate found - CBroadcastPacket.java");
+                {
+                   System.out.println(no_packet_hashes+", "+no_fee_hashes+", "+no_payload_hashes+", "+this.hash);
+                   throw new Exception("Duplicate found - CBroadcastPacket.java");
+                }
              }
              
             // Check fee
@@ -139,11 +142,11 @@ public class CBroadcastPacket extends CPacket
 	        dec_payload.commit(block);
                 
                 // Commited
-                UTILS.BASIC.commited(UTILS.NET_STAT.actual_block_hash, 
-                                     UTILS.NET_STAT.actual_block_no, 
-                                     this.hash, 
-                                     dec_payload.hash, 
-                                     fee.hash);
+                this.commited(UTILS.NET_STAT.actual_block_hash, 
+                              UTILS.NET_STAT.actual_block_no, 
+                              this.hash, 
+                              dec_payload.hash, 
+                              fee.hash);
             }
             catch (Exception ex)
             {
@@ -191,18 +194,50 @@ public class CBroadcastPacket extends CPacket
             // Signature address
             CAddress adr=UTILS.WALLET.getAddress(fee.target_adr);
 	      this.sign=adr.sign(this.hash);
-           
         }
 	
 	
 	public boolean checkSign() throws Exception
 	{
             // Deserialize payload
-            CFeePayload fee=(CFeePayload) UTILS.SERIAL.deserialize(fee_payload);
+            CFeePayload fee=(CFeePayload) 
+                    UTILS.SERIAL.deserialize(fee_payload);
                     
 	    CECC ecc=new CECC(fee.target_adr);
 		return (ecc.checkSig(hash, this.sign));
 	}
+        
+        // Commited
+        public void commited(String block_hash, 
+                             long block_no, 
+                             String packet_hash, 
+                             String payload_hash, 
+                             String fee_hash) throws Exception
+        {
+            // Block hash
+            if (!UTILS.BASIC.isHash(block_hash))
+                throw new Exception("Invalid block hash - CBroadcastPacket.java, 216");
+            
+            // Packet hash
+            if (!UTILS.BASIC.isHash(packet_hash))
+                throw new Exception("Invalid packet hash - CBroadcastPacket.java, 219");
+            
+            // Payload hash
+            if (!UTILS.BASIC.isHash(payload_hash))
+                throw new Exception("Invalid payload hash - CBroadcastPacket.java, 224");
+            
+            // Fee hash
+            if (!UTILS.BASIC.isHash(fee_hash))
+                throw new Exception("Invalid fee hash - CBroadcastPacket.java, 228");
+            
+            // Update
+            UTILS.DB.executeUpdate("UPDATE packets "
+                                    + "SET block_hash='"+block_hash+"', "
+                                        + "block='"+block_no+"' "
+                                  + "WHERE packet_hash='"+packet_hash+"' "
+                                     + "OR payload_hash='"+payload_hash+"' "
+                                     + "OR fee_hash='"+fee_hash+"'");
+        }
 	
 	
 }

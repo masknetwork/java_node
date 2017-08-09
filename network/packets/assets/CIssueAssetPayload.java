@@ -125,21 +125,20 @@ public class CIssueAssetPayload extends CPayload
         // Super class
         super.check(block);
         
+        // Asset ID
+        if (UTILS.BASIC.isID(this.assetID))
+            throw new Exception("Invalid asset ID - CIssueAssetPayload.java");
         
-        // Symbol length
+        // Symbol valid
         if (!UTILS.BASIC.isSymbol(this.symbol))
-           throw new Exception("Invalid symbol - CIssueAssetPayload.java");
+           throw new Exception("Invalid asset symbol - CIssueAssetPayload.java");
         
         // Same symbol
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-  		                           + "FROM assets "
-  		                          + "WHERE symbol='"+this.symbol+"'");
+        if (UTILS.BASIC.isAsset(this.symbol))
+            throw new Exception("Asset symbol already exist - CIssueAssetPayload.java");
         
-        if (UTILS.DB.hasData(rs))
-           throw new Exception("Asset symbol already exist - CIssueAssetPayload.java");
-            
         // Qty
-        if (this.qty<1000 || this.qty>10000000000L)
+        if (this.qty<1000 || this.qty>100000000000L)
     	   throw new Exception("Invalid qty - CIssueAssetPayload.java");
         
         // Title
@@ -171,21 +170,20 @@ public class CIssueAssetPayload extends CPayload
              throw new Exception("Invalid pic - CIssueAssetPayload.java");
         
        // Days
-       if (this.days<1000)
+       if (this.days<100)
           throw new Exception("Invalid days - CIssueAssetPayload.java");
         
         // Transaction fee address
         if (!UTILS.BASIC.isAdr(this.trans_fee_adr))
             throw new Exception("Invalid transaction fee address - CIssueAssetPayload.java");
         
+        // Trans fee rounding
+        this.trans_fee=UTILS.BASIC.round(this.trans_fee, 2);
+        
         // Transaction fee
         if (this.trans_fee<0 || this.trans_fee>10)
             throw new Exception("Invalid transaction fee - CIssueAssetPayload.java");
-       
-        // Sealed ? 
-        if (UTILS.BASIC.isSealed(this.target_adr))
-           throw new Exception("Sealed address - CIssueAssetPayload.java");
-           
+          
         // Calculates hash
         String h=UTILS.BASIC.hash(this.getHash()+
                                  this.assetID+

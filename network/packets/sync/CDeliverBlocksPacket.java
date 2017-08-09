@@ -15,7 +15,6 @@ import wallet.network.packets.blocks.CBlockPacket;
 
 import wallet.kernel.UTILS;
 import wallet.network.CPeer;
-import wallet.network.CResult;
 import wallet.network.packets.CPacket;
 import wallet.network.packets.blocks.CBlockPayload;
 import wallet.network.packets.trans.*;
@@ -81,6 +80,9 @@ public class CDeliverBlocksPacket extends CPacket
 				     
 			// Add block
 			this.addBlock(obj);
+                        
+                        // Close
+                        obj_in.close();
 		   }
                    else
                    {
@@ -105,20 +107,18 @@ public class CDeliverBlocksPacket extends CPacket
 		
     public void check(CPeer sender) throws Exception
     { 
-        CResult res=null;
-        
-        // Processing
-        UTILS.DB.executeUpdate("UPDATE sync "
-                                   + "SET status='ID_PROCESSING', "
-                                        + "tstamp='"+UTILS.BASIC.tstamp()+"' "
-                                 + "WHERE type='ID_BLOCKS' "
-                                   + "AND start='"+this.start+"'"); 
-           
         try
         {
            // Sync
            if (!UTILS.STATUS.engine_status.equals("ID_SYNC"))
                return;
+           
+           // Processing
+           UTILS.DB.executeUpdate("UPDATE sync "
+                                   + "SET status='ID_PROCESSING', "
+                                        + "tstamp='"+UTILS.BASIC.tstamp()+"' "
+                                 + "WHERE type='ID_BLOCKS' "
+                                   + "AND start='"+this.start+"'"); 
         
            for (int a=0; a<=this.blocks.size()-1; a++)
            {

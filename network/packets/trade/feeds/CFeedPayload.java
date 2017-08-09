@@ -48,9 +48,13 @@ public class CFeedPayload extends CPayload
    
    public void check(CBlockPayload block) throws Exception
    {
-       // Super class
-   	  super.check(block);
+        // Super class
+   	super.check(block);
           
+        // Feed symbol
+        if (!UTILS.BASIC.isSymbol(this.feed_symbol))
+            throw new Exception("Invalid feed symbol - CFeedPayload.java");
+            
         // Check if feed exist
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                            + "FROM feeds "
@@ -79,6 +83,11 @@ public class CFeedPayload extends CPayload
     
     public void commit(CBlockPayload block) throws Exception
     {
+        // Remove data
+        UTILS.DB.executeUpdate("DELETE FROM feeds_data "
+                                   + "WHERE block="+this.block+" "
+                                     + "AND feed='"+this.feed_symbol+"'");
+        
         for (int a=0; a<=this.values.size()-1; a++)
         {
             CFeedComponent fc=(CFeedComponent) this.values.get(a);

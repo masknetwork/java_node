@@ -31,10 +31,22 @@ public class CSettings
   public String wallet_pass="wallet";
   
   // Min peers
-  public int min_peers;
+  public int min_peers=3;
   
   // Db debug
   public String db_debug="false";
+  
+  // Db debug
+  public double min_fee=0.0001;
+  
+  // Seed
+  public boolean seed_mode=false;
+  
+  // Start mining
+  public boolean start_mining=false;
+  
+  // Sync start block
+  public long sync_start_block=0;
   
   // Settings
   Properties settings = new Properties();
@@ -51,8 +63,11 @@ public class CSettings
       }
       else
       {
+          // File input stream
+          FileInputStream in=new FileInputStream(UTILS.WRITEDIR+"wallet.ini");
+          
           // Load settings
-          settings.load(new FileInputStream(UTILS.WRITEDIR+"wallet.ini"));
+          settings.load(in);
           
           // Port
           if (settings.containsKey("port")) 
@@ -69,7 +84,9 @@ public class CSettings
           // Db pass
           if (settings.containsKey("db_pass")) 
               this.db_pass=settings.getProperty("db_pass");
-      
+          
+          // Close
+          in.close();
       }
   }
   

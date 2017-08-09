@@ -98,7 +98,6 @@ public class CVotePayload extends CPayload
        if (rs.getLong("total")>=100)
            throw new Exception("Maximum votes reached - CVotePayload.java");
        
-       
         // Check Hash
         String h=UTILS.BASIC.hash(this.getHash()+
  			          this.target_type+
@@ -113,11 +112,11 @@ public class CVotePayload extends CPayload
    {
         // Like
         UTILS.DB.executeUpdate("INSERT INTO votes "
-                                       + "SET adr='"+this.target_adr+"', "
-                                           + "target_type='"+this.target_type+"', "
-                                           + "targetID='"+this.targetID+"', "
-                                           + "expire='"+(this.block+1440)+"', "
-                                           + "type='"+this.type+"', "
-                                           + "block='"+this.block+"'");
-    }
+                                     + "SET adr='"+this.target_adr+"', "
+                                         + "target_type='"+this.target_type+"', "
+                                         + "targetID='"+this.targetID+"', "
+                                         + "expire='"+(this.block+1440)+"', "
+                                         + "type='"+this.type+"', "
+                                         + "block='"+this.block+"'");
+   }
 }

@@ -93,7 +93,7 @@ public class CNewFeedComponentPayload extends CPayload
             
         // Feed symbol valid
         if (!UTILS.BASIC.isSymbol(this.symbol))
-           throw new Exception("Invalid feec symbol - CNewFeedComponentPayload.java");
+           throw new Exception("Invalid feed symbol - CNewFeedComponentPayload.java");
              
         // Check feed
         if (UTILS.BASIC.isBranch(this.feed_symbol, this.symbol))
@@ -108,14 +108,53 @@ public class CNewFeedComponentPayload extends CPayload
             throw new Exception("Invalid description - CNewFeedComponentPayload.java");
              
         // Type
-        if (this.type.equals("ID_CRYPTO") && 
-            this.type.equals("ID_FX") && 
-            this.type.equals("ID_COMM") && 
-            this.type.equals("ID_IND") && 
-            this.type.equals("ID_STOCKS") && 
-            this.type.equals("ID_OTHER"))
+        if (!this.type.equals("ID_CRYPTO") && 
+            !this.type.equals("ID_FX") && 
+            !this.type.equals("ID_COMM") && 
+            !this.type.equals("ID_IND") && 
+            !this.type.equals("ID_STOCKS") && 
+            !this.type.equals("ID_OTHER"))
         throw new Exception("Invalid branch type, CNewFeedComponentPayload");
-             
+        
+        // Days
+        if (this.days<10)
+            throw new Exception("Invalid days, CNewFeedComponentPayload");
+        
+        // Load feed data
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM feeds "
+                                          + "WHERE symbol='"+this.feed_symbol+"' "
+                                            + "AND adr='"+this.target_adr+"'");
+        
+        // No data ?
+        if (!UTILS.DB.hasData(rs))
+            throw new Exception("Invalid feed symbol, CNewFeedComponentPayload");
+        
+        // Next
+        rs.next();
+        
+        // Feed expire block
+        long feed_expire=rs.getLong("expire");
+        
+        // Branch expire block
+        long branch_expire=this.block+this.days*1440;
+        
+        // Expire date
+        if (branch_expire>feed_expire)
+           throw new Exception("Invalid expire block, CNewFeedComponentPayload");
+        
+        // RL symbol not empty
+        if (!this.rl_symbol.equals(""))
+        {
+            // RL symbol
+            if (!UTILS.BASIC.isString(this.rl_symbol))
+                throw new Exception("Invalid RL symbol, CNewFeedComponentPayload");
+            
+            // Length
+            if (this.rl_symbol.length()<2 || this.rl_symbol.length()>20)
+                throw new Exception("Invalid RL symbol, CNewFeedComponentPayload");
+        }
+        
         // Hash
         String h=UTILS.BASIC.hash(this.getHash()+
                                   feed_symbol+
@@ -144,7 +183,7 @@ public class CNewFeedComponentPayload extends CPayload
                                          + "type='"+this.type+"', "
                                          + "symbol='"+this.symbol+"', "
                                          + "expire='"+(this.block+(1440*this.days))+"', "
-                                         + "rl_symbol='"+this.rl_symbol+"', "
+                                         + "rl_symbol='"+UTILS.BASIC.base64_encode(this.rl_symbol)+"', "
                                          + "block='"+this.block+"'");
     }
     

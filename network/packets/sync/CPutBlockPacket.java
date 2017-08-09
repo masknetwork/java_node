@@ -31,10 +31,13 @@ public class CPutBlockPacket extends CPacket
 
 	    // Read an object
 	    this.block = (CBlockPacket)obj_in.readObject();
+            
+            // Close
+            obj_in.close();
 	}
         
         // Hash
-        this.hash=UTILS.BASIC.hash(String.valueOf(UTILS.BASIC.mtstamp()));
+        this.hash=UTILS.BASIC.hash(String.valueOf(UTILS.BASIC.mtstamp())+block_hash);
     }
     
     public void check(CPeer sender) throws Exception

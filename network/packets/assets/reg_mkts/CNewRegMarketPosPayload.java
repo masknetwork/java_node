@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import wallet.kernel.UTILS;
-import wallet.network.CResult;
 import wallet.network.packets.CPayload;
 import wallet.network.packets.blocks.CBlockPayload;
 import wallet.network.packets.trans.CTransPayload;
@@ -52,20 +51,9 @@ public class CNewRegMarketPosPayload extends CPayload
         // Price
         this.price=price;
         
-        // Load market data
-        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                           + "FROM assets_mkts "
-                                          + "WHERE mktID='"+this.mktID+"'");
-        
-        // Next
-        rs.next();
-        
-        // Decimals
-        long decimals=rs.getLong("decimals");
-         
         // Qty
-        this.qty=UTILS.BASIC.round(qty, (int)decimals);
-                                   
+        this.qty=qty;
+
         // Market days
         this.days=days;
         
@@ -87,9 +75,12 @@ public class CNewRegMarketPosPayload extends CPayload
     
      public void check(CBlockPayload block) throws Exception
      {
-         // Super class
-   	  super.check(block);
-          
+        // Super class
+   	super.check(block);
+        
+        // Market days
+        if (this.days<1)
+           throw new Exception("Invalid days - CNewRegMarketPosPayload.java");
         
         // Check marketID
         ResultSet rs=UTILS.DB.executeQuery("SELECT * "
@@ -102,14 +93,21 @@ public class CNewRegMarketPosPayload extends CPayload
         // Next
         rs.next();
         
+        // Decimals
+        int decimals=(int)rs.getLong("decimals");
+        
+        // Market expire
+        long mkt_expire=rs.getLong("expire")-10;
+        
         // Order expire after market ?
-        long expire=this.block+this.days*1440;
-        if (expire>rs.getLong("expire"))
+        long order_expire=this.block+this.days*1440;
+        
+        if (order_expire>(rs.getLong("expire")))
            throw new Exception("Invalid expiration date - CNewRegMarketPosPayload.java");
         
         // Tip
         if (!this.tip.equals("ID_BUY") && 
-           !this.tip.equals("ID_SELL"))
+            !this.tip.equals("ID_SELL"))
              throw new Exception("Invalid order type- CNewRegMarketPosPayload.java");
         
         // Can spend
@@ -121,14 +119,15 @@ public class CNewRegMarketPosPayload extends CPayload
            throw new Exception("Invalid price - CNewRegMarketPosPayload.java");
         
         // Qty
-        this.qty=UTILS.BASIC.round(qty, (int)rs.getLong("decimals"));
+        this.qty=UTILS.BASIC.round(qty, decimals);
         
+        // Check QTY
         if (this.qty<0.00000001)
            throw new Exception("Invalid qty - CNewRegMarketPosPayload.java");
         
-        // Market days
-        if (this.days<1)
-           throw new Exception("Invalid days - CNewRegMarketPosPayload.java");
+        // Order ID
+        if (UTILS.BASIC.isID(this.orderID))
+           throw new Exception("Invalid orderID - CNewRegMarketPosPayload.java");
         
         // Hash
         String h=UTILS.BASIC.hash(this.getHash()+
@@ -164,11 +163,11 @@ public class CNewRegMarketPosPayload extends CPayload
                 
                 // Buy orders
                 rs=UTILS.DB.executeQuery("SELECT * "
-                                  + "FROM assets_mkts_pos "
-                                 + "WHERE mktID='"+this.mktID+"' "
-                                   + "AND tip='ID_BUY' "
-                                   + "AND price>="+this.price+" "
-                              + "ORDER BY price DESC");
+                                         + "FROM assets_mkts_pos "
+                                        + "WHERE mktID='"+this.mktID+"' "
+                                          + "AND tip='ID_BUY' "
+                                          + "AND price>="+this.price+" "
+                                     + "ORDER BY price DESC");
                 
                // Sold
                double remain=this.qty;
@@ -194,27 +193,21 @@ public class CNewRegMarketPosPayload extends CPayload
                          UTILS.ACC.newTransfer(this.target_adr, 
                                                  rs.getString("adr"),
                                                  qty,
-                                                 true,
                                                  asset, 
-                                                 "New short position on market "+rs.getString("mktID"), 
+                                                 "New buy position on asset market "+rs.getString("mktID"), 
                                                  "", 
                                                  this.hash, 
-                                                 this.block,
-                                                 block,
-                                                 0);
+                                                 this.block);
                       
                          // Receive coins
                          UTILS.ACC.newTrans(this.target_adr,
-                                              "none", 
-                                              qty*rs.getDouble("price"),
-                                              true,
-                                              cur, 
-                                              "New short position on market "+rs.getString("mktID"), 
-                                              "", 
-                                              this.hash, 
-                                              this.block,
-                                              block,
-                                              0);
+                                            "none", 
+                                            qty*rs.getDouble("price"),
+                                            cur, 
+                                            "New sell position on asset market "+rs.getString("mktID"), 
+                                            "", 
+                                            this.hash, 
+                                            this.block);
                          
                          // Remain
                          remain=remain-qty;
@@ -225,16 +218,13 @@ public class CNewRegMarketPosPayload extends CPayload
                 // Put the rest on market
                 if (remain>0)
                 UTILS.ACC.newTrans(this.target_adr,
-                                     "none", 
-                                     -remain,
-                                     true,
-                                     asset, 
-                                     "New short position on market "+this.mktID, 
-                                     "", 
-                                     this.hash, 
-                                     this.block,
-                                     block,
-                                     0);
+                                   "none", 
+                                   -remain,
+                                   asset, 
+                                   "New sell position on asset market "+this.mktID, 
+                                   "", 
+                                   this.hash, 
+                                   this.block);
         }
         else
         {
@@ -244,11 +234,11 @@ public class CNewRegMarketPosPayload extends CPayload
                 
                 // Buy orders
                 rs=UTILS.DB.executeQuery("SELECT * "
-                                  + "FROM assets_mkts_pos "
-                                 + "WHERE mktID='"+this.mktID+"' "
-                                   + "AND tip='ID_SELL' "
-                                   + "AND price<="+this.price+" "
-                              + "ORDER BY price ASC");
+                                         + "FROM assets_mkts_pos "
+                                        + "WHERE mktID='"+this.mktID+"' "
+                                          + "AND tip='ID_SELL' "
+                                          + "AND price<="+this.price+" "
+                                     + "ORDER BY price ASC");
                 
                // Sold
                double remain=this.qty;
@@ -272,29 +262,23 @@ public class CNewRegMarketPosPayload extends CPayload
                           
                          // Transfer currency
                          UTILS.ACC.newTransfer(this.target_adr, 
-                                                 rs.getString("adr"),
-                                                 qty*rs.getDouble("price"),
-                                                 true,
-                                                 cur, 
-                                                 "New long position on market "+rs.getString("mktID"), 
-                                                 "", 
-                                                 this.hash, 
-                                                 this.block,
-                                                 block,
-                                                 0);
+                                               rs.getString("adr"),
+                                               qty*rs.getDouble("price"),
+                                               cur, 
+                                               "New buy position on asset market "+rs.getString("mktID"), 
+                                               "", 
+                                               this.hash, 
+                                               this.block);
                       
                          // Receive assets
                          UTILS.ACC.newTrans(this.target_adr,
                                               "none", 
                                               qty,
-                                              true,
                                               asset, 
-                                              "New long position on market "+rs.getString("mktID"), 
+                                              "New buy position on asset market "+rs.getString("mktID"), 
                                               "", 
                                               this.hash, 
-                                              this.block,
-                                              block,
-                                              0);
+                                              this.block);
                          
                         // Remain
                         remain=remain-qty;
@@ -305,16 +289,13 @@ public class CNewRegMarketPosPayload extends CPayload
                 // Receive coins
                 if (remain>0)
                 UTILS.ACC.newTrans(this.target_adr,
-                                     "none", 
-                                     -remain*this.price,
-                                     true,
-                                     cur, 
-                                     "New long position on market "+this.mktID, 
-                                     "", 
-                                     this.hash, 
-                                     this.block,
-                                     block,
-                                     0);
+                                   "none", 
+                                   -remain*this.price,
+                                   cur, 
+                                   "New buy position on asset market "+this.mktID, 
+                                   "", 
+                                   this.hash, 
+                                   this.block);
             }
             
         
@@ -402,12 +383,12 @@ public class CNewRegMarketPosPayload extends CPayload
                          // Insert order
                          UTILS.DB.executeUpdate("INSERT INTO assets_mkts_trades "
                                                       + "SET mktID='"+this.mktID+"', "
-                                         + "orderID='"+this.orderID+"', "
-                                         + "buyer='"+this.target_adr+"', "
-                                         + "seller='"+rs.getString("adr")+"', "
-                                         + "qty='"+qty+"', "
-                                         + "price='"+rs.getDouble("price")+"', "
-                                         + "block='"+this.block+"'");
+                                                      + "orderID='"+this.orderID+"', "
+                                                      + "buyer='"+this.target_adr+"', "
+                                                      + "seller='"+rs.getString("adr")+"', "
+                                                      + "qty='"+qty+"', "
+                                                      + "price='"+rs.getDouble("price")+"', "
+                                                      + "block='"+this.block+"'");
                       }
                    }
                 }
@@ -460,13 +441,13 @@ public class CNewRegMarketPosPayload extends CPayload
                          
                          // Insert order
                          UTILS.DB.executeUpdate("INSERT INTO assets_mkts_trades "
-                                     + "SET mktID='"+this.mktID+"', "
-                                         + "orderID='"+this.orderID+"', "
-                                         + "buyer='"+this.target_adr+"', "
-                                         + "seller='"+rs.getString("adr")+"', "
-                                         + "qty='"+qty+"', "
-                                         + "price='"+rs.getDouble("price")+"', "
-                                         + "block='"+this.block+"'");
+                                                      + "SET mktID='"+this.mktID+"', "
+                                                          + "orderID='"+this.orderID+"', "
+                                                          + "buyer='"+this.target_adr+"', "
+                                                          + "seller='"+rs.getString("adr")+"', "
+                                                          + "qty='"+qty+"', "
+                                                          + "price='"+rs.getDouble("price")+"', "
+                                                          + "block='"+this.block+"'");
                       }
                    }
                 }
@@ -500,7 +481,7 @@ public class CNewRegMarketPosPayload extends CPayload
                                                  + "mktID='"+this.mktID+"', "
                                                  + "tip='"+this.tip+"', "
                                                  + "qty='"+remain+"', "
-                                                 + "price='"+UTILS.FORMAT_8.format(this.price)+"', "
+                                                 + "price='"+this.price+"', "
                                                  + "orderID='"+this.orderID+"', "
                                                  + "expire='"+(this.block+(this.days*1440))+"', "
                                                  + "block='"+this.block+"'");

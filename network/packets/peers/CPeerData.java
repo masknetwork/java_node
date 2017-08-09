@@ -9,7 +9,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import wallet.kernel.UTILS;
-import wallet.network.CResult;
 
 public class CPeerData implements Serializable
 {
@@ -48,10 +47,9 @@ public class CPeerData implements Serializable
         
           // Insert peer
           if (UTILS.DB.hasData(rs)==false)
-                UTILS.DB.executeUpdate("INSERT INTO peers_pool(peer, "
-                                                 + "port, "
-                                                 + "accept_con) "
-                               + "VALUES('"+this.IP+"', '"
-                                           +this.port+"', 'ID_PENDING')");
+                UTILS.DB.executeUpdate("INSERT INTO peers_pool "
+                                             + "SET peer='"+this.IP+"', "
+                                                 + "port='"+this.port+"', "
+                                                 + "accept_con='ID_PENDING'");
     }
 }

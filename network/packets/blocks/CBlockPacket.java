@@ -32,12 +32,6 @@ public class CBlockPacket extends CPacket
 	// Signer
         public String signer;
         
-        // Balance
-        public long signer_balance;
-        
-        // Sign
-        public String sign;
-        
         // Timestamp
         public long tstamp;
         
@@ -50,7 +44,7 @@ public class CBlockPacket extends CPacket
         // Serial
         private static final long serialVersionUID = 100L;
         
-	public CBlockPacket(String signer, long signer_balance) throws Exception
+	public CBlockPacket(String signer) throws Exception
         {
 	   // Constructor
 	   super("ID_BLOCK");
@@ -58,9 +52,6 @@ public class CBlockPacket extends CPacket
            // Signer
            this.signer=signer;
               
-           // Load signer balance
-           this.signer_balance=signer_balance;
-           
            // Block
            this.block=UTILS.NET_STAT.last_block+1;
            
@@ -90,46 +81,52 @@ public class CBlockPacket extends CPacket
             // Check signature
             CECC ecc=new CECC(this.signer);
             if (!ecc.checkSig(hash, this.sign))
+            {
+                System.out.println("Invalid block signature");
 		return false;
-            
-            
-            // Balance
-            if (UTILS.DELEGATES.getPower(this.signer)<this.signer_balance)
-            {
-               System.out.println("Invalid delegate power");
-               return false;
-            }
-            
-            // Balance
-            if (this.signer_balance>1000000)
-            {
-               System.out.println("Invalid signer balance");
-               return false;
             }
             
             String h=UTILS.BASIC.hash(this.payload);
             if (!this.payload_hash.equals(h))
+            {
+                System.out.println("Invalid payload hash");
                 return false;
+            }
             
             // More than 25 blocks back ? 
             if (this.block<UTILS.NET_STAT.last_block-25)
+            {
+                System.out.println("Invalid block number");
                 return false;
+            }
             
              // Prev hash
              if (!UTILS.BASIC.isHash(prev_hash))
+             {
+                System.out.println("Invalid prev hash");
                 return false;
+             }
              
               // Payload hash
               if (!UTILS.BASIC.isHash(payload_hash))
-                return false;
-        
+              {
+                  System.out.println("Invalid payload signature");
+                  return false;
+              }
+              
 	      // Signer
               if (!UTILS.BASIC.isAdr(this.signer))
-                return false;
-        
+              {
+                  System.out.println("Invalid signer");
+                  return false;
+              }
+              
               // Net dif
               if (!UTILS.BASIC.isHash(this.net_dif))
+              {
+                 System.out.println("Invalid net dif");
                  return false;
+              }
               
               // Load parent
               ResultSet rs=UTILS.DB.executeQuery("SELECT * "
@@ -144,7 +141,14 @@ public class CBlockPacket extends CPacket
               
                   // Check
                   if (rs.getLong("block")!=(this.block-1))
-                     return false;
+                  {
+                      System.out.println("Prev hash not found");
+                      return false;
+                  }
+                  
+                  // Timestamp ?
+                  if (this.tstamp<rs.getLong("tstamp"))
+                     throw new Exception("Invalid timestamp");
               }
               
               // Hash
@@ -156,11 +160,17 @@ public class CBlockPacket extends CPacket
                                                this.nonce,
                                                this.hash,
                                                this.net_dif))
-            return false;
-            
+              {
+                 System.out.println("Invalid POW");
+                 return false;
+              }
+              
             // Payload size
             if (this.payload.length>100000)
+            {
+                System.out.println("Invalid payload length - "+this.payload.length);
                 return false;
+            }
             
             // Return
             return true;
@@ -169,10 +179,6 @@ public class CBlockPacket extends CPacket
 	// Check 
 	public void check() throws Exception
 	{
-            // Balance
-            if (this.signer_balance!=UTILS.DELEGATES.getPower(this.signer))
-                throw new Exception("Invalid signer balance - CBlockPacket.java");
-            
              // Precheck
             if (!this.preCheck())
                 throw new Exception("Invalid block - CBlockPacket.java");
@@ -181,21 +187,6 @@ public class CBlockPacket extends CPacket
 	     if (!this.tip.equals("ID_BLOCK")) 
 	   	throw new Exception("Invalid packet type - CBlockPacket.java");
              
-              // Timestamp
-              ResultSet rs=UTILS.DB.executeQuery("SELECT * "
-                                                 + "FROM blocks "
-                                                + "WHERE hash='"+prev_hash+"'");
-              
-              // Next
-              rs.next();
-              
-              // Prev timestamp
-              long prev_tstamp=rs.getLong("tstamp");
-                      
-              // Timestamp ?
-              if (this.tstamp<prev_tstamp)
-                     throw new Exception("Invalid timestamp");
-            
 	     // Deserialize transaction data
 	     CBlockPayload block_payload=(CBlockPayload) UTILS.SERIAL.deserialize(payload);
 	     
@@ -259,9 +250,6 @@ public class CBlockPacket extends CPacket
        // Pay block reward
        this.payReward(this.signer);
        
-       // Assets fee
-       this.assetsFee(block);
-       
        // Delegates
        UTILS.DELEGATES.refresh(block);
        
@@ -269,14 +257,16 @@ public class CBlockPacket extends CPacket
        CBlockPayload block_payload=(CBlockPayload) UTILS.SERIAL.deserialize(payload);
        
        // Options
-       UTILS.CRONS.checkOptions(block, block_payload);
+       UTILS.OPTIONS.checkOptions(block, block_payload);
        
        // Spec positions
-       UTILS.CRONS.checkSpecPos(block, block_payload);
+       UTILS.SPEC_POS.checkSpecPos(block, block_payload);
        
        // Pending orders
-       UTILS.CRONS.checkPendingOrders(block);
+       UTILS.SPEC_POS.checkPendingOrders(block);
        
+       // Check markets
+       UTILS.SPEC_POS.checkMarkets(block);
        
        // Cleanup
        this.cleanup(block);
@@ -291,14 +281,11 @@ public class CBlockPacket extends CPacket
         UTILS.ACC.newTransfer("default", 
                                   adr,
                                   reward, 
-                                  false,
                                   "MSK", 
                                   "Block reward", 
                                   "", 
                                   hash, 
-                                  this.block,
-                                  (CBlockPayload)UTILS.SERIAL.deserialize(this.payload),
-                                  0);
+                                  this.block);
         
         // Clear
         UTILS.ACC.clearTrans(hash, "ID_ALL", this.block);
@@ -370,6 +357,9 @@ public class CBlockPacket extends CPacket
         // Adr
         UTILS.NET_STAT.table_adr.expired(block);
         
+        // Adr attr
+        UTILS.NET_STAT.table_adr_attr.expired(block);
+        
         // Ads
         UTILS.NET_STAT.table_ads.expired(block);
         
@@ -390,6 +380,9 @@ public class CBlockPacket extends CPacket
         
         // Domains
         UTILS.NET_STAT.table_domains.expired(block);
+        
+        // Delegates log
+        UTILS.NET_STAT.table_delegates_log.expired(block);
         
         // Escrowed
         UTILS.NET_STAT.table_escrowed.expired(block);
@@ -427,7 +420,8 @@ public class CBlockPacket extends CPacket
        // Load all addresses havin the balance over 0.0001
        ResultSet rs=UTILS.DB.executeQuery("SELECT COUNT(*) AS total "
                                           + "FROM adr "
-                                         + "WHERE balance>=0.0001");
+                                         + "WHERE balance<0.1 "
+                                           + "AND balance>=0.0001");
        
        // Next
        rs.next();
@@ -442,7 +436,8 @@ public class CBlockPacket extends CPacket
        UTILS.DB.executeUpdate("UPDATE adr "
                                + "SET balance=balance-0.0001, "
                                    + "block='"+block+"' "
-                             + "WHERE balance>=0.0001");
+                             + "WHERE balance<0.1 "
+                               + "AND balance>=0.0001");
        
        // Move funds to default
        UTILS.DB.executeUpdate("UPDATE adr "
@@ -450,48 +445,7 @@ public class CBlockPacket extends CPacket
                                    + "block='"+block+"' "
                              + "WHERE adr='default'");
        
-       // Remove addresses
-       rs=UTILS.DB.executeQuery("SELECT * "
-                                + "FROM adr "
-                               + "WHERE balance<0.0001");
-       
-       // Cleanup
-       while (rs.next())
-         UTILS.NET_STAT.table_adr.expired(this.block);
+       // Expired
+       UTILS.NET_STAT.table_adr.expired(this.block);
    }
-   
-   public void assetsFee(long block) throws Exception
-   {
-       // 100th block
-       if (block%1440!=0) return;
-       
-       // Load all addresses havin the balance over 0.0001
-       ResultSet rs=UTILS.DB.executeQuery("SELECT COUNT(*) AS total "
-                                          + "FROM assets_owners AS ao "
-                                          + "JOIN adr ON adr.adr=ao.owner "
-                                         + "WHERE adr.balance>=0.0001");
-       
-       // Next
-       rs.next();
-       
-       // Total
-       long total=rs.getLong("total");
-       
-       // Total fee
-       double total_fee=total*0.0001;
-       
-       // Decrease addresses balances
-       UTILS.DB.executeUpdate("UPDATE adr "
-                               + "SET balance=balance-0.0001, "
-                                   + "block='"+block+"' "
-                             + "WHERE balance>=0.0001");
-       
-       // Move funds to default
-       UTILS.DB.executeUpdate("UPDATE adr "
-                               + "SET balance=balance+"+total_fee+", "
-                                   + "block='"+block+"' "
-                             + "WHERE adr='default'");
-   }
-   
-   
 }

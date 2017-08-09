@@ -2,7 +2,6 @@ package wallet.network.packets.adr;
 
 import wallet.kernel.CPackets;
 import wallet.kernel.UTILS;
-import wallet.network.CResult;
 import wallet.network.packets.CBroadcastPacket;
 import wallet.network.packets.blocks.CBlockPayload;
 import wallet.network.packets.trans.CFeePayload;

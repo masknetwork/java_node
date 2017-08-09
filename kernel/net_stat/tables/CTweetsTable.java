@@ -24,23 +24,26 @@ public class CTweetsTable extends CTable
        // Remove
        while (rs.next())
        {
+          // Tweet ID
+          long tweetID=rs.getLong("tweetID");
+           
           // Remove tweet
           UTILS.DB.executeUpdate("DELETE FROM tweets "
-                                     + "WHERE tweetID='"+rs.getLong("tweetID")+"'");
+                                     + "WHERE tweetID='"+tweetID+"'");
         
           // Remove comments
           UTILS.DB.executeUpdate("DELETE FROM comments "
-                                   + "WHERE parent_type='ID_POST' "
-                                     + "AND parentID='"+rs.getLong("tweetID")+"'");
+                                     + "WHERE parent_type='ID_POST' "
+                                       + "AND parentID='"+tweetID+"'");
         
           // Remove upvotes
           UTILS.DB.executeUpdate("DELETE FROM votes "
-                                   + "WHERE target_type='ID_POST' "
-                                     + "AND targetID='"+rs.getLong("tweetID")+"'");
+                                     + "WHERE target_type='ID_POST' "
+                                       + "AND targetID='"+tweetID+"'");
         
           // Remove retweets
           UTILS.DB.executeUpdate("DELETE FROM tweets "
-                                   + "WHERE retweet_tweet_ID='"+rs.getLong("tweetID")+"'");
+                                     + "WHERE retweet_tweet_ID='"+tweetID+"'");
        }
       
     }
@@ -52,7 +55,7 @@ public class CTweetsTable extends CTable
         UTILS.DB.executeUpdate("CREATE TABLE tweets(ID BIGINT AUTO_INCREMENT PRIMARY KEY, "
                                                         +"tweetID BIGINT NOT NULL DEFAULT '0', "
                                                         +"adr VARCHAR(250) NOT NULL DEFAULT '', "
-                                                        +"mes VARCHAR(10000) NOT NULL DEFAULT '', "
+                                                        +"mes VARCHAR(20000) NOT NULL DEFAULT '', "
                                                         +"title VARCHAR(250) NOT NULL DEFAULT '', "
                                                         +"pic VARCHAR(250) NOT NULL DEFAULT '', "
                                                         +"block BIGINT NOT NULL DEFAULT '0', "

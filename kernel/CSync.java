@@ -98,7 +98,7 @@ public class CSync extends Thread
             // Load peers
             ResultSet rs=UTILS.DB.executeQuery("SELECT * "
                                                + "FROM peers "
-                                           + "ORDER BY last_seen DESC");
+                                           + "ORDER BY RAND()");
             
             // Has data
             if (UTILS.DB.hasData(rs))
@@ -216,10 +216,19 @@ public class CSync extends Thread
            else
            {
                long c=0;
+               long start;
                
                // Start
-               long start=UTILS.NET_STAT.last_block;
+               if (UTILS.SETTINGS.sync_start_block==0)
+                    start=UTILS.NET_STAT.last_block;
+               else
+                   start=UTILS.SETTINGS.sync_start_block;
+               
+               // Zero ?
                if (start==0) start=1;
+               
+               // Log info
+               System.out.println("Start syncing from block "+start);
                
                long a=0;
                
@@ -276,7 +285,7 @@ public class CSync extends Thread
             }
             catch (Exception ex) 
        	      {  
-       		UTILS.LOG.log("SQLException", ex.getMessage(), "CSync.java", 57);
+       		System.out.println(ex.getMessage() + " - CSync.java, 288");
               }
 		
 	}
@@ -313,7 +322,8 @@ public class CSync extends Thread
             
             // Frozen on downloading
             UTILS.DB.executeUpdate("UPDATE sync "
-                                    + "SET status='ID_PENDING' "
+                                    + "SET status='ID_PENDING', "
+                                        + "peer='' "
                                   + "WHERE status='ID_DOWNLOADING' "
                                     + "AND tstamp<"+(UTILS.BASIC.tstamp()-30));
             

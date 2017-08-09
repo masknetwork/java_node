@@ -25,6 +25,7 @@ public class CDelegatesTable extends CTable
                                                    + "block BIGINT NOT NULL DEFAULT 0)");
 		   
         UTILS.DB.executeUpdate("CREATE UNIQUE INDEX del_delegate ON delegates(delegate)");
+        UTILS.DB.executeUpdate("CREATE INDEX del_block ON delegates(block)");
     }
     
     

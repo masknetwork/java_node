@@ -3,7 +3,6 @@ package wallet.network.packets.adr;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import wallet.kernel.UTILS;
-import wallet.network.CResult;
 import wallet.network.packets.CPayload;
 import wallet.network.packets.blocks.CBlockPayload;
 
@@ -143,10 +142,6 @@ public class CAddAttrPayload extends CPayload
            !this.attr.equals("ID_TRUST_ASSET"))
         throw new Exception("Invalid attribute - CAddAttrPayload.java");
         
-        // Has attribute ?
-        if (UTILS.BASIC.hasAttr(this.target_adr, this.attr))
-           throw new Exception("Already has this attribute - CAddAttrPayload.java");
-        
         // Days
         if (this.days<1)
             throw new Exception("Invalid days - CAddAttrPayload.java");
@@ -173,6 +168,15 @@ public class CAddAttrPayload extends CPayload
             if (!this.s3.equals(""))
                 if (!UTILS.BASIC.isAdr(this.s3))
                     throw new Exception("Invalid recipient 3 - CAddAttrPayload.java");
+            
+            // Parameters
+            if (this.l1!=0 || 
+                this.l2!=0 || 
+                this.l3!=0 || 
+                this.d1!=0 || 
+                this.d2!=0 || 
+                this.d3!=0)
+            throw new Exception("Invalid parameters - CAddAttrPayload.java");
         }
         
         // Trust asset
@@ -180,7 +184,39 @@ public class CAddAttrPayload extends CPayload
         {
             if (!UTILS.BASIC.isAsset(this.s1))
                 throw new Exception("Invalid asset - CAddAttrPayload.java");
+            
+            if (!this.s2.equals("") || 
+                !this.s3.equals(""))
+            throw new Exception("Invalid parameters - CAddAttrPayload.java");
+            
+            // Parameters
+            if (this.l1!=0 || 
+                this.l2!=0 || 
+                this.l3!=0 || 
+                this.d1!=0 || 
+                this.d2!=0 || 
+                this.d3!=0)
+            throw new Exception("Invalid parameters - CAddAttrPayload.java");
         }
+        
+        // Has attribute ?
+        ResultSet rs=UTILS.DB.executeQuery("SELECT * "
+                                           + "FROM adr_attr "
+                                          + "WHERE adr='"+this.target_adr+"' "
+                                            + "AND attr='"+this.attr+"' "
+                                            + "AND s1='"+this.s1+"' "
+                                            + "AND s2='"+this.s2+"' "
+                                            + "AND s3='"+this.s3+"' "
+                                            + "AND l1='"+this.l1+"' "
+                                            + "AND l2='"+this.l2+"' "
+                                            + "AND l3='"+this.l3+"' "
+                                            + "AND d1='"+this.d1+"' "
+                                            + "AND d2='"+this.d2+"' "
+                                            + "AND d3='"+this.d3+"'");
+        
+        // Has data ?
+        if (UTILS.DB.hasData(rs))
+            throw new Exception("Address has the attribute - CAddAttrPayload.java");
         
         // Hash
         String h=UTILS.BASIC.hash(this.getHash()+

@@ -10,7 +10,7 @@ public class CPing extends CPacket
     long local_time;
     
     // Software version
-    String ver;
+    long ver;
     
     public CPing() throws Exception
     {
@@ -24,14 +24,18 @@ public class CPing extends CPacket
        this.ver=UTILS.STATUS.version;
        
        // Hash
-       this.hash=UTILS.BASIC.hash(this.local_time+this.ver+UTILS.BASIC.mtstamp());
+       this.hash=UTILS.BASIC.hash(this.hash()+this.ver);
     }
     
     public void check(CPeer sender) throws Exception
     {
+        // Sender
+        if (!UTILS.BASIC.isIP(sender.adr))
+            throw new Exception("Invalid sender");
+        
         // Update
         UTILS.DB.executeUpdate("UPDATE peers "
-                                + "SET tstamp='"+this.tstamp+"', "
+                                + "SET last_seen='"+this.tstamp+"', "
                                     + "ver='"+this.ver+"' "
                               + "WHERE peer='"+sender.adr+"'");
     }
